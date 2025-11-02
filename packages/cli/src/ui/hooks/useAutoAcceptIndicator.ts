@@ -4,16 +4,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ApprovalMode, type Config } from '@qwen-code/qwen-code-core';
+import {
+  type ApprovalMode,
+  APPROVAL_MODES,
+  type Config,
+} from '@qwen-code/qwen-code-core';
 import { useEffect, useState } from 'react';
 import { useKeypress } from './useKeypress.js';
+import type { HistoryItemWithoutId } from '../types.js';
+import { MessageType } from '../types.js';
 
 export interface UseAutoAcceptIndicatorArgs {
   config: Config;
+  addItem?: (item: HistoryItemWithoutId, timestamp: number) => void;
+  onApprovalModeChange?: (mode: ApprovalMode) => void;
 }
 
 export function useAutoAcceptIndicator({
   config,
+  addItem,
+  onApprovalModeChange,
 }: UseAutoAcceptIndicatorArgs): ApprovalMode {
   const currentConfigValue = config.getApprovalMode();
   const [showAutoAcceptIndicator, setShowAutoAcceptIndicator] =
@@ -25,24 +35,30 @@ export function useAutoAcceptIndicator({
 
   useKeypress(
     (key) => {
-      let nextApprovalMode: ApprovalMode | undefined;
+      // Handle Shift+Tab to cycle through all modes
+      if (key.shift && key.name === 'tab') {
+        const currentMode = config.getApprovalMode();
+        const currentIndex = APPROVAL_MODES.indexOf(currentMode);
+        const nextIndex =
+          currentIndex === -1 ? 0 : (currentIndex + 1) % APPROVAL_MODES.length;
+        const nextApprovalMode = APPROVAL_MODES[nextIndex];
 
-      if (key.ctrl && key.name === 'y') {
-        nextApprovalMode =
-          config.getApprovalMode() === ApprovalMode.YOLO
-            ? ApprovalMode.DEFAULT
-            : ApprovalMode.YOLO;
-      } else if (key.shift && key.name === 'tab') {
-        nextApprovalMode =
-          config.getApprovalMode() === ApprovalMode.AUTO_EDIT
-            ? ApprovalMode.DEFAULT
-            : ApprovalMode.AUTO_EDIT;
-      }
+        try {
+          config.setApprovalMode(nextApprovalMode);
+          // Update local state immediately for responsiveness
+          setShowAutoAcceptIndicator(nextApprovalMode);
 
-      if (nextApprovalMode) {
-        config.setApprovalMode(nextApprovalMode);
-        // Update local state immediately for responsiveness
-        setShowAutoAcceptIndicator(nextApprovalMode);
+          // Notify the central handler about the approval mode change
+          onApprovalModeChange?.(nextApprovalMode);
+        } catch (e) {
+          addItem?.(
+            {
+              type: MessageType.INFO,
+              text: (e as Error).message,
+            },
+            Date.now(),
+          );
+        }
       }
     },
     { isActive: true },

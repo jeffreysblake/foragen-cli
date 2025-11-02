@@ -15,7 +15,7 @@ import { MessageType } from '../types.js';
 import { GIT_COMMIT_INFO } from '../../generated/git-commit.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
 import { getCliVersion } from '../../utils/version.js';
-import { sessionId } from '@qwen-code/qwen-code-core';
+import { IdeClient, AuthType } from '@qwen-code/qwen-code-core';
 
 export const bugCommand: SlashCommand = {
   name: 'bug',
@@ -37,17 +37,25 @@ export const bugCommand: SlashCommand = {
     const modelVersion = config?.getModel() || 'Unknown';
     const cliVersion = await getCliVersion();
     const memoryUsage = formatMemoryUsage(process.memoryUsage().rss);
-    const ideClient =
-      (context.services.config?.getIdeMode() &&
-        context.services.config?.getIdeClient()?.getDetectedIdeDisplayName()) ||
-      '';
+    const ideClient = await getIdeClientName(context);
+    const selectedAuthType =
+      context.services.settings.merged.security?.auth?.selectedType || '';
+    const baseUrl =
+      selectedAuthType === AuthType.USE_OPENAI
+        ? config?.getContentGeneratorConfig()?.baseUrl
+        : undefined;
 
     let info = `
 * **CLI Version:** ${cliVersion}
 * **Git Commit:** ${GIT_COMMIT_INFO}
-* **Session ID:** ${sessionId}
+* **Session ID:** ${config?.getSessionId() || 'unknown'}
 * **Operating System:** ${osVersion}
 * **Sandbox Environment:** ${sandboxEnv}
+* **Auth Type:** ${selectedAuthType}`;
+    if (baseUrl) {
+      info += `\n* **Base URL:** ${baseUrl}`;
+    }
+    info += `
 * **Model Version:** ${modelVersion}
 * **Memory Usage:** ${memoryUsage}
 `;
@@ -90,3 +98,11 @@ export const bugCommand: SlashCommand = {
     }
   },
 };
+
+async function getIdeClientName(context: CommandContext) {
+  if (!context.services.config?.getIdeMode()) {
+    return '';
+  }
+  const ideClient = await IdeClient.getInstance();
+  return ideClient.getDetectedIdeDisplayName() ?? '';
+}

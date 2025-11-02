@@ -5,12 +5,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import fsPromises from 'fs/promises';
-import * as nodePath from 'path';
-import * as os from 'os';
+import fsPromises from 'node:fs/promises';
+import * as nodePath from 'node:path';
+import * as os from 'node:os';
 import { getFolderStructure } from './getFolderStructure.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
-import * as path from 'path';
+import * as path from 'node:path';
 
 describe('getFolderStructure', () => {
   let testRootDir: string;
@@ -282,7 +282,7 @@ ${testRootDir}${path.sep}
       const structure = await getFolderStructure(testRootDir, {
         fileService,
         fileFilteringOptions: {
-          respectGeminiIgnore: false,
+          respectQwenIgnore: false,
           respectGitIgnore: false,
         },
       });
@@ -292,10 +292,10 @@ ${testRootDir}${path.sep}
     });
   });
 
-  describe('with geminiignore', () => {
-    it('should ignore geminiignore files by default', async () => {
+  describe('with qwenignore', () => {
+    it('should ignore qwenignore files by default', async () => {
       await fsPromises.writeFile(
-        nodePath.join(testRootDir, '.geminiignore'),
+        nodePath.join(testRootDir, '.qwenignore'),
         'ignored.txt\nnode_modules/\n.gemini/\n!/.gemini/config.yaml',
       );
       await createTestFile('file1.txt');
@@ -313,9 +313,9 @@ ${testRootDir}${path.sep}
       expect(structure).not.toContain('logs.json');
     });
 
-    it('should not ignore files if respectGeminiIgnore is false', async () => {
+    it('should not ignore files if respectQwenIgnore is false', async () => {
       await fsPromises.writeFile(
-        nodePath.join(testRootDir, '.geminiignore'),
+        nodePath.join(testRootDir, '.qwenignore'),
         'ignored.txt\nnode_modules/\n.gemini/\n!/.gemini/config.yaml',
       );
       await createTestFile('file1.txt');
@@ -328,7 +328,7 @@ ${testRootDir}${path.sep}
       const structure = await getFolderStructure(testRootDir, {
         fileService,
         fileFilteringOptions: {
-          respectGeminiIgnore: false,
+          respectQwenIgnore: false,
           respectGitIgnore: true, // Explicitly disable gemini ignore only
         },
       });

@@ -101,6 +101,24 @@
       "env": {
         "GEMINI_SANDBOX": "false"
       }
+    },
+    {
+      "name": "Attach by Process ID",
+      "processId": "${command:PickProcess}",
+      "request": "attach",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Current TS File",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "${file}"],
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {}
     }
   ],
   "inputs": [
@@ -115,6 +133,12 @@
       "type": "promptString",
       "description": "Enter your prompt for non-interactive mode",
       "default": "Explain this code"
+    },
+    {
+      "id": "debugPort",
+      "type": "promptString",
+      "description": "Enter the debug port number (default: 9229)",
+      "default": "9229"
     }
   ]
 }

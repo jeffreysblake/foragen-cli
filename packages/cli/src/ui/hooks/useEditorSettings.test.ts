@@ -16,7 +16,8 @@ import {
 import { act } from 'react';
 import { renderHook } from '@testing-library/react';
 import { useEditorSettings } from './useEditorSettings.js';
-import { LoadedSettings, SettingScope } from '../../config/settings.js';
+import type { LoadedSettings } from '../../config/settings.js';
+import { SettingScope } from '../../config/settings.js';
 import { MessageType, type HistoryItem } from '../types.js';
 import {
   type EditorType,
@@ -108,7 +109,7 @@ describe('useEditorSettings', () => {
 
     expect(mockLoadedSettings.setValue).toHaveBeenCalledWith(
       scope,
-      'preferredEditor',
+      'general.preferredEditor',
       editorType,
     );
 
@@ -138,7 +139,7 @@ describe('useEditorSettings', () => {
 
     expect(mockLoadedSettings.setValue).toHaveBeenCalledWith(
       scope,
-      'preferredEditor',
+      'general.preferredEditor',
       undefined,
     );
 
@@ -169,7 +170,7 @@ describe('useEditorSettings', () => {
 
       expect(mockLoadedSettings.setValue).toHaveBeenCalledWith(
         scope,
-        'preferredEditor',
+        'general.preferredEditor',
         editorType,
       );
 
@@ -198,7 +199,7 @@ describe('useEditorSettings', () => {
 
       expect(mockLoadedSettings.setValue).toHaveBeenCalledWith(
         scope,
-        'preferredEditor',
+        'general.preferredEditor',
         editorType,
       );
 

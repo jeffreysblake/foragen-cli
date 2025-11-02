@@ -5,10 +5,18 @@
  */
 
 import { render } from 'ink-testing-library';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OpenAIKeyPrompt } from './OpenAIKeyPrompt.js';
 
+// Mock useKeypress hook
+vi.mock('../hooks/useKeypress.js', () => ({
+  useKeypress: vi.fn(),
+}));
+
 describe('OpenAIKeyPrompt', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   it('should render the prompt correctly', () => {
     const onSubmit = vi.fn();
     const onCancel = vi.fn();
@@ -18,7 +26,9 @@ describe('OpenAIKeyPrompt', () => {
     );
 
     expect(lastFrame()).toContain('OpenAI Configuration Required');
-    expect(lastFrame()).toContain('https://platform.openai.com/api-keys');
+    expect(lastFrame()).toContain(
+      'https://bailian.console.aliyun.com/?tab=model#/api-key',
+    );
     expect(lastFrame()).toContain(
       'Press Enter to continue, Tab/↑↓ to navigate, Esc to cancel',
     );

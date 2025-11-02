@@ -20,34 +20,80 @@ export {
   isTelemetrySdkInitialized,
 } from './sdk.js';
 export {
+  resolveTelemetrySettings,
+  parseBooleanEnvFlag,
+  parseTelemetryTargetValue,
+} from './config.js';
+export {
   logCliConfiguration,
   logUserPrompt,
   logToolCall,
   logApiRequest,
   logApiError,
+  logApiCancel,
   logApiResponse,
   logFlashFallback,
   logSlashCommand,
+  logConversationFinishedEvent,
   logKittySequenceOverflow,
   logChatCompression,
+  logToolOutputTruncated,
+  logExtensionEnable,
+  logExtensionInstallEvent,
+  logExtensionUninstall,
+  logRipgrepFallback,
+  logNextSpeakerCheck,
 } from './loggers.js';
+export type { SlashCommandEvent, ChatCompressionEvent } from './types.js';
 export {
-  StartSessionEvent,
+  SlashCommandStatus,
   EndSessionEvent,
   UserPromptEvent,
-  ToolCallEvent,
   ApiRequestEvent,
   ApiErrorEvent,
   ApiResponseEvent,
-  TelemetryEvent,
+  ApiCancelEvent,
   FlashFallbackEvent,
+  StartSessionEvent,
+  ToolCallEvent,
+  ConversationFinishedEvent,
   KittySequenceOverflowEvent,
-  SlashCommandEvent,
-  makeSlashCommandEvent,
-  SlashCommandStatus,
-  ChatCompressionEvent,
-  makeChatCompressionEvent,
+  ToolOutputTruncatedEvent,
+  RipgrepFallbackEvent,
+  NextSpeakerCheckEvent,
 } from './types.js';
+export { makeSlashCommandEvent, makeChatCompressionEvent } from './types.js';
+export type { TelemetryEvent } from './types.js';
 export { SpanStatusCode, ValueType } from '@opentelemetry/api';
 export { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 export * from './uiTelemetry.js';
+export {
+  // Core metrics functions
+  recordToolCallMetrics,
+  recordTokenUsageMetrics,
+  recordApiResponseMetrics,
+  recordApiErrorMetrics,
+  recordFileOperationMetric,
+  recordInvalidChunk,
+  recordContentRetry,
+  recordContentRetryFailure,
+  // Performance monitoring functions
+  recordStartupPerformance,
+  recordMemoryUsage,
+  recordCpuUsage,
+  recordToolQueueDepth,
+  recordToolExecutionBreakdown,
+  recordTokenEfficiency,
+  recordApiRequestBreakdown,
+  recordPerformanceScore,
+  recordPerformanceRegression,
+  recordBaselineComparison,
+  isPerformanceMonitoringActive,
+  // Performance monitoring types
+  PerformanceMetricType,
+  MemoryMetricType,
+  ToolExecutionPhase,
+  ApiRequestPhase,
+  FileOperation,
+} from './metrics.js';
+export { QwenLogger } from './qwen-logger/qwen-logger.js';

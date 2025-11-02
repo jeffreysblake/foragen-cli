@@ -5,9 +5,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fsPromises from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+import * as fsPromises from 'node:fs/promises';
+import * as path from 'node:path';
+import * as os from 'node:os';
 import { bfsFileSearch } from './bfsFileSearch.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 
@@ -130,15 +130,15 @@ describe('bfsFileSearch', () => {
         fileService,
         fileFilteringOptions: {
           respectGitIgnore: true,
-          respectGeminiIgnore: true,
+          respectQwenIgnore: true,
         },
       });
 
       expect(result).toEqual([targetFilePath]);
     });
 
-    it('should ignore geminiignored files', async () => {
-      await createTestFile('node_modules/', 'project', '.geminiignore');
+    it('should ignore qwenignored files', async () => {
+      await createTestFile('node_modules/', 'project', '.qwenignore');
       await createTestFile('content', 'project', 'node_modules', 'target.txt');
       const targetFilePath = await createTestFile(
         'content',
@@ -153,7 +153,7 @@ describe('bfsFileSearch', () => {
         fileService,
         fileFilteringOptions: {
           respectGitIgnore: false,
-          respectGeminiIgnore: true,
+          respectQwenIgnore: true,
         },
       });
 
@@ -182,7 +182,7 @@ describe('bfsFileSearch', () => {
         fileService,
         fileFilteringOptions: {
           respectGitIgnore: false,
-          respectGeminiIgnore: false,
+          respectQwenIgnore: false,
         },
       });
 

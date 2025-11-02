@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Config, ConfigParameters } from '../config/config.js';
+import type { ConfigParameters } from '../config/config.js';
+import { Config } from '../config/config.js';
 
 /**
  * Default parameters used for {@link FAKE_CONFIG}
@@ -14,7 +15,7 @@ export const DEFAULT_CONFIG_PARAMETERS: ConfigParameters = {
   debugMode: false,
   sessionId: 'test-session-id',
   proxy: undefined,
-  model: 'gemini-9001-super-duper',
+  model: 'qwen-9001-super-duper',
   targetDir: '/',
   cwd: '/',
 };

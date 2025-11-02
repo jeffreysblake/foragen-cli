@@ -4,205 +4,176 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Config, ToolCallRequestInfo } from '@qwen-code/qwen-code-core';
+import { isSlashCommand } from './ui/utils/commandUtils.js';
+import type { LoadedSettings } from './config/settings.js';
 import {
-  Config,
-  ToolCallRequestInfo,
   executeToolCall,
   shutdownTelemetry,
   isTelemetrySdkInitialized,
-  parseAndFormatApiError,
-  GeminiEventType as ServerGeminiEventType,
+  GeminiEventType,
+  FatalInputError,
+  promptIdContext,
+  OutputFormat,
+  JsonFormatter,
+  uiTelemetryService,
 } from '@qwen-code/qwen-code-core';
-import { Part, FunctionCall } from '@google/genai';
 
+import type { Content, Part } from '@google/genai';
+
+import { handleSlashCommand } from './nonInteractiveCliCommands.js';
 import { ConsolePatcher } from './ui/utils/ConsolePatcher.js';
+import { handleAtCommand } from './ui/hooks/atCommandProcessor.js';
+import {
+  handleError,
+  handleToolError,
+  handleCancellationError,
+  handleMaxTurnsExceededError,
+} from './utils/errors.js';
 
 export async function runNonInteractive(
   config: Config,
+  settings: LoadedSettings,
   input: string,
   prompt_id: string,
 ): Promise<void> {
-  const consolePatcher = new ConsolePatcher({
-    stderr: true,
-    debugMode: config.getDebugMode(),
-  });
-
-  try {
-    consolePatcher.patch();
-    // Handle EPIPE errors when the output is piped to a command that closes early.
-    process.stdout.on('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EPIPE') {
-        // Exit gracefully if the pipe is closed.
-        process.exit(0);
-      }
+  return promptIdContext.run(prompt_id, async () => {
+    const consolePatcher = new ConsolePatcher({
+      stderr: true,
+      debugMode: config.getDebugMode(),
     });
 
-    const geminiClient = config.getGeminiClient();
+    try {
+      consolePatcher.patch();
+      // Handle EPIPE errors when the output is piped to a command that closes early.
+      process.stdout.on('error', (err: NodeJS.ErrnoException) => {
+        if (err.code === 'EPIPE') {
+          // Exit gracefully if the pipe is closed.
+          process.exit(0);
+        }
+      });
 
-    const abortController = new AbortController();
+      const geminiClient = config.getGeminiClient();
 
-    let currentRequest: Part[] = [{ text: input }]; // Start with the initial input
-    let turnCount = 0;
+      const abortController = new AbortController();
 
-    while (true) {
-      turnCount++;
+      let query: Part[] | undefined;
 
-      if (
-        config.getMaxSessionTurns() >= 0 &&
-        turnCount > config.getMaxSessionTurns()
-      ) {
-        console.error(
-          '\n Reached max session turns for this session. Increase the number of turns by specifying maxSessionTurns in settings.json.',
+      if (isSlashCommand(input)) {
+        const slashCommandResult = await handleSlashCommand(
+          input,
+          abortController,
+          config,
+          settings,
         );
-        return;
+        // If a slash command is found and returns a prompt, use it.
+        // Otherwise, slashCommandResult fall through to the default prompt
+        // handling.
+        if (slashCommandResult) {
+          query = slashCommandResult as Part[];
+        }
       }
 
-      const functionCalls: FunctionCall[] = [];
+      if (!query) {
+        const { processedQuery, shouldProceed } = await handleAtCommand({
+          query: input,
+          config,
+          addItem: (_item, _timestamp) => 0,
+          onDebugMessage: () => {},
+          messageId: Date.now(),
+          signal: abortController.signal,
+        });
 
-      // Use GeminiClient's sendMessageStream which includes loop detection
-      const responseStream = geminiClient.sendMessageStream(
-        currentRequest,
-        abortController.signal,
-        prompt_id,
-      );
+        if (!shouldProceed || !processedQuery) {
+          // An error occurred during @include processing (e.g., file not found).
+          // The error message is already logged by handleAtCommand.
+          throw new FatalInputError(
+            'Exiting due to an error processing the @ command.',
+          );
+        }
+        query = processedQuery as Part[];
+      }
 
-      for await (const event of responseStream) {
-        if (abortController.signal.aborted) {
-          console.error('Operation cancelled.');
-          return;
+      let currentMessages: Content[] = [{ role: 'user', parts: query }];
+
+      let turnCount = 0;
+      while (true) {
+        turnCount++;
+        if (
+          config.getMaxSessionTurns() >= 0 &&
+          turnCount > config.getMaxSessionTurns()
+        ) {
+          handleMaxTurnsExceededError(config);
+        }
+        const toolCallRequests: ToolCallRequestInfo[] = [];
+
+        const responseStream = geminiClient.sendMessageStream(
+          currentMessages[0]?.parts || [],
+          abortController.signal,
+          prompt_id,
+        );
+
+        let responseText = '';
+        for await (const event of responseStream) {
+          if (abortController.signal.aborted) {
+            handleCancellationError(config);
+          }
+
+          if (event.type === GeminiEventType.Content) {
+            if (config.getOutputFormat() === OutputFormat.JSON) {
+              responseText += event.value;
+            } else {
+              process.stdout.write(event.value);
+            }
+          } else if (event.type === GeminiEventType.ToolCallRequest) {
+            toolCallRequests.push(event.value);
+          }
         }
 
-        switch (event.type) {
-          case ServerGeminiEventType.Content:
-            process.stdout.write(event.value);
+        if (toolCallRequests.length > 0) {
+          const toolResponseParts: Part[] = [];
+          for (const requestInfo of toolCallRequests) {
+            const toolResponse = await executeToolCall(
+              config,
+              requestInfo,
+              abortController.signal,
+            );
 
-            // Debug: Log content to check loop detection
-            if (config.getDebugMode()) {
-              console.error(
-                `[DEBUG] Content chunk: "${event.value.substring(0, 50)}${event.value.length > 50 ? '...' : ''}"`,
+            if (toolResponse.error) {
+              handleToolError(
+                requestInfo.name,
+                toolResponse.error,
+                config,
+                toolResponse.errorType || 'TOOL_EXECUTION_ERROR',
+                typeof toolResponse.resultDisplay === 'string'
+                  ? toolResponse.resultDisplay
+                  : undefined,
               );
             }
-            break;
-          case ServerGeminiEventType.ToolCallRequest:
-            functionCalls.push({
-              id: event.value.callId,
-              name: event.value.name,
-              args: event.value.args,
-            } as FunctionCall);
-            break;
-          case ServerGeminiEventType.LoopDetected:
-            console.error(
-              '\n🔄 Loop detected! The model appears to be repeating itself. Stopping to prevent infinite loops.',
-            );
-            console.error('\nLoop Recovery Tips:');
-            console.error(
-              '• Try rephrasing your request with more specific instructions',
-            );
-            console.error(
-              '• Break down complex tasks into smaller, more specific steps',
-            );
-            console.error('• Provide additional context or constraints');
-            console.error(
-              '• Consider using a different approach to solve the problem',
-            );
-            return;
-          case ServerGeminiEventType.MaxSessionTurns:
-            console.error(
-              '\n Reached max session turns for this session. Increase the number of turns by specifying maxSessionTurns in settings.json.',
-            );
-            return;
-          case ServerGeminiEventType.SessionTokenLimitExceeded:
-            console.error(
-              '\n Session token limit exceeded. Please start a new session or increase the sessionTokenLimit in settings.json.',
-            );
-            return;
-          case ServerGeminiEventType.UserCancelled:
-            console.error('Operation cancelled.');
-            return;
-          case ServerGeminiEventType.Error:
-            console.error(`\nError: ${event.value.error.message}`);
-            return;
-          case ServerGeminiEventType.Finished:
-            // Continue processing - this just indicates the current response is complete
-            break;
-          default:
-            // Ignore other event types (Thought, ChatCompressed, etc.)
-            break;
-        }
-      }
 
-      if (functionCalls.length > 0) {
-        const toolResponseParts: Part[] = [];
-
-        for (const fc of functionCalls) {
-          const callId = fc.id ?? `${fc.name}-${Date.now()}`;
-          const requestInfo: ToolCallRequestInfo = {
-            callId,
-            name: fc.name as string,
-            args: (fc.args ?? {}) as Record<string, unknown>,
-            isClientInitiated: false,
-            prompt_id,
-          };
-
-          const toolResponse = await executeToolCall(
-            config,
-            requestInfo,
-            abortController.signal,
-          );
-
-          if (toolResponse.error) {
-            console.error(
-              `Error executing tool ${fc.name}: ${toolResponse.resultDisplay || toolResponse.error.message}`,
-            );
-          }
-
-          if (toolResponse.responseParts) {
-            const parts = Array.isArray(toolResponse.responseParts)
-              ? toolResponse.responseParts
-              : [toolResponse.responseParts];
-            for (const part of parts) {
-              if (typeof part === 'string') {
-                toolResponseParts.push({ text: part });
-              } else if (part) {
-                toolResponseParts.push(part);
-              }
+            if (toolResponse.responseParts) {
+              toolResponseParts.push(...toolResponse.responseParts);
             }
           }
+          currentMessages = [{ role: 'user', parts: toolResponseParts }];
+        } else {
+          if (config.getOutputFormat() === OutputFormat.JSON) {
+            const formatter = new JsonFormatter();
+            const stats = uiTelemetryService.getMetrics();
+            process.stdout.write(formatter.format(responseText, stats));
+          } else {
+            process.stdout.write('\n'); // Ensure a final newline
+          }
+          return;
         }
-
-        // Set the next request to be the tool responses
-        currentRequest = toolResponseParts.filter((part): part is Part => {
-          // Keep text parts that are non-empty
-          if (
-            part.text &&
-            typeof part.text === 'string' &&
-            part.text.length > 0
-          ) {
-            return true;
-          }
-          // Keep function response parts (for error handling)
-          if ('functionResponse' in part && part.functionResponse) {
-            return true;
-          }
-          return false;
-        });
-      } else {
-        process.stdout.write('\n'); // Ensure a final newline
-        return;
+      }
+    } catch (error) {
+      handleError(error, config);
+    } finally {
+      consolePatcher.cleanup();
+      if (isTelemetrySdkInitialized()) {
+        await shutdownTelemetry(config);
       }
     }
-  } catch (error) {
-    console.error(
-      parseAndFormatApiError(
-        error,
-        config.getContentGeneratorConfig()?.authType,
-      ),
-    );
-    process.exit(1);
-  } finally {
-    consolePatcher.cleanup();
-    if (isTelemetrySdkInitialized()) {
-      await shutdownTelemetry(config);
-    }
-  }
+  });
 }

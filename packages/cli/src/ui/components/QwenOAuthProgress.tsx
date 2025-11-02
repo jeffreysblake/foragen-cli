@@ -4,13 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Box, Text, useInput } from 'ink';
+import type React from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Box, Text } from 'ink';
 import Spinner from 'ink-spinner';
 import Link from 'ink-link';
 import qrcode from 'qrcode-terminal';
 import { Colors } from '../colors.js';
-import { DeviceAuthorizationInfo } from '../hooks/useQwenAuth.js';
+import type { DeviceAuthorizationInfo } from '../hooks/useQwenAuth.js';
+import { useKeypress } from '../hooks/useKeypress.js';
 
 interface QwenOAuthProgressProps {
   onTimeout: () => void;
@@ -109,7 +111,7 @@ function StatusDisplay({
         <Text color={Colors.Gray}>
           Time remaining: {formatTime(timeRemaining)}
         </Text>
-        <Text color={Colors.AccentPurple}>(Press ESC to cancel)</Text>
+        <Text color={Colors.AccentPurple}>(Press ESC or CTRL+C to cancel)</Text>
       </Box>
     </Box>
   );
@@ -127,14 +129,17 @@ export function QwenOAuthProgress({
   const [dots, setDots] = useState<string>('');
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
 
-  useInput((input, key) => {
-    if (authStatus === 'timeout') {
-      // Any key press in timeout state should trigger cancel to return to auth dialog
-      onCancel();
-    } else if (key.escape) {
-      onCancel();
-    }
-  });
+  useKeypress(
+    (key) => {
+      if (authStatus === 'timeout') {
+        // Any key press in timeout state should trigger cancel to return to auth dialog
+        onCancel();
+      } else if (key.name === 'escape' || (key.ctrl && key.name === 'c')) {
+        onCancel();
+      }
+    },
+    { isActive: true },
+  );
 
   // Generate QR code once when device auth is available
   useEffect(() => {
@@ -249,7 +254,9 @@ export function QwenOAuthProgress({
             Time remaining: {Math.floor(timeRemaining / 60)}:
             {(timeRemaining % 60).toString().padStart(2, '0')}
           </Text>
-          <Text color={Colors.AccentPurple}>(Press ESC to cancel)</Text>
+          <Text color={Colors.AccentPurple}>
+            (Press ESC or CTRL+C to cancel)
+          </Text>
         </Box>
       </Box>
     );

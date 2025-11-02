@@ -6,6 +6,8 @@
 
 // Export config
 export * from './config/config.js';
+export * from './output/types.js';
+export * from './output/json-formatter.js';
 
 // Export Core Logic
 export * from './core/client.js';
@@ -19,6 +21,8 @@ export * from './core/turn.js';
 export * from './core/geminiRequest.js';
 export * from './core/coreToolScheduler.js';
 export * from './core/nonInteractiveToolExecutor.js';
+
+export * from './fallback/types.js';
 
 export * from './code_assist/codeAssist.js';
 export * from './code_assist/oauth2.js';
@@ -39,11 +43,21 @@ export * from './utils/quotaErrorDetection.js';
 export * from './utils/fileUtils.js';
 export * from './utils/retry.js';
 export * from './utils/shell-utils.js';
+export * from './utils/terminalSerializer.js';
 export * from './utils/systemEncoding.js';
 export * from './utils/textUtils.js';
 export * from './utils/formatters.js';
+export * from './utils/generateContentResponseUtilities.js';
+export * from './utils/ripgrepUtils.js';
 export * from './utils/filesearch/fileSearch.js';
 export * from './utils/errorParsing.js';
+export * from './utils/workspaceContext.js';
+export * from './utils/ignorePatterns.js';
+export * from './utils/partUtils.js';
+export * from './utils/subagentGenerator.js';
+export * from './utils/projectSummary.js';
+export * from './utils/promptIdContext.js';
+export * from './utils/thoughtUtils.js';
 
 // Export services
 export * from './services/fileDiscoveryService.js';
@@ -55,9 +69,9 @@ export * from './services/fileSystemService.js';
 export * from './ide/ide-client.js';
 export * from './ide/ideContext.js';
 export * from './ide/ide-installer.js';
+export { IDE_DEFINITIONS, type IdeInfo } from './ide/detect-ide.js';
 export * from './ide/constants.js';
-export { getIdeInfo, DetectedIde, IdeInfo } from './ide/detect-ide.js';
-export * from './ide/constants.js';
+export * from './ide/types.js';
 
 // Export Shell Execution Service
 export * from './services/shellExecutionService.js';
@@ -67,6 +81,9 @@ export * from './tools/tools.js';
 export * from './tools/tool-error.js';
 export * from './tools/tool-registry.js';
 
+// Export subagents (Phase 1)
+export * from './subagents/index.js';
+
 // Export prompt logic
 export * from './prompts/mcp-prompts.js';
 
@@ -74,6 +91,7 @@ export * from './prompts/mcp-prompts.js';
 export * from './tools/read-file.js';
 export * from './tools/ls.js';
 export * from './tools/grep.js';
+export * from './tools/ripGrep.js';
 export * from './tools/glob.js';
 export * from './tools/edit.js';
 export * from './tools/write-file.js';
@@ -87,11 +105,11 @@ export * from './tools/mcp-tool.js';
 
 // MCP OAuth
 export { MCPOAuthProvider } from './mcp/oauth-provider.js';
-export {
-  MCPOAuthToken,
-  MCPOAuthCredentials,
-  MCPOAuthTokenStorage,
-} from './mcp/oauth-token-storage.js';
+export type {
+  OAuthToken,
+  OAuthCredentials,
+} from './mcp/token-storage/types.js';
+export { MCPOAuthTokenStorage } from './mcp/oauth-token-storage.js';
 export type { MCPOAuthConfig } from './mcp/oauth-provider.js';
 export type {
   OAuthAuthorizationServerMetadata,
@@ -105,3 +123,7 @@ export { sessionId } from './utils/session.js';
 export * from './utils/browser.js';
 // OpenAI Logging Utilities
 export { OpenAILogger, openaiLogger } from './utils/openaiLogger.js';
+export { Storage } from './config/storage.js';
+
+// Export test utils
+export * from './test-utils/index.js';

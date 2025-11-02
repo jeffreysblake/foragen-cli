@@ -11,21 +11,27 @@ import {
   getCommandRoots,
   getShellConfiguration,
   isCommandAllowed,
+  isCommandNeedsPermission,
   stripShellWrapper,
 } from './shell-utils.js';
-import { Config } from '../config/config.js';
+import type { Config } from '../config/config.js';
 
 const mockPlatform = vi.hoisted(() => vi.fn());
+const mockHomedir = vi.hoisted(() => vi.fn());
 vi.mock('os', () => ({
   default: {
     platform: mockPlatform,
+    homedir: mockHomedir,
   },
   platform: mockPlatform,
+  homedir: mockHomedir,
 }));
 
 const mockQuote = vi.hoisted(() => vi.fn());
+const mockParse = vi.hoisted(() => vi.fn());
 vi.mock('shell-quote', () => ({
   quote: mockQuote,
+  parse: mockParse,
 }));
 
 let config: Config;
@@ -35,9 +41,11 @@ beforeEach(() => {
   mockQuote.mockImplementation((args: string[]) =>
     args.map((arg) => `'${arg}'`).join(' '),
   );
+  mockParse.mockImplementation((cmd: string) => cmd.split(' '));
   config = {
     getCoreTools: () => [],
     getExcludeTools: () => [],
+    getAllowedTools: () => [],
   } as unknown as Config;
 });
 
@@ -137,6 +145,15 @@ describe('isCommandAllowed', () => {
 
     it('should block command substitution using `<(...)`', () => {
       const result = isCommandAllowed('diff <(ls) <(ls -a)', config);
+      expect(result.allowed).toBe(false);
+      expect(result.reason).toContain('Command substitution');
+    });
+
+    it('should block command substitution using `>(...)`', () => {
+      const result = isCommandAllowed(
+        'echo "Log message" > >(tee log.txt)',
+        config,
+      );
       expect(result.allowed).toBe(false);
       expect(result.reason).toContain('Command substitution');
     });
@@ -430,5 +447,18 @@ describe('getShellConfiguration', () => {
       expect(config.argsPrefix).toEqual(['-NoProfile', '-Command']);
       expect(config.shell).toBe('powershell');
     });
+  });
+});
+
+describe('isCommandNeedPermission', () => {
+  it('returns false for read-only commands', () => {
+    const result = isCommandNeedsPermission('ls');
+    expect(result.requiresPermission).toBe(false);
+  });
+
+  it('returns true for mutating commands with reason', () => {
+    const result = isCommandNeedsPermission('rm -rf temp');
+    expect(result.requiresPermission).toBe(true);
+    expect(result.reason).toContain('requires permission to execute');
   });
 });

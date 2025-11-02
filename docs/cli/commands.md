@@ -9,7 +9,7 @@ Slash commands provide meta-level control over the CLI itself.
 ### Built-in Commands
 
 - **`/bug`**
-  - **Description:** File an issue about Qwen Code. By default, the issue is filed within the GitHub repository for Qwen Code. The string you enter after `/bug` will become the headline for the bug being filed. The default `/bug` behavior can be modified using the `bugCommand` setting in your `.qwen/settings.json` files.
+  - **Description:** File an issue about Qwen Code. By default, the issue is filed within the GitHub repository for Qwen Code. The string you enter after `/bug` will become the headline for the bug being filed. The default `/bug` behavior can be modified using the `advanced.bugCommand` setting in your `.qwen/settings.json` files.
 
 - **`/chat`**
   - **Description:** Save and resume conversation history for branching conversation state interactively, or resuming a previous state from a later session.
@@ -18,8 +18,8 @@ Slash commands provide meta-level control over the CLI itself.
       - **Description:** Saves the current conversation history. You must add a `<tag>` for identifying the conversation state.
       - **Usage:** `/chat save <tag>`
       - **Details on Checkpoint Location:** The default locations for saved chat checkpoints are:
-        - Linux/macOS: `~/.config/google-generative-ai/checkpoints/`
-        - Windows: `C:\Users\<YourUsername>\AppData\Roaming\google-generative-ai\checkpoints\`
+        - Linux/macOS: `~/.qwen/tmp/<project_hash>/`
+        - Windows: `C:\Users\<YourUsername>\.qwen\tmp\<project_hash>\`
         - When you run `/chat list`, the CLI only scans these specific directories to find available checkpoints.
         - **Note:** These checkpoints are for manually saving and resuming conversation states. For automatic checkpoints created before file modifications, see the [Checkpointing documentation](../checkpointing.md).
     - **`resume`**
@@ -30,27 +30,30 @@ Slash commands provide meta-level control over the CLI itself.
     - **`delete`**
       - **Description:** Deletes a saved conversation checkpoint.
       - **Usage:** `/chat delete <tag>`
+    - **`share`**
+      - **Description** Writes the current conversation to a provided Markdown or JSON file.
+      - **Usage** `/chat share file.md` or `/chat share file.json`. If no filename is provided, then the CLI will generate one.
 
 - **`/clear`**
   - **Description:** Clear the terminal screen, including the visible session history and scrollback within the CLI. The underlying session data (for history recall) might be preserved depending on the exact implementation, but the visual display is cleared.
   - **Keyboard shortcut:** Press **Ctrl+L** at any time to perform a clear action.
+
+- **`/summary`**
+  - **Description:** Generate a comprehensive project summary from the current conversation history and save it to `.qwen/PROJECT_SUMMARY.md`. This summary includes the overall goal, key knowledge, recent actions, and current plan, making it perfect for resuming work in future sessions.
+  - **Usage:** `/summary`
+  - **Features:**
+    - Analyzes the entire conversation history to extract important context
+    - Creates a structured markdown summary with sections for goals, knowledge, actions, and plans
+    - Automatically saves to `.qwen/PROJECT_SUMMARY.md` in your project root
+    - Shows progress indicators during generation and saving
+    - Integrates with the Welcome Back feature for seamless session resumption
+  - **Note:** This command requires an active conversation with at least 2 messages to generate a meaningful summary.
 
 - **`/compress`**
   - **Description:** Replace the entire chat context with a summary. This saves on tokens used for future tasks while retaining a high level summary of what has happened.
 
 - **`/copy`**
   - **Description:** Copies the last output produced by Qwen Code to your clipboard, for easy sharing or reuse.
-
-- **`/directory`** (or **`/dir`**)
-  - **Description:** Manage workspace directories for multi-directory support.
-  - **Sub-commands:**
-    - **`add`**:
-      - **Description:** Add a directory to the workspace. The path can be absolute or relative to the current working directory. Moreover, the reference from home directory is supported as well.
-      - **Usage:** `/directory add <path1>,<path2>`
-      - **Note:** Disabled in restrictive sandbox profiles. If you're using that, use `--include-directories` when starting the session instead.
-    - **`show`**:
-      - **Description:** Display all directories added by `/directory add` and `--include-directories`.
-      - **Usage:** `/directory show`
 
 - **`/directory`** (or **`/dir`**)
   - **Description:** Manage workspace directories for multi-directory support.
@@ -94,6 +97,20 @@ Slash commands provide meta-level control over the CLI itself.
       - **Description:** Reload the hierarchical instructional memory from all context files (default: `QWEN.md`) found in the configured locations (global, project/ancestors, and sub-directories). This updates the model with the latest context content.
     - **Note:** For more details on how context files contribute to hierarchical memory, see the [CLI Configuration documentation](./configuration.md#context-files-hierarchical-instructional-context).
 
+- **`/model`**
+  - **Description:** Switch the model for the current session. Opens a dialog to select from available models based on your authentication type.
+  - **Usage:** `/model`
+  - **Features:**
+    - Shows a dialog with all available models for your current authentication type
+    - Displays model descriptions and capabilities (e.g., vision support)
+    - Changes the model for the current session only
+    - Supports both Qwen models (via OAuth) and OpenAI models (via API key)
+  - **Available Models:**
+    - **Qwen Coder:** The latest Qwen Coder model from Alibaba Cloud ModelStudio (version: qwen3-coder-plus-2025-09-23)
+    - **Qwen Vision:** The latest Qwen Vision model from Alibaba Cloud ModelStudio (version: qwen3-vl-plus-2025-09-23) - supports image analysis
+    - **OpenAI Models:** Available when using OpenAI authentication (configured via `OPENAI_MODEL` environment variable)
+  - **Note:** Model selection is session-specific and does not persist across different Qwen Code sessions. To set a default model, use the `model.name` setting in your configuration.
+
 - **`/restore`**
   - **Description:** Restores the project files to the state they were in just before a tool was executed. This is particularly useful for undoing file edits made by a tool. If run without a tool call ID, it will list available checkpoints to restore from.
   - **Usage:** `/restore [tool_call_id]`
@@ -113,22 +130,56 @@ Slash commands provide meta-level control over the CLI itself.
 - **`/auth`**
   - **Description:** Open a dialog that lets you change the authentication method.
 
+- **`/approval-mode`**
+  - **Description:** Change the approval mode for tool usage.
+  - **Usage:** `/approval-mode [mode] [--session|--project|--user]`
+  - **Available Modes:**
+    - **`plan`**: Analyze only; do not modify files or execute commands
+    - **`default`**: Require approval for file edits or shell commands
+    - **`auto-edit`**: Automatically approve file edits
+    - **`yolo`**: Automatically approve all tools
+  - **Examples:**
+    - `/approval-mode plan --project` (persist plan mode for this project)
+    - `/approval-mode yolo --user` (persist YOLO mode for this user across projects)
+
 - **`/about`**
   - **Description:** Show version info. Please share this information when filing issues.
 
+- **`/agents`**
+  - **Description:** Manage specialized AI subagents for focused tasks. Subagents are independent AI assistants configured with specific expertise and tool access.
+  - **Sub-commands:**
+    - **`create`**:
+      - **Description:** Launch an interactive wizard to create a new subagent. The wizard guides you through location selection, AI-powered prompt generation, tool selection, and visual customization.
+      - **Usage:** `/agents create`
+    - **`manage`**:
+      - **Description:** Open an interactive management dialog to view, edit, and delete existing subagents. Shows both project-level and user-level agents.
+      - **Usage:** `/agents manage`
+  - **Storage Locations:**
+    - **Project-level:** `.qwen/agents/` (shared with team, takes precedence)
+    - **User-level:** `~/.qwen/agents/` (personal agents, available across projects)
+  - **Note:** For detailed information on creating and managing subagents, see the [Subagents documentation](../subagents.md).
+
 - [**`/tools`**](../tools/index.md)
   - **Description:** Display a list of tools that are currently available within Qwen Code.
+  - **Usage:** `/tools [desc]`
   - **Sub-commands:**
     - **`desc`** or **`descriptions`**:
       - **Description:** Show detailed descriptions of each tool, including each tool's name with its full description as provided to the model.
     - **`nodesc`** or **`nodescriptions`**:
       - **Description:** Hide tool descriptions, showing only the tool names.
 
-- **`/privacy`**
-  - **Description:** Display the Privacy Notice and allow users to select whether they consent to the collection of their data for service improvement purposes.
+- **`/quit-confirm`**
+  - **Description:** Show a confirmation dialog before exiting Qwen Code, allowing you to choose how to handle your current session.
+  - **Usage:** `/quit-confirm`
+  - **Features:**
+    - **Quit immediately:** Exit without saving anything (equivalent to `/quit`)
+    - **Generate summary and quit:** Create a project summary using `/summary` before exiting
+    - **Save conversation and quit:** Save the current conversation with an auto-generated tag before exiting
+  - **Keyboard shortcut:** Press **Ctrl+C** twice to trigger the quit confirmation dialog
+  - **Note:** This command is automatically triggered when you press Ctrl+C once, providing a safety mechanism to prevent accidental exits.
 
 - **`/quit`** (or **`/exit`**)
-  - **Description:** Exit Qwen Code.
+  - **Description:** Exit Qwen Code immediately without any confirmation dialog.
 
 - **`/vim`**
   - **Description:** Toggle vim mode on or off. When vim mode is enabled, the input area supports vim-style navigation and editing commands in both NORMAL and INSERT modes.
@@ -278,7 +329,7 @@ When a custom command attempts to execute a shell command, Qwen Code will now pr
 
 1.  **Inject Commands:** Use the `!{...}` syntax.
 2.  **Argument Substitution:** If `{{args}}` is present inside the block, it is automatically shell-escaped (see [Context-Aware Injection](#1-context-aware-injection-with-args) above).
-3.  **Robust Parsing:** The parser correctly handles complex shell commands that include nested braces, such as JSON payloads.
+3.  **Robust Parsing:** The parser correctly handles complex shell commands that include nested braces, such as JSON payloads. **Note:** The content inside `!{...}` must have balanced braces (`{` and `}`). If you need to execute a command containing unbalanced braces, consider wrapping it in an external script file and calling the script within the `!{...}` block.
 4.  **Security Check and Confirmation:** The CLI performs a security check on the final, resolved command (after arguments are escaped and substituted). A dialog will appear showing the exact command(s) to be executed.
 5.  **Execution and Error Reporting:** The command is executed. If the command fails, the output injected into the prompt will include the error messages (stderr) followed by a status line, e.g., `[Shell command exited with code 1]`. This helps the model understand the context of the failure.
 
@@ -305,6 +356,41 @@ Please generate a Conventional Commit message based on the following git diff:
 ````
 
 When you run `/git:commit`, the CLI first executes `git diff --staged`, then replaces `!{git diff --staged}` with the output of that command before sending the final, complete prompt to the model.
+
+##### 4. Injecting File Content with `@{...}`
+
+You can directly embed the content of a file or a directory listing into your prompt using the `@{...}` syntax. This is useful for creating commands that operate on specific files.
+
+**How It Works:**
+
+- **File Injection**: `@{path/to/file.txt}` is replaced by the content of `file.txt`.
+- **Multimodal Support**: If the path points to a supported image (e.g., PNG, JPEG), PDF, audio, or video file, it will be correctly encoded and injected as multimodal input. Other binary files are handled gracefully and skipped.
+- **Directory Listing**: `@{path/to/dir}` is traversed and each file present within the directory and all subdirectories are inserted into the prompt. This respects `.gitignore` and `.qwenignore` if enabled.
+- **Workspace-Aware**: The command searches for the path in the current directory and any other workspace directories. Absolute paths are allowed if they are within the workspace.
+- **Processing Order**: File content injection with `@{...}` is processed _before_ shell commands (`!{...}`) and argument substitution (`{{args}}`).
+- **Parsing**: The parser requires the content inside `@{...}` (the path) to have balanced braces (`{` and `}`).
+
+**Example (`review.toml`):**
+
+This command injects the content of a _fixed_ best practices file (`docs/best-practices.md`) and uses the user's arguments to provide context for the review.
+
+```toml
+# In: <project>/.qwen/commands/review.toml
+# Invoked via: /review FileCommandLoader.ts
+
+description = "Reviews the provided context using a best practice guide."
+prompt = """
+You are an expert code reviewer.
+
+Your task is to review {{args}}.
+
+Use the following best practices when providing your review:
+
+@{docs/best-practices.md}
+"""
+```
+
+When you run `/review FileCommandLoader.ts`, the `@{docs/best-practices.md}` placeholder is replaced by the content of that file, and `{{args}}` is replaced by the text you provided, before the final prompt is sent to the model.
 
 ---
 
@@ -352,6 +438,16 @@ That's it! You can now run your command in the CLI. First, you might add a file 
 
 Qwen Code will then execute the multi-line prompt defined in your TOML file.
 
+## Input Prompt Shortcuts
+
+These shortcuts apply directly to the input prompt for text manipulation.
+
+- **Undo:**
+  - **Keyboard shortcut:** Press **Ctrl+z** to undo the last action in the input prompt.
+
+- **Redo:**
+  - **Keyboard shortcut:** Press **Ctrl+Shift+Z** to redo the last undone action in the input prompt.
+
 ## At commands (`@`)
 
 At commands are used to include the content of files or directories as part of your prompt to the model. These commands include git-aware filtering.
@@ -367,7 +463,7 @@ At commands are used to include the content of files or directories as part of y
     - If a path to a directory is provided, the command attempts to read the content of files within that directory and any subdirectories.
     - Spaces in paths should be escaped with a backslash (e.g., `@My\ Documents/file.txt`).
     - The command uses the `read_many_files` tool internally. The content is fetched and then inserted into your query before being sent to the model.
-    - **Git-aware filtering:** By default, git-ignored files (like `node_modules/`, `dist/`, `.env`, `.git/`) are excluded. This behavior can be changed via the `fileFiltering` settings.
+    - **Git-aware filtering:** By default, git-ignored files (like `node_modules/`, `dist/`, `.env`, `.git/`) are excluded. This behavior can be changed via the `context.fileFiltering` settings.
     - **File types:** The command is intended for text-based files. While it might attempt to read any file, binary files or very large files might be skipped or truncated by the underlying `read_many_files` tool to ensure performance and relevance. The tool indicates if files were skipped.
   - **Output:** The CLI will show a tool call message indicating that `read_many_files` was used, along with a message detailing the status and the path(s) that were processed.
 

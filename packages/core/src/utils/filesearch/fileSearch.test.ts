@@ -17,9 +17,9 @@ describe('FileSearch', () => {
     vi.restoreAllMocks();
   });
 
-  it('should use .geminiignore rules', async () => {
+  it('should use .qwenignore rules', async () => {
     tmpDir = await createTmpDir({
-      '.geminiignore': 'dist/',
+      '.qwenignore': 'dist/',
       dist: ['ignored.js'],
       src: ['not-ignored.js'],
     });
@@ -27,23 +27,24 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: true,
+      useQwenignore: true,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
     const results = await fileSearch.search('');
 
-    expect(results).toEqual(['src/', '.geminiignore', 'src/not-ignored.js']);
+    expect(results).toEqual(['src/', '.qwenignore', 'src/not-ignored.js']);
   });
 
-  it('should combine .gitignore and .geminiignore rules', async () => {
+  it('should combine .gitignore and .qwenignore rules', async () => {
     tmpDir = await createTmpDir({
       '.gitignore': 'dist/',
-      '.geminiignore': 'build/',
+      '.qwenignore': 'build/',
       dist: ['ignored-by-git.js'],
       build: ['ignored-by-gemini.js'],
       src: ['not-ignored.js'],
@@ -52,11 +53,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: true,
-      useGeminiignore: true,
+      useQwenignore: true,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -64,8 +66,8 @@ describe('FileSearch', () => {
 
     expect(results).toEqual([
       'src/',
-      '.geminiignore',
       '.gitignore',
+      '.qwenignore',
       'src/not-ignored.js',
     ]);
   });
@@ -79,11 +81,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: ['logs'],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -107,11 +110,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: true,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -139,11 +143,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -162,11 +167,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: true,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -196,11 +202,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: true,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -225,11 +232,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: true,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -254,11 +262,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: true,
-      useGeminiignore: true,
+      useQwenignore: true,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     // Expect no errors to be thrown during initialization
@@ -280,11 +289,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -305,17 +315,72 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
     const results = await fileSearch.search('sst');
 
     expect(results).toEqual(['src/style.css']);
+  });
+
+  it('should not use fzf for fuzzy matching when disableFuzzySearch is true', async () => {
+    tmpDir = await createTmpDir({
+      src: {
+        'file1.js': '',
+        'flexible.js': '',
+        'other.ts': '',
+      },
+    });
+
+    const fileSearch = FileSearchFactory.create({
+      projectRoot: tmpDir,
+      useGitignore: false,
+      useQwenignore: false,
+      ignoreDirs: [],
+      cache: false,
+      cacheTtl: 0,
+      enableRecursiveFileSearch: true,
+      disableFuzzySearch: true,
+    });
+
+    await fileSearch.initialize();
+    const results = await fileSearch.search('fle');
+
+    expect(results).toEqual(['src/flexible.js']);
+  });
+
+  it('should use fzf for fuzzy matching when disableFuzzySearch is false', async () => {
+    tmpDir = await createTmpDir({
+      src: {
+        'file1.js': '',
+        'flexible.js': '',
+        'other.ts': '',
+      },
+    });
+
+    const fileSearch = FileSearchFactory.create({
+      projectRoot: tmpDir,
+      useGitignore: false,
+      useQwenignore: false,
+      ignoreDirs: [],
+      cache: false,
+      cacheTtl: 0,
+      enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
+    });
+
+    await fileSearch.initialize();
+    const results = await fileSearch.search('fle');
+
+    expect(results).toEqual(
+      expect.arrayContaining(['src/file1.js', 'src/flexible.js']),
+    );
   });
 
   it('should return empty array when no matches are found', async () => {
@@ -326,11 +391,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -356,11 +422,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await expect(fileSearch.search('')).rejects.toThrow(
@@ -377,11 +444,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: true,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -399,11 +467,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false, // Explicitly disable .gitignore to isolate this rule
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -422,11 +491,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -458,11 +528,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: true, // Enable caching for this test
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -497,11 +568,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: false,
       cacheTtl: 0,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -540,11 +612,12 @@ describe('FileSearch', () => {
     const fileSearch = FileSearchFactory.create({
       projectRoot: tmpDir,
       useGitignore: false,
-      useGeminiignore: false,
+      useQwenignore: false,
       ignoreDirs: [],
       cache: true, // Ensure caching is enabled
       cacheTtl: 10000,
       enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
     });
 
     await fileSearch.initialize();
@@ -566,6 +639,36 @@ describe('FileSearch', () => {
     expect(limitedResults).toEqual(['file1.js', 'file2.js']);
   });
 
+  it('should handle file paths with special characters that need escaping', async () => {
+    tmpDir = await createTmpDir({
+      src: {
+        'file with (special) chars.txt': '',
+        'another-file.txt': '',
+      },
+    });
+
+    const fileSearch = FileSearchFactory.create({
+      projectRoot: tmpDir,
+      useGitignore: false,
+      useQwenignore: false,
+      ignoreDirs: [],
+      cache: false,
+      cacheTtl: 0,
+      enableRecursiveFileSearch: true,
+      disableFuzzySearch: false,
+    });
+
+    await fileSearch.initialize();
+
+    // Search for the file using a pattern that contains special characters.
+    // The `unescapePath` function should handle the escaped path correctly.
+    const results = await fileSearch.search(
+      'src/file with \\(special\\) chars.txt',
+    );
+
+    expect(results).toEqual(['src/file with (special) chars.txt']);
+  });
+
   describe('DirectoryFileSearch', () => {
     it('should search for files in the current directory', async () => {
       tmpDir = await createTmpDir({
@@ -577,11 +680,12 @@ describe('FileSearch', () => {
       const fileSearch = FileSearchFactory.create({
         projectRoot: tmpDir,
         useGitignore: false,
-        useGeminiignore: false,
+        useQwenignore: false,
         ignoreDirs: [],
         cache: false,
         cacheTtl: 0,
         enableRecursiveFileSearch: false,
+        disableFuzzySearch: false,
       });
 
       await fileSearch.initialize();
@@ -601,11 +705,12 @@ describe('FileSearch', () => {
       const fileSearch = FileSearchFactory.create({
         projectRoot: tmpDir,
         useGitignore: false,
-        useGeminiignore: false,
+        useQwenignore: false,
         ignoreDirs: [],
         cache: false,
         cacheTtl: 0,
         enableRecursiveFileSearch: false,
+        disableFuzzySearch: false,
       });
 
       await fileSearch.initialize();
@@ -625,11 +730,12 @@ describe('FileSearch', () => {
       const fileSearch = FileSearchFactory.create({
         projectRoot: tmpDir,
         useGitignore: false,
-        useGeminiignore: false,
+        useQwenignore: false,
         ignoreDirs: [],
         cache: false,
         cacheTtl: 0,
         enableRecursiveFileSearch: false,
+        disableFuzzySearch: false,
       });
 
       await fileSearch.initialize();
@@ -647,11 +753,12 @@ describe('FileSearch', () => {
       const fileSearch = FileSearchFactory.create({
         projectRoot: tmpDir,
         useGitignore: true,
-        useGeminiignore: false,
+        useQwenignore: false,
         ignoreDirs: [],
         cache: false,
         cacheTtl: 0,
         enableRecursiveFileSearch: false,
+        disableFuzzySearch: false,
       });
 
       await fileSearch.initialize();

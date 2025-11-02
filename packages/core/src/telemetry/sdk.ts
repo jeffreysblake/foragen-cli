@@ -28,7 +28,7 @@ import {
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { Config } from '../config/config.js';
+import type { Config } from '../config/config.js';
 import { SERVICE_NAME } from './constants.js';
 import { initializeMetrics } from './metrics.js';
 import {
@@ -86,8 +86,8 @@ export function initializeTelemetry(config: Config): void {
   const otlpEndpoint = config.getTelemetryOtlpEndpoint();
   const otlpProtocol = config.getTelemetryOtlpProtocol();
   const parsedEndpoint = parseOtlpEndpoint(otlpEndpoint, otlpProtocol);
-  const useOtlp = !!parsedEndpoint;
   const telemetryOutfile = config.getTelemetryOutfile();
+  const useOtlp = !!parsedEndpoint && !telemetryOutfile;
 
   let spanExporter:
     | OTLPTraceExporter
@@ -172,6 +172,9 @@ export function initializeTelemetry(config: Config): void {
     shutdownTelemetry(config);
   });
   process.on('SIGINT', () => {
+    shutdownTelemetry(config);
+  });
+  process.on('exit', () => {
     shutdownTelemetry(config);
   });
 }

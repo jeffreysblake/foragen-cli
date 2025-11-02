@@ -1,5 +1,11 @@
 # Qwen Code Configuration
 
+**Note on New Configuration Format**
+
+The format of the `settings.json` file has been updated to a new, more organized structure. The old format will be migrated automatically.
+
+For details on the previous format, please see the [v1 Configuration documentation](./configuration-v1.md).
+
 Qwen Code offers several ways to configure its behavior, including environment variables, command-line arguments, and settings files. This document outlines the different configuration methods and available settings.
 
 ## Configuration layers
@@ -7,24 +13,29 @@ Qwen Code offers several ways to configure its behavior, including environment v
 Configuration is applied in the following order of precedence (lower numbers are overridden by higher numbers):
 
 1.  **Default values:** Hardcoded defaults within the application.
-2.  **User settings file:** Global settings for the current user.
-3.  **Project settings file:** Project-specific settings.
-4.  **System settings file:** System-wide settings.
-5.  **Environment variables:** System-wide or session-specific variables, potentially loaded from `.env` files.
-6.  **Command-line arguments:** Values passed when launching the CLI.
+2.  **System defaults file:** System-wide default settings that can be overridden by other settings files.
+3.  **User settings file:** Global settings for the current user.
+4.  **Project settings file:** Project-specific settings.
+5.  **System settings file:** System-wide settings that override all other settings files.
+6.  **Environment variables:** System-wide or session-specific variables, potentially loaded from `.env` files.
+7.  **Command-line arguments:** Values passed when launching the CLI.
 
 ## Settings files
 
-Qwen Code uses `settings.json` files for persistent configuration. There are three locations for these files:
+Qwen Code uses JSON settings files for persistent configuration. There are four locations for these files:
 
+- **System defaults file:**
+  - **Location:** `/etc/qwen-code/system-defaults.json` (Linux), `C:\ProgramData\qwen-code\system-defaults.json` (Windows) or `/Library/Application Support/QwenCode/system-defaults.json` (macOS). The path can be overridden using the `QWEN_CODE_SYSTEM_DEFAULTS_PATH` environment variable.
+  - **Scope:** Provides a base layer of system-wide default settings. These settings have the lowest precedence and are intended to be overridden by user, project, or system override settings.
 - **User settings file:**
   - **Location:** `~/.qwen/settings.json` (where `~` is your home directory).
   - **Scope:** Applies to all Qwen Code sessions for the current user.
 - **Project settings file:**
   - **Location:** `.qwen/settings.json` within your project's root directory.
   - **Scope:** Applies only when running Qwen Code from that specific project. Project settings override user settings.
+
 - **System settings file:**
-  - **Location:** `/etc/gemini-cli/settings.json` (Linux), `C:\ProgramData\gemini-cli\settings.json` (Windows) or `/Library/Application Support/GeminiCli/settings.json` (macOS). The path can be overridden using the `GEMINI_CLI_SYSTEM_SETTINGS_PATH` environment variable.
+  - **Location:** `/etc/qwen-code/settings.json` (Linux), `C:\ProgramData\qwen-code\settings.json` (Windows) or `/Library/Application Support/QwenCode/settings.json` (macOS). The path can be overridden using the `QWEN_CODE_SYSTEM_SETTINGS_PATH` environment variable.
   - **Scope:** Applies to all Qwen Code sessions on the system, for all users. System settings override user and project settings. May be useful for system administrators at enterprises to have controls over users' Qwen Code setups.
 
 **Note on environment variables in settings:** String values within your `settings.json` files can reference environment variables using either `$VAR_NAME` or `${VAR_NAME}` syntax. These variables will be automatically resolved when the settings are loaded. For example, if you have an environment variable `MY_API_TOKEN`, you could use it in `settings.json` like this: `"apiKey": "$MY_API_TOKEN"`.
@@ -35,290 +46,325 @@ In addition to a project settings file, a project's `.qwen` directory can contai
 
 - [Custom sandbox profiles](#sandboxing) (e.g., `.qwen/sandbox-macos-custom.sb`, `.qwen/sandbox.Dockerfile`).
 
-### Available settings in `settings.json`:
+### Available settings in `settings.json`
 
-- **`contextFileName`** (string or array of strings):
-  - **Description:** Specifies the filename for context files (e.g., `QWEN.md`, `AGENTS.md`). Can be a single filename or a list of accepted filenames.
-  - **Default:** `QWEN.md`
-  - **Example:** `"contextFileName": "AGENTS.md"`
+Settings are organized into categories. All settings should be placed within their corresponding top-level category object in your `settings.json` file.
 
-- **`bugCommand`** (object):
-  - **Description:** Overrides the default URL for the `/bug` command.
-  - **Default:** `"urlTemplate": "https://github.com/QwenLM/qwen-code/issues/new?template=bug_report.yml&title={title}&info={info}"`
-  - **Properties:**
-    - **`urlTemplate`** (string): A URL that can contain `{title}` and `{info}` placeholders.
-  - **Example:**
-    ```json
-    "bugCommand": {
-      "urlTemplate": "https://bug.example.com/new?title={title}&info={info}"
-    }
-    ```
+#### `general`
 
-- **`fileFiltering`** (object):
-  - **Description:** Controls git-aware file filtering behavior for @ commands and file discovery tools.
-  - **Default:** `"respectGitIgnore": true, "enableRecursiveFileSearch": true`
-  - **Properties:**
-    - **`respectGitIgnore`** (boolean): Whether to respect .gitignore patterns when discovering files. When set to `true`, git-ignored files (like `node_modules/`, `dist/`, `.env`) are automatically excluded from @ commands and file listing operations.
-    - **`enableRecursiveFileSearch`** (boolean): Whether to enable searching recursively for filenames under the current tree when completing @ prefixes in the prompt.
-  - **Example:**
-    ```json
-    "fileFiltering": {
-      "respectGitIgnore": true,
-      "enableRecursiveFileSearch": false
-    }
-    ```
+- **`general.preferredEditor`** (string):
+  - **Description:** The preferred editor to open files in.
+  - **Default:** `undefined`
 
-- **`coreTools`** (array of strings):
-  - **Description:** Allows you to specify a list of core tool names that should be made available to the model. This can be used to restrict the set of built-in tools. See [Built-in Tools](../core/tools-api.md#built-in-tools) for a list of core tools. You can also specify command-specific restrictions for tools that support it, like the `ShellTool`. For example, `"coreTools": ["ShellTool(ls -l)"]` will only allow the `ls -l` command to be executed.
-  - **Default:** All tools available for use by the model.
-  - **Example:** `"coreTools": ["ReadFileTool", "GlobTool", "ShellTool(ls)"]`.
-
-- **`excludeTools`** (array of strings):
-  - **Description:** Allows you to specify a list of core tool names that should be excluded from the model. A tool listed in both `excludeTools` and `coreTools` is excluded. You can also specify command-specific restrictions for tools that support it, like the `ShellTool`. For example, `"excludeTools": ["ShellTool(rm -rf)"]` will block the `rm -rf` command.
-  - **Default**: No tools excluded.
-  - **Example:** `"excludeTools": ["run_shell_command", "findFiles"]`.
-  - **Security Note:** Command-specific restrictions in
-    `excludeTools` for `run_shell_command` are based on simple string matching and can be easily bypassed. This feature is **not a security mechanism** and should not be relied upon to safely execute untrusted code. It is recommended to use `coreTools` to explicitly select commands
-    that can be executed.
-
-- **`allowMCPServers`** (array of strings):
-  - **Description:** Allows you to specify a list of MCP server names that should be made available to the model. This can be used to restrict the set of MCP servers to connect to. Note that this will be ignored if `--allowed-mcp-server-names` is set.
-  - **Default:** All MCP servers are available for use by the model.
-  - **Example:** `"allowMCPServers": ["myPythonServer"]`.
-  - **Security Note:** This uses simple string matching on MCP server names, which can be modified. If you're a system administrator looking to prevent users from bypassing this, consider configuring the `mcpServers` at the system settings level such that the user will not be able to configure any MCP servers of their own. This should not be used as an airtight security mechanism.
-
-- **`excludeMCPServers`** (array of strings):
-  - **Description:** Allows you to specify a list of MCP server names that should be excluded from the model. A server listed in both `excludeMCPServers` and `allowMCPServers` is excluded. Note that this will be ignored if `--allowed-mcp-server-names` is set.
-  - **Default**: No MCP servers excluded.
-  - **Example:** `"excludeMCPServers": ["myNodeServer"]`.
-  - **Security Note:** This uses simple string matching on MCP server names, which can be modified. If you're a system administrator looking to prevent users from bypassing this, consider configuring the `mcpServers` at the system settings level such that the user will not be able to configure any MCP servers of their own. This should not be used as an airtight security mechanism.
-
-- **`autoAccept`** (boolean):
-  - **Description:** Controls whether the CLI automatically accepts and executes tool calls that are considered safe (e.g., read-only operations) without explicit user confirmation. If set to `true`, the CLI will bypass the confirmation prompt for tools deemed safe.
+- **`general.vimMode`** (boolean):
+  - **Description:** Enable Vim keybindings.
   - **Default:** `false`
-  - **Example:** `"autoAccept": true`
 
-- **`theme`** (string):
-  - **Description:** Sets the visual [theme](./themes.md) for Qwen Code.
-  - **Default:** `"Default"`
-  - **Example:** `"theme": "GitHub"`
-
-- **`vimMode`** (boolean):
-  - **Description:** Enables or disables vim mode for input editing. When enabled, the input area supports vim-style navigation and editing commands with NORMAL and INSERT modes. The vim mode status is displayed in the footer and persists between sessions.
+- **`general.disableAutoUpdate`** (boolean):
+  - **Description:** Disable automatic updates.
   - **Default:** `false`
-  - **Example:** `"vimMode": true`
 
-- **`sandbox`** (boolean or string):
-  - **Description:** Controls whether and how to use sandboxing for tool execution. If set to `true`, Qwen Code uses a pre-built `qwen-code-sandbox` Docker image. For more information, see [Sandboxing](#sandboxing).
+- **`general.disableUpdateNag`** (boolean):
+  - **Description:** Disable update notification prompts.
   - **Default:** `false`
-  - **Example:** `"sandbox": "docker"`
 
-- **`toolDiscoveryCommand`** (string):
-  - **Description:** Defines a custom shell command for discovering tools from your project. The shell command must return on `stdout` a JSON array of [function declarations](https://ai.google.dev/gemini-api/docs/function-calling#function-declarations). Tool wrappers are optional.
-  - **Default:** Empty
-  - **Example:** `"toolDiscoveryCommand": "bin/get_tools"`
+- **`general.checkpointing.enabled`** (boolean):
+  - **Description:** Enable session checkpointing for recovery.
+  - **Default:** `false`
 
-- **`toolCallCommand`** (string):
-  - **Description:** Defines a custom shell command for calling a specific tool that was discovered using `toolDiscoveryCommand`. The shell command must meet the following criteria:
+#### `output`
+
+- **`output.format`** (string):
+  - **Description:** The format of the CLI output.
+  - **Default:** `"text"`
+  - **Values:** `"text"`, `"json"`
+
+#### `ui`
+
+- **`ui.theme`** (string):
+  - **Description:** The color theme for the UI. See [Themes](./themes.md) for available options.
+  - **Default:** `undefined`
+
+- **`ui.customThemes`** (object):
+  - **Description:** Custom theme definitions.
+  - **Default:** `{}`
+
+- **`ui.hideWindowTitle`** (boolean):
+  - **Description:** Hide the window title bar.
+  - **Default:** `false`
+
+- **`ui.hideTips`** (boolean):
+  - **Description:** Hide helpful tips in the UI.
+  - **Default:** `false`
+
+- **`ui.hideBanner`** (boolean):
+  - **Description:** Hide the application banner.
+  - **Default:** `false`
+
+- **`ui.hideFooter`** (boolean):
+  - **Description:** Hide the footer from the UI.
+  - **Default:** `false`
+
+- **`ui.showMemoryUsage`** (boolean):
+  - **Description:** Display memory usage information in the UI.
+  - **Default:** `false`
+
+- **`ui.showLineNumbers`** (boolean):
+  - **Description:** Show line numbers in the chat.
+  - **Default:** `false`
+
+- **`ui.showCitations`** (boolean):
+  - **Description:** Show citations for generated text in the chat.
+  - **Default:** `true`
+
+- **`enableWelcomeBack`** (boolean):
+  - **Description:** Show welcome back dialog when returning to a project with conversation history.
+  - **Default:** `true`
+
+- **`ui.accessibility.disableLoadingPhrases`** (boolean):
+  - **Description:** Disable loading phrases for accessibility.
+  - **Default:** `false`
+
+- **`ui.customWittyPhrases`** (array of strings):
+  - **Description:** A list of custom phrases to display during loading states. When provided, the CLI will cycle through these phrases instead of the default ones.
+  - **Default:** `[]`
+
+#### `ide`
+
+- **`ide.enabled`** (boolean):
+  - **Description:** Enable IDE integration mode.
+  - **Default:** `false`
+
+- **`ide.hasSeenNudge`** (boolean):
+  - **Description:** Whether the user has seen the IDE integration nudge.
+  - **Default:** `false`
+
+#### `privacy`
+
+- **`privacy.usageStatisticsEnabled`** (boolean):
+  - **Description:** Enable collection of usage statistics.
+  - **Default:** `true`
+
+#### `model`
+
+- **`model.name`** (string):
+  - **Description:** The Qwen model to use for conversations.
+  - **Default:** `undefined`
+
+- **`model.maxSessionTurns`** (number):
+  - **Description:** Maximum number of user/model/tool turns to keep in a session. -1 means unlimited.
+  - **Default:** `-1`
+
+- **`model.summarizeToolOutput`** (object):
+  - **Description:** Enables or disables the summarization of tool output. You can specify the token budget for the summarization using the `tokenBudget` setting. Note: Currently only the `run_shell_command` tool is supported. For example `{"run_shell_command": {"tokenBudget": 2000}}`
+  - **Default:** `undefined`
+
+- **`model.chatCompression.contextPercentageThreshold`** (number):
+  - **Description:** Sets the threshold for chat history compression as a percentage of the model's total token limit. This is a value between 0 and 1 that applies to both automatic compression and the manual `/compress` command. For example, a value of `0.6` will trigger compression when the chat history exceeds 60% of the token limit.
+  - **Default:** `0.7`
+
+- **`model.skipNextSpeakerCheck`** (boolean):
+  - **Description:** Skip the next speaker check.
+  - **Default:** `false`
+
+- **`model.skipLoopDetection`**(boolean):
+  - **Description:** Disables loop detection checks. Loop detection prevents infinite loops in AI responses but can generate false positives that interrupt legitimate workflows. Enable this option if you experience frequent false positive loop detection interruptions.
+  - **Default:** `false`
+
+#### `context`
+
+- **`context.fileName`** (string or array of strings):
+  - **Description:** The name of the context file(s).
+  - **Default:** `undefined`
+
+- **`context.importFormat`** (string):
+  - **Description:** The format to use when importing memory.
+  - **Default:** `undefined`
+
+- **`context.discoveryMaxDirs`** (number):
+  - **Description:** Maximum number of directories to search for memory.
+  - **Default:** `200`
+
+- **`context.includeDirectories`** (array):
+  - **Description:** Additional directories to include in the workspace context. Missing directories will be skipped with a warning.
+  - **Default:** `[]`
+
+- **`context.loadFromIncludeDirectories`** (boolean):
+  - **Description:** Controls the behavior of the `/memory refresh` command. If set to `true`, `QWEN.md` files should be loaded from all directories that are added. If set to `false`, `QWEN.md` should only be loaded from the current directory.
+  - **Default:** `false`
+
+- **`context.fileFiltering.respectGitIgnore`** (boolean):
+  - **Description:** Respect .gitignore files when searching.
+  - **Default:** `true`
+
+- **`context.fileFiltering.respectQwenIgnore`** (boolean):
+  - **Description:** Respect .qwenignore files when searching.
+  - **Default:** `true`
+
+- **`context.fileFiltering.enableRecursiveFileSearch`** (boolean):
+  - **Description:** Whether to enable searching recursively for filenames under the current tree when completing `@` prefixes in the prompt.
+  - **Default:** `true`
+
+#### `tools`
+
+- **`tools.sandbox`** (boolean or string):
+  - **Description:** Sandbox execution environment (can be a boolean or a path string).
+  - **Default:** `undefined`
+
+- **`tools.shell.enableInteractiveShell`** (boolean):
+
+  Use `node-pty` for an interactive shell experience. Fallback to `child_process` still applies. Defaults to `false`.
+
+- **`tools.core`** (array of strings):
+  - **Description:** This can be used to restrict the set of built-in tools [with an allowlist](./enterprise.md#restricting-tool-access). See [Built-in Tools](../core/tools-api.md#built-in-tools) for a list of core tools. The match semantics are the same as `tools.allowed`.
+  - **Default:** `undefined`
+
+- **`tools.exclude`** (array of strings):
+  - **Description:** Tool names to exclude from discovery.
+  - **Default:** `undefined`
+
+- **`tools.allowed`** (array of strings):
+  - **Description:** A list of tool names that will bypass the confirmation dialog. This is useful for tools that you trust and use frequently. For example, `["run_shell_command(git)", "run_shell_command(npm test)"]` will skip the confirmation dialog to run any `git` and `npm test` commands. See [Shell Tool command restrictions](../tools/shell.md#command-restrictions) for details on prefix matching, command chaining, etc.
+  - **Default:** `undefined`
+
+- **`tools.approvalMode`** (string):
+  - **Description:** Sets the default approval mode for tool usage. Accepted values are:
+    - `plan`: Analyze only, do not modify files or execute commands.
+    - `default`: Require approval before file edits or shell commands run.
+    - `auto-edit`: Automatically approve file edits.
+    - `yolo`: Automatically approve all tool calls.
+  - **Default:** `default`
+
+- **`tools.discoveryCommand`** (string):
+  - **Description:** Command to run for tool discovery.
+  - **Default:** `undefined`
+
+- **`tools.callCommand`** (string):
+  - **Description:** Defines a custom shell command for calling a specific tool that was discovered using `tools.discoveryCommand`. The shell command must meet the following criteria:
     - It must take function `name` (exactly as in [function declaration](https://ai.google.dev/gemini-api/docs/function-calling#function-declarations)) as first command line argument.
     - It must read function arguments as JSON on `stdin`, analogous to [`functionCall.args`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#functioncall).
     - It must return function output as JSON on `stdout`, analogous to [`functionResponse.response.content`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#functionresponse).
-  - **Default:** Empty
-  - **Example:** `"toolCallCommand": "bin/call_tool"`
+  - **Default:** `undefined`
 
-- **`mcpServers`** (object):
-  - **Description:** Configures connections to one or more Model-Context Protocol (MCP) servers for discovering and using custom tools. Qwen Code attempts to connect to each configured MCP server to discover available tools. If multiple MCP servers expose a tool with the same name, the tool names will be prefixed with the server alias you defined in the configuration (e.g., `serverAlias__actualToolName`) to avoid conflicts. Note that the system might strip certain schema properties from MCP tool definitions for compatibility. At least one of `command`, `url`, or `httpUrl` must be provided. If multiple are specified, the order of precedence is `httpUrl`, then `url`, then `command`.
-  - **Default:** Empty
-  - **Properties:**
-    - **`<SERVER_NAME>`** (object): The server parameters for the named server.
-      - `command` (string, optional): The command to execute to start the MCP server via standard I/O.
-      - `args` (array of strings, optional): Arguments to pass to the command.
-      - `env` (object, optional): Environment variables to set for the server process.
-      - `cwd` (string, optional): The working directory in which to start the server.
-      - `url` (string, optional): The URL of an MCP server that uses Server-Sent Events (SSE) for communication.
-      - `httpUrl` (string, optional): The URL of an MCP server that uses streamable HTTP for communication.
-      - `headers` (object, optional): A map of HTTP headers to send with requests to `url` or `httpUrl`.
-      - `timeout` (number, optional): Timeout in milliseconds for requests to this MCP server.
-      - `trust` (boolean, optional): Trust this server and bypass all tool call confirmations.
-      - `description` (string, optional): A brief description of the server, which may be used for display purposes.
-      - `includeTools` (array of strings, optional): List of tool names to include from this MCP server. When specified, only the tools listed here will be available from this server (whitelist behavior). If not specified, all tools from the server are enabled by default.
-      - `excludeTools` (array of strings, optional): List of tool names to exclude from this MCP server. Tools listed here will not be available to the model, even if they are exposed by the server. **Note:** `excludeTools` takes precedence over `includeTools` - if a tool is in both lists, it will be excluded.
-  - **Example:**
-    ```json
-    "mcpServers": {
-      "myPythonServer": {
-        "command": "python",
-        "args": ["mcp_server.py", "--port", "8080"],
-        "cwd": "./mcp_tools/python",
-        "timeout": 5000,
-        "includeTools": ["safe_tool", "file_reader"],
-      },
-      "myNodeServer": {
-        "command": "node",
-        "args": ["mcp_server.js"],
-        "cwd": "./mcp_tools/node",
-        "excludeTools": ["dangerous_tool", "file_deleter"]
-      },
-      "myDockerServer": {
-        "command": "docker",
-        "args": ["run", "-i", "--rm", "-e", "API_KEY", "ghcr.io/foo/bar"],
-        "env": {
-          "API_KEY": "$MY_API_TOKEN"
-        }
-      },
-      "mySseServer": {
-        "url": "http://localhost:8081/events",
-        "headers": {
-          "Authorization": "Bearer $MY_SSE_TOKEN"
-        },
-        "description": "An example SSE-based MCP server."
-      },
-      "myStreamableHttpServer": {
-        "httpUrl": "http://localhost:8082/stream",
-        "headers": {
-          "X-API-Key": "$MY_HTTP_API_KEY"
-        },
-        "description": "An example Streamable HTTP-based MCP server."
-      }
-    }
-    ```
-
-- **`checkpointing`** (object):
-  - **Description:** Configures the checkpointing feature, which allows you to save and restore conversation and file states. See the [Checkpointing documentation](../checkpointing.md) for more details.
-  - **Default:** `{"enabled": false}`
-  - **Properties:**
-    - **`enabled`** (boolean): When `true`, the `/restore` command is available.
-
-- **`preferredEditor`** (string):
-  - **Description:** Specifies the preferred editor to use for viewing diffs.
-  - **Default:** `vscode`
-  - **Example:** `"preferredEditor": "vscode"`
-
-- **`telemetry`** (object)
-  - **Description:** Configures logging and metrics collection for Qwen Code. For more information, see [Telemetry](../telemetry.md).
-  - **Default:** `{"enabled": false, "target": "local", "otlpEndpoint": "http://localhost:4317", "logPrompts": true}`
-  - **Properties:**
-    - **`enabled`** (boolean): Whether or not telemetry is enabled.
-    - **`target`** (string): The destination for collected telemetry. Supported values are `local` and `gcp`.
-    - **`otlpEndpoint`** (string): The endpoint for the OTLP Exporter.
-    - **`logPrompts`** (boolean): Whether or not to include the content of user prompts in the logs.
-  - **Example:**
-    ```json
-    "telemetry": {
-      "enabled": true,
-      "target": "local",
-      "otlpEndpoint": "http://localhost:16686",
-      "logPrompts": false
-    }
-    ```
-- **`usageStatisticsEnabled`** (boolean):
-  - **Description:** Enables or disables the collection of usage statistics. See [Usage Statistics](#usage-statistics) for more information.
+- **`tools.useRipgrep`** (boolean):
+  - **Description:** Use ripgrep for file content search instead of the fallback implementation. Provides faster search performance.
   - **Default:** `true`
-  - **Example:**
-    ```json
-    "usageStatisticsEnabled": false
-    ```
 
-- **`hideTips`** (boolean):
-  - **Description:** Enables or disables helpful tips in the CLI interface.
+- **`tools.useBuiltinRipgrep`** (boolean):
+  - **Description:** Use the bundled ripgrep binary. When set to `false`, the system-level `rg` command will be used instead. This setting is only effective when `tools.useRipgrep` is `true`.
+  - **Default:** `true`
+
+#### `mcp`
+
+- **`mcp.serverCommand`** (string):
+  - **Description:** Command to start an MCP server.
+  - **Default:** `undefined`
+
+- **`mcp.allowed`** (array of strings):
+  - **Description:** An allowlist of MCP servers to allow.
+  - **Default:** `undefined`
+
+- **`mcp.excluded`** (array of strings):
+  - **Description:** A denylist of MCP servers to exclude.
+  - **Default:** `undefined`
+
+#### `security`
+
+- **`security.folderTrust.enabled`** (boolean):
+  - **Description:** Setting to track whether Folder trust is enabled.
   - **Default:** `false`
-  - **Example:**
 
-    ```json
-    "hideTips": true
-    ```
+- **`security.auth.selectedType`** (string):
+  - **Description:** The currently selected authentication type.
+  - **Default:** `undefined`
 
-- **`hideBanner`** (boolean):
-  - **Description:** Enables or disables the startup banner (ASCII art logo) in the CLI interface.
+- **`security.auth.enforcedType`** (string):
+  - **Description:** The required auth type (useful for enterprises).
+  - **Default:** `undefined`
+
+- **`security.auth.useExternal`** (boolean):
+  - **Description:** Whether to use an external authentication flow.
+  - **Default:** `undefined`
+
+#### `advanced`
+
+- **`advanced.autoConfigureMemory`** (boolean):
+  - **Description:** Automatically configure Node.js memory limits.
   - **Default:** `false`
-  - **Example:**
 
-    ```json
-    "hideBanner": true
-    ```
+- **`advanced.dnsResolutionOrder`** (string):
+  - **Description:** The DNS resolution order.
+  - **Default:** `undefined`
 
-- **`maxSessionTurns`** (number):
-  - **Description:** Sets the maximum number of turns for a session. If the session exceeds this limit, the CLI will stop processing and start a new chat.
-  - **Default:** `-1` (unlimited)
-  - **Example:**
-    ```json
-    "maxSessionTurns": 10
-    ```
+- **`advanced.excludedEnvVars`** (array of strings):
+  - **Description:** Environment variables to exclude from project context.
+  - **Default:** `["DEBUG","DEBUG_MODE"]`
 
-- **`summarizeToolOutput`** (object):
-  - **Description:** Enables or disables the summarization of tool output. You can specify the token budget for the summarization using the `tokenBudget` setting.
-  - Note: Currently only the `run_shell_command` tool is supported.
-  - **Default:** `{}` (Disabled by default)
-  - **Example:**
-    ```json
-    "summarizeToolOutput": {
-      "run_shell_command": {
-        "tokenBudget": 2000
-      }
-    }
-    ```
+- **`advanced.bugCommand`** (object):
+  - **Description:** Configuration for the bug report command.
+  - **Default:** `undefined`
 
-- **`excludedProjectEnvVars`** (array of strings):
-  - **Description:** Specifies environment variables that should be excluded from being loaded from project `.env` files. This prevents project-specific environment variables (like `DEBUG=true`) from interfering with the CLI behavior. Variables from `.qwen/.env` files are never excluded.
-  - **Default:** `["DEBUG", "DEBUG_MODE"]`
-  - **Example:**
-    ```json
-    "excludedProjectEnvVars": ["DEBUG", "DEBUG_MODE", "NODE_ENV"]
-    ```
-
-- **`includeDirectories`** (array of strings):
-  - **Description:** Specifies an array of additional absolute or relative paths to include in the workspace context. This allows you to work with files across multiple directories as if they were one. Paths can use `~` to refer to the user's home directory. This setting can be combined with the `--include-directories` command-line flag.
-  - **Default:** `[]`
-  - **Example:**
-    ```json
-    "includeDirectories": [
-      "/path/to/another/project",
-      "../shared-library",
-      "~/common-utils"
-    ]
-    ```
-
-- **`loadMemoryFromIncludeDirectories`** (boolean):
-  - **Description:** Controls the behavior of the `/memory refresh` command. If set to `true`, `QWEN.md` files should be loaded from all directories that are added. If set to `false`, `QWEN.md` should only be loaded from the current directory.
-  - **Default:** `false`
-  - **Example:**
-    ```json
-    "loadMemoryFromIncludeDirectories": true
-    ```
-
-- **`tavilyApiKey`** (string):
+- **`advanced.tavilyApiKey`** (string):
   - **Description:** API key for Tavily web search service. Required to enable the `web_search` tool functionality. If not configured, the web search tool will be disabled and skipped.
-  - **Default:** `undefined` (web search disabled)
-  - **Example:** `"tavilyApiKey": "tvly-your-api-key-here"`
-- **`chatCompression`** (object):
-  - **Description:** Controls the settings for chat history compression, both automatic and
-    when manually invoked through the /compress command.
-  - **Properties:**
-    - **`contextPercentageThreshold`** (number): A value between 0 and 1 that specifies the token threshold for compression as a percentage of the model's total token limit. For example, a value of `0.6` will trigger compression when the chat history exceeds 60% of the token limit.
-  - **Example:**
-    ```json
-    "chatCompression": {
-      "contextPercentageThreshold": 0.6
-    }
-    ```
+  - **Default:** `undefined`
 
-- **`showLineNumbers`** (boolean):
-  - **Description:** Controls whether line numbers are displayed in code blocks in the CLI output.
-  - **Default:** `true`
-  - **Example:**
-    ```json
-    "showLineNumbers": false
-    ```
+#### `mcpServers`
 
-### Example `settings.json`:
+Configures connections to one or more Model-Context Protocol (MCP) servers for discovering and using custom tools. Qwen Code attempts to connect to each configured MCP server to discover available tools. If multiple MCP servers expose a tool with the same name, the tool names will be prefixed with the server alias you defined in the configuration (e.g., `serverAlias__actualToolName`) to avoid conflicts. Note that the system might strip certain schema properties from MCP tool definitions for compatibility. At least one of `command`, `url`, or `httpUrl` must be provided. If multiple are specified, the order of precedence is `httpUrl`, then `url`, then `command`.
+
+- **`mcpServers.<SERVER_NAME>`** (object): The server parameters for the named server.
+  - `command` (string, optional): The command to execute to start the MCP server via standard I/O.
+  - `args` (array of strings, optional): Arguments to pass to the command.
+  - `env` (object, optional): Environment variables to set for the server process.
+  - `cwd` (string, optional): The working directory in which to start the server.
+  - `url` (string, optional): The URL of an MCP server that uses Server-Sent Events (SSE) for communication.
+  - `httpUrl` (string, optional): The URL of an MCP server that uses streamable HTTP for communication.
+  - `headers` (object, optional): A map of HTTP headers to send with requests to `url` or `httpUrl`.
+  - `timeout` (number, optional): Timeout in milliseconds for requests to this MCP server.
+  - `trust` (boolean, optional): Trust this server and bypass all tool call confirmations.
+  - `description` (string, optional): A brief description of the server, which may be used for display purposes.
+  - `includeTools` (array of strings, optional): List of tool names to include from this MCP server. When specified, only the tools listed here will be available from this server (allowlist behavior). If not specified, all tools from the server are enabled by default.
+  - `excludeTools` (array of strings, optional): List of tool names to exclude from this MCP server. Tools listed here will not be available to the model, even if they are exposed by the server. **Note:** `excludeTools` takes precedence over `includeTools` - if a tool is in both lists, it will be excluded.
+
+#### `telemetry`
+
+Configures logging and metrics collection for Qwen Code. For more information, see [Telemetry](../telemetry.md).
+
+- **Properties:**
+  - **`enabled`** (boolean): Whether or not telemetry is enabled.
+  - **`target`** (string): The destination for collected telemetry. Supported values are `local` and `gcp`.
+  - **`otlpEndpoint`** (string): The endpoint for the OTLP Exporter.
+  - **`otlpProtocol`** (string): The protocol for the OTLP Exporter (`grpc` or `http`).
+  - **`logPrompts`** (boolean): Whether or not to include the content of user prompts in the logs.
+  - **`outfile`** (string): The file to write telemetry to when `target` is `local`.
+  - **`useCollector`** (boolean): Whether to use an external OTLP collector.
+
+### Example `settings.json`
+
+Here is an example of a `settings.json` file with the nested structure, new as of v0.3.0:
 
 ```json
 {
-  "theme": "GitHub",
-  "sandbox": "docker",
-  "toolDiscoveryCommand": "bin/get_tools",
-  "toolCallCommand": "bin/call_tool",
-  "tavilyApiKey": "$TAVILY_API_KEY",
+  "general": {
+    "vimMode": true,
+    "preferredEditor": "code"
+  },
+  "ui": {
+    "theme": "GitHub",
+    "hideBanner": true,
+    "hideTips": false,
+    "customWittyPhrases": [
+      "You forget a thousand things every day. Make sure this is one of ’em",
+      "Connecting to AGI"
+    ]
+  },
+  "tools": {
+    "approvalMode": "yolo",
+    "sandbox": "docker",
+    "discoveryCommand": "bin/get_tools",
+    "callCommand": "bin/call_tool",
+    "exclude": ["write_file"]
+  },
   "mcpServers": {
     "mainServer": {
       "command": "bin/mcp_server.py"
@@ -334,18 +380,29 @@ In addition to a project settings file, a project's `.qwen` directory can contai
     "otlpEndpoint": "http://localhost:4317",
     "logPrompts": true
   },
-  "usageStatisticsEnabled": true,
-  "hideTips": false,
-  "hideBanner": false,
-  "maxSessionTurns": 10,
-  "summarizeToolOutput": {
-    "run_shell_command": {
-      "tokenBudget": 100
+  "privacy": {
+    "usageStatisticsEnabled": true
+  },
+  "model": {
+    "name": "qwen3-coder-plus",
+    "maxSessionTurns": 10,
+    "summarizeToolOutput": {
+      "run_shell_command": {
+        "tokenBudget": 100
+      }
     }
   },
-  "excludedProjectEnvVars": ["DEBUG", "DEBUG_MODE", "NODE_ENV"],
-  "includeDirectories": ["path/to/dir1", "~/path/to/dir2", "../path/to/dir3"],
-  "loadMemoryFromIncludeDirectories": true
+  "context": {
+    "fileName": ["CONTEXT.md", "QWEN.md"],
+    "includeDirectories": ["path/to/dir1", "~/path/to/dir2", "../path/to/dir3"],
+    "loadFromIncludeDirectories": true,
+    "fileFiltering": {
+      "respectGitIgnore": false
+    }
+  },
+  "advanced": {
+    "excludedEnvVars": ["DEBUG", "DEBUG_MODE", "NODE_ENV"]
+  }
 }
 ```
 
@@ -367,37 +424,39 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
 2.  If not found, it searches upwards in parent directories until it finds an `.env` file or reaches the project root (identified by a `.git` folder) or the home directory.
 3.  If still not found, it looks for `~/.env` (in the user's home directory).
 
-**Environment Variable Exclusion:** Some environment variables (like `DEBUG` and `DEBUG_MODE`) are automatically excluded from project `.env` files by default to prevent interference with the CLI behavior. Variables from `.qwen/.env` files are never excluded. You can customize this behavior using the `excludedProjectEnvVars` setting in your `settings.json` file.
+**Environment Variable Exclusion:** Some environment variables (like `DEBUG` and `DEBUG_MODE`) are automatically excluded from project `.env` files by default to prevent interference with the CLI behavior. Variables from `.qwen/.env` files are never excluded. You can customize this behavior using the `advanced.excludedEnvVars` setting in your `settings.json` file.
 
-- **`GEMINI_API_KEY`**:
-  - Your API key for the Gemini API.
+- **`OPENAI_API_KEY`**:
   - One of several available [authentication methods](./authentication.md).
   - Set this in your shell profile (e.g., `~/.bashrc`, `~/.zshrc`) or an `.env` file.
-- **`GEMINI_MODEL`**:
-  - Specifies the default Gemini model to use.
+- **`OPENAI_BASE_URL`**:
+  - One of several available [authentication methods](./authentication.md).
+  - Set this in your shell profile (e.g., `~/.bashrc`, `~/.zshrc`) or an `.env` file.
+- **`OPENAI_MODEL`**:
+  - Specifies the default OPENAI model to use.
   - Overrides the hardcoded default
-  - Example: `export GEMINI_MODEL="gemini-2.5-flash"`
-- **`GOOGLE_API_KEY`**:
-  - Your Google Cloud API key.
-  - Required for using Vertex AI in express mode.
-  - Ensure you have the necessary permissions.
-  - Example: `export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"`.
-- **`GOOGLE_CLOUD_PROJECT`**:
-  - Your Google Cloud Project ID.
-  - Required for using Code Assist or Vertex AI.
-  - If using Vertex AI, ensure you have the necessary permissions in this project.
-  - **Cloud Shell Note:** When running in a Cloud Shell environment, this variable defaults to a special project allocated for Cloud Shell users. If you have `GOOGLE_CLOUD_PROJECT` set in your global environment in Cloud Shell, it will be overridden by this default. To use a different project in Cloud Shell, you must define `GOOGLE_CLOUD_PROJECT` in a `.env` file.
-  - Example: `export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"`.
-- **`GOOGLE_APPLICATION_CREDENTIALS`** (string):
-  - **Description:** The path to your Google Application Credentials JSON file.
-  - **Example:** `export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/credentials.json"`
-- **`OTLP_GOOGLE_CLOUD_PROJECT`**:
-  - Your Google Cloud Project ID for Telemetry in Google Cloud
-  - Example: `export OTLP_GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"`.
-- **`GOOGLE_CLOUD_LOCATION`**:
-  - Your Google Cloud Project Location (e.g., us-central1).
-  - Required for using Vertex AI in non express mode.
-  - Example: `export GOOGLE_CLOUD_LOCATION="YOUR_PROJECT_LOCATION"`.
+  - Example: `export OPENAI_MODEL="qwen3-coder-plus"`
+- **`GEMINI_TELEMETRY_ENABLED`**:
+  - Set to `true` or `1` to enable telemetry. Any other value is treated as disabling it.
+  - Overrides the `telemetry.enabled` setting.
+- **`GEMINI_TELEMETRY_TARGET`**:
+  - Sets the telemetry target (`local` or `gcp`).
+  - Overrides the `telemetry.target` setting.
+- **`GEMINI_TELEMETRY_OTLP_ENDPOINT`**:
+  - Sets the OTLP endpoint for telemetry.
+  - Overrides the `telemetry.otlpEndpoint` setting.
+- **`GEMINI_TELEMETRY_OTLP_PROTOCOL`**:
+  - Sets the OTLP protocol (`grpc` or `http`).
+  - Overrides the `telemetry.otlpProtocol` setting.
+- **`GEMINI_TELEMETRY_LOG_PROMPTS`**:
+  - Set to `true` or `1` to enable or disable logging of user prompts. Any other value is treated as disabling it.
+  - Overrides the `telemetry.logPrompts` setting.
+- **`GEMINI_TELEMETRY_OUTFILE`**:
+  - Sets the file path to write telemetry to when the target is `local`.
+  - Overrides the `telemetry.outfile` setting.
+- **`GEMINI_TELEMETRY_USE_COLLECTOR`**:
+  - Set to `true` or `1` to enable or disable using an external OTLP collector. Any other value is treated as disabling it.
+  - Overrides the `telemetry.useCollector` setting.
 - **`GEMINI_SANDBOX`**:
   - Alternative to the `sandbox` setting in `settings.json`.
   - Accepts `true`, `false`, `docker`, `podman`, or a custom command string.
@@ -413,9 +472,6 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
   - Set to any value to disable all color output in the CLI.
 - **`CLI_TITLE`**:
   - Set to a string to customize the title of the CLI.
-- **`CODE_ASSIST_ENDPOINT`**:
-  - Specifies the endpoint for the code assist server.
-  - This is useful for development and testing.
 - **`TAVILY_API_KEY`**:
   - Your API key for the Tavily web search service.
   - Required to enable the `web_search` tool functionality.
@@ -427,15 +483,22 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
 Arguments passed directly when running the CLI can override other configurations for that specific session.
 
 - **`--model <model_name>`** (**`-m <model_name>`**):
-  - Specifies the Gemini model to use for this session.
-  - Example: `npm start -- --model gemini-1.5-pro-latest`
+  - Specifies the Qwen model to use for this session.
+  - Example: `npm start -- --model qwen3-coder-plus`
 - **`--prompt <your_prompt>`** (**`-p <your_prompt>`**):
   - Used to pass a prompt directly to the command. This invokes Qwen Code in a non-interactive mode.
+  - For scripting examples, use the `--output-format json` flag to get structured output.
 - **`--prompt-interactive <your_prompt>`** (**`-i <your_prompt>`**):
   - Starts an interactive session with the provided prompt as the initial input.
   - The prompt is processed within the interactive session, not before it.
   - Cannot be used when piping input from stdin.
   - Example: `qwen -i "explain this code"`
+- **`--output-format <format>`**:
+  - **Description:** Specifies the format of the CLI output for non-interactive mode.
+  - **Values:**
+    - `text`: (Default) The standard human-readable output.
+    - `json`: A machine-readable JSON output.
+  - **Note:** For structured output and scripting, use the `--output-format json` flag.
 - **`--sandbox`** (**`-s`**):
   - Enables sandbox mode for this session.
 - **`--sandbox-image`**:
@@ -451,12 +514,16 @@ Arguments passed directly when running the CLI can override other configurations
 - **`--yolo`**:
   - Enables YOLO mode, which automatically approves all tool calls.
 - **`--approval-mode <mode>`**:
-  - Sets the approval mode for tool calls. Available modes:
-    - `default`: Prompt for approval on each tool call (default behavior)
-    - `auto_edit`: Automatically approve edit tools (replace, write_file) while prompting for others
-    - `yolo`: Automatically approve all tool calls (equivalent to `--yolo`)
+  - Sets the approval mode for tool calls. Supported modes:
+    - `plan`: Analyze only—do not modify files or execute commands.
+    - `default`: Require approval for file edits or shell commands (default behavior).
+    - `auto-edit`: Automatically approve edit tools (edit, write_file) while prompting for others.
+    - `yolo`: Automatically approve all tool calls (equivalent to `--yolo`).
   - Cannot be used together with `--yolo`. Use `--approval-mode=yolo` instead of `--yolo` for the new unified approach.
-  - Example: `qwen --approval-mode auto_edit`
+  - Example: `qwen --approval-mode auto-edit`
+- **`--allowed-tools <tool1,tool2,...>`**:
+  - A comma-separated list of tool names that will bypass the confirmation dialog.
+  - Example: `qwen --allowed-tools "ShellTool(git status)"`
 - **`--telemetry`**:
   - Enables [telemetry](../telemetry.md).
 - **`--telemetry-target`**:
@@ -483,6 +550,8 @@ Arguments passed directly when running the CLI can override other configurations
   - Can be specified multiple times or as comma-separated values.
   - 5 directories can be added at maximum.
   - Example: `--include-directories /path/to/project1,/path/to/project2` or `--include-directories /path/to/project1 --include-directories /path/to/project2`
+- **`--screen-reader`**:
+  - Enables screen reader mode, which adjusts the TUI for better compatibility with screen readers.
 - **`--version`**:
   - Displays the version of the CLI.
 - **`--openai-logging`**:
@@ -493,9 +562,9 @@ Arguments passed directly when running the CLI can override other configurations
 
 ## Context Files (Hierarchical Instructional Context)
 
-While not strictly configuration for the CLI's _behavior_, context files (defaulting to `QWEN.md` but configurable via the `contextFileName` setting) are crucial for configuring the _instructional context_ (also referred to as "memory"). This powerful feature allows you to give project-specific instructions, coding style guides, or any relevant background information to the AI, making its responses more tailored and accurate to your needs. The CLI includes UI elements, such as an indicator in the footer showing the number of loaded context files, to keep you informed about the active context.
+While not strictly configuration for the CLI's _behavior_, context files (defaulting to `QWEN.md` but configurable via the `context.fileName` setting) are crucial for configuring the _instructional context_ (also referred to as "memory"). This powerful feature allows you to give project-specific instructions, coding style guides, or any relevant background information to the AI, making its responses more tailored and accurate to your needs. The CLI includes UI elements, such as an indicator in the footer showing the number of loaded context files, to keep you informed about the active context.
 
-- **Purpose:** These Markdown files contain instructions, guidelines, or context that you want the Gemini model to be aware of during your interactions. The system is designed to manage this instructional context hierarchically.
+- **Purpose:** These Markdown files contain instructions, guidelines, or context that you want the Qwen model to be aware of during your interactions. The system is designed to manage this instructional context hierarchically.
 
 ### Example Context File Content (e.g., `QWEN.md`)
 
@@ -534,13 +603,13 @@ This example demonstrates how you can provide general project context, specific 
 
 - **Hierarchical Loading and Precedence:** The CLI implements a sophisticated hierarchical memory system by loading context files (e.g., `QWEN.md`) from several locations. Content from files lower in this list (more specific) typically overrides or supplements content from files higher up (more general). The exact concatenation order and final context can be inspected using the `/memory show` command. The typical loading order is:
   1.  **Global Context File:**
-      - Location: `~/.qwen/<contextFileName>` (e.g., `~/.qwen/QWEN.md` in your user home directory).
+      - Location: `~/.qwen/<configured-context-filename>` (e.g., `~/.qwen/QWEN.md` in your user home directory).
       - Scope: Provides default instructions for all your projects.
   2.  **Project Root & Ancestors Context Files:**
       - Location: The CLI searches for the configured context file in the current working directory and then in each parent directory up to either the project root (identified by a `.git` folder) or your home directory.
       - Scope: Provides context relevant to the entire project or a significant portion of it.
   3.  **Sub-directory Context Files (Contextual/Local):**
-      - Location: The CLI also scans for the configured context file in subdirectories _below_ the current working directory (respecting common ignore patterns like `node_modules`, `.git`, etc.). The breadth of this search is limited to 200 directories by default, but can be configured with a `memoryDiscoveryMaxDirs` field in your `settings.json` file.
+      - Location: The CLI also scans for the configured context file in subdirectories _below_ the current working directory (respecting common ignore patterns like `node_modules`, `.git`, etc.). The breadth of this search is limited to 200 directories by default, but can be configured with the `context.discoveryMaxDirs` setting in your `settings.json` file.
       - Scope: Allows for highly specific instructions relevant to a particular component, module, or subsection of your project.
 - **Concatenation & UI Indication:** The contents of all found context files are concatenated (with separators indicating their origin and path) and provided as part of the system prompt. The CLI footer displays the count of loaded context files, giving you a quick visual cue about the active instructional context.
 - **Importing Content:** You can modularize your context files by importing other Markdown files using the `@path/to/file.md` syntax. For more details, see the [Memory Import Processor documentation](../core/memport.md).
@@ -598,11 +667,13 @@ To help us improve Qwen Code, we collect anonymized usage statistics. This data 
 
 **How to opt out:**
 
-You can opt out of usage statistics collection at any time by setting the `usageStatisticsEnabled` property to `false` in your `settings.json` file:
+You can opt out of usage statistics collection at any time by setting the `usageStatisticsEnabled` property to `false` under the `privacy` category in your `settings.json` file:
 
 ```json
 {
-  "usageStatisticsEnabled": false
+  "privacy": {
+    "usageStatisticsEnabled": false
+  }
 }
 ```
 

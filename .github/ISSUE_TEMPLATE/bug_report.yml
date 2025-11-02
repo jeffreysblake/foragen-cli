@@ -1,6 +1,6 @@
 name: 'Bug Report'
 description: 'Report a bug to help us improve Qwen Code'
-labels: ['kind/bug', 'status/need-triage']
+labels: ['type/bug', 'status/needs-triage']
 body:
   - type: 'markdown'
     attributes:
@@ -32,6 +32,9 @@ body:
       description: 'Please paste the full text from the `/about` command run from Qwen Code. Also include which platform (macOS, Windows, Linux).'
       value: |
         <details>
+        <summary>Client Information</summary>
+
+        Run `qwen` to enter the interactive CLI, then run the `/about` command.
 
         ```console
         $ qwen /about

@@ -5,16 +5,10 @@
  */
 
 import { useEffect, useReducer, useRef } from 'react';
-import {
-  Config,
-  FileSearch,
-  FileSearchFactory,
-  escapePath,
-} from '@qwen-code/qwen-code-core';
-import {
-  Suggestion,
-  MAX_SUGGESTIONS_TO_SHOW,
-} from '../components/SuggestionsDisplay.js';
+import type { Config, FileSearch } from '@qwen-code/qwen-code-core';
+import { FileSearchFactory, escapePath } from '@qwen-code/qwen-code-core';
+import type { Suggestion } from '../components/SuggestionsDisplay.js';
+import { MAX_SUGGESTIONS_TO_SHOW } from '../components/SuggestionsDisplay.js';
 
 export enum AtCompletionStatus {
   IDLE = 'idle',
@@ -166,12 +160,14 @@ export function useAtCompletion(props: UseAtCompletionProps): void {
           ignoreDirs: [],
           useGitignore:
             config?.getFileFilteringOptions()?.respectGitIgnore ?? true,
-          useGeminiignore:
-            config?.getFileFilteringOptions()?.respectGeminiIgnore ?? true,
+          useQwenignore:
+            config?.getFileFilteringOptions()?.respectQwenIgnore ?? true,
           cache: true,
           cacheTtl: 30, // 30 seconds
           enableRecursiveFileSearch:
             config?.getEnableRecursiveFileSearch() ?? true,
+          disableFuzzySearch:
+            config?.getFileFilteringDisableFuzzySearch() ?? false,
         });
         await searcher.initialize();
         fileSearch.current = searcher;

@@ -7,7 +7,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { Content } from '@google/genai';
+import type { Content } from '@google/genai';
 
 interface ErrorReportData {
   error: { message: string; stack?: string } | { message: string };
@@ -30,7 +30,7 @@ export async function reportError(
   reportingDir = os.tmpdir(), // for testing
 ): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const reportFileName = `gemini-client-error-${type}-${timestamp}.json`;
+  const reportFileName = `qwen-client-error-${type}-${timestamp}.json`;
   const reportPath = path.join(reportingDir, reportFileName);
 
   let errorToReport: { message: string; stack?: string };

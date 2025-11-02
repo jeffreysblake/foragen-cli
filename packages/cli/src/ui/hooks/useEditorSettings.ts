@@ -5,12 +5,12 @@
  */
 
 import { useState, useCallback } from 'react';
-import { LoadedSettings, SettingScope } from '../../config/settings.js';
+import type { LoadedSettings, SettingScope } from '../../config/settings.js';
 import { type HistoryItem, MessageType } from '../types.js';
+import type { EditorType } from '@qwen-code/qwen-code-core';
 import {
   allowEditorTypeInSandbox,
   checkHasEditorType,
-  EditorType,
 } from '@qwen-code/qwen-code-core';
 
 interface UseEditorSettingsReturn {
@@ -45,7 +45,7 @@ export const useEditorSettings = (
       }
 
       try {
-        loadedSettings.setValue(scope, 'preferredEditor', editorType);
+        loadedSettings.setValue(scope, 'general.preferredEditor', editorType);
         addItem(
           {
             type: MessageType.INFO,

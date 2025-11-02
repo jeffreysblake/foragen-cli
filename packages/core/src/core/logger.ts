@@ -6,13 +6,14 @@
 
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
-import { Content } from '@google/genai';
-import { getProjectTempDir } from '../utils/paths.js';
+import type { Content } from '@google/genai';
+import type { Storage } from '../config/storage.js';
 
 const LOG_FILE_NAME = 'logs.json';
 
 export enum MessageSenderType {
   USER = 'user',
+  MODEL_SWITCH = 'model_switch',
 }
 
 export interface LogEntry {
@@ -21,6 +22,13 @@ export interface LogEntry {
   timestamp: string;
   type: MessageSenderType;
   message: string;
+}
+
+export interface ModelSwitchEvent {
+  fromModel: string;
+  toModel: string;
+  reason: 'vision_auto_switch' | 'manual' | 'fallback' | 'other';
+  context?: string;
 }
 
 // This regex matches any character that is NOT a letter (a-z, A-Z),
@@ -67,7 +75,10 @@ export class Logger {
   private initialized = false;
   private logs: LogEntry[] = []; // In-memory cache, ideally reflects the last known state of the file
 
-  constructor(sessionId: string) {
+  constructor(
+    sessionId: string,
+    private readonly storage: Storage,
+  ) {
     this.sessionId = sessionId;
   }
 
@@ -130,7 +141,7 @@ export class Logger {
       return;
     }
 
-    this.qwenDir = getProjectTempDir(process.cwd());
+    this.qwenDir = this.storage.getProjectTempDir();
     this.logFilePath = path.join(this.qwenDir, LOG_FILE_NAME);
 
     try {

@@ -4,31 +4,39 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import crypto from 'crypto';
-import { Config } from '../config/config.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import os, { EOL } from 'node:os';
+import crypto from 'node:crypto';
+import type { Config } from '../config/config.js';
+import { ToolNames } from './tool-names.js';
+import { ToolErrorType } from './tool-error.js';
+import type {
+  ToolInvocation,
+  ToolResult,
+  ToolResultDisplay,
+  ToolCallConfirmationDetails,
+  ToolExecuteConfirmationDetails,
+} from './tools.js';
 import {
   BaseDeclarativeTool,
   BaseToolInvocation,
-  ToolInvocation,
-  ToolResult,
-  ToolCallConfirmationDetails,
-  ToolExecuteConfirmationDetails,
   ToolConfirmationOutcome,
   Kind,
 } from './tools.js';
 import { getErrorMessage } from '../utils/errors.js';
 import { summarizeToolOutput } from '../utils/summarizer.js';
-import {
-  ShellExecutionService,
+import type {
+  ShellExecutionConfig,
   ShellOutputEvent,
 } from '../services/shellExecutionService.js';
+import { ShellExecutionService } from '../services/shellExecutionService.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
+import type { AnsiOutput } from '../utils/terminalSerializer.js';
 import {
   getCommandRoots,
   isCommandAllowed,
+  isCommandNeedsPermission,
   stripShellWrapper,
 } from '../utils/shell-utils.js';
 
@@ -41,7 +49,7 @@ export interface ShellToolParams {
   directory?: string;
 }
 
-class ShellToolInvocation extends BaseToolInvocation<
+export class ShellToolInvocation extends BaseToolInvocation<
   ShellToolParams,
   ToolResult
 > {
@@ -81,7 +89,12 @@ class ShellToolInvocation extends BaseToolInvocation<
     );
 
     if (commandsToConfirm.length === 0) {
-      return false; // already approved and whitelisted
+      return false; // already approved and allowlisted
+    }
+
+    const permissionCheck = isCommandNeedsPermission(command);
+    if (!permissionCheck.requiresPermission) {
+      return false;
     }
 
     const confirmationDetails: ToolExecuteConfirmationDetails = {
@@ -100,9 +113,9 @@ class ShellToolInvocation extends BaseToolInvocation<
 
   async execute(
     signal: AbortSignal,
-    updateOutput?: (output: string) => void,
-    terminalColumns?: number,
-    terminalRows?: number,
+    updateOutput?: (output: ToolResultDisplay) => void,
+    shellExecutionConfig?: ShellExecutionConfig,
+    setPidCallback?: (pid: number) => void,
   ): Promise<ToolResult> {
     const strippedCommand = stripShellWrapper(this.params.command);
 
@@ -141,65 +154,66 @@ class ShellToolInvocation extends BaseToolInvocation<
             return `{ ${command} }; __code=$?; pgrep -g 0 >${tempFilePath} 2>&1; exit $__code;`;
           })();
 
-      const cwd = path.resolve(
-        this.config.getTargetDir(),
-        this.params.directory || '',
-      );
+      const cwd = this.params.directory || this.config.getTargetDir();
 
-      let cumulativeOutput = '';
+      let cumulativeOutput: string | AnsiOutput = '';
       let lastUpdateTime = Date.now();
       let isBinaryStream = false;
 
-      const { result: resultPromise } = await ShellExecutionService.execute(
-        commandToExecute,
-        cwd,
-        (event: ShellOutputEvent) => {
-          if (!updateOutput) {
-            return;
-          }
-
-          let currentDisplayOutput = '';
-          let shouldUpdate = false;
-
-          switch (event.type) {
-            case 'data':
-              if (isBinaryStream) break;
-              cumulativeOutput = event.chunk;
-              currentDisplayOutput = cumulativeOutput;
-              if (Date.now() - lastUpdateTime > OUTPUT_UPDATE_INTERVAL_MS) {
-                shouldUpdate = true;
-              }
-              break;
-            case 'binary_detected':
-              isBinaryStream = true;
-              currentDisplayOutput =
-                '[Binary output detected. Halting stream...]';
-              shouldUpdate = true;
-              break;
-            case 'binary_progress':
-              isBinaryStream = true;
-              currentDisplayOutput = `[Receiving binary output... ${formatMemoryUsage(
-                event.bytesReceived,
-              )} received]`;
-              if (Date.now() - lastUpdateTime > OUTPUT_UPDATE_INTERVAL_MS) {
-                shouldUpdate = true;
-              }
-              break;
-            default: {
-              throw new Error('An unhandled ShellOutputEvent was found.');
+      const { result: resultPromise, pid } =
+        await ShellExecutionService.execute(
+          commandToExecute,
+          cwd,
+          (event: ShellOutputEvent) => {
+            if (!updateOutput) {
+              return;
             }
-          }
 
-          if (shouldUpdate) {
-            updateOutput(currentDisplayOutput);
-            lastUpdateTime = Date.now();
-          }
-        },
-        signal,
-        this.config.getShouldUseNodePtyShell(),
-        terminalColumns,
-        terminalRows,
-      );
+            let shouldUpdate = false;
+
+            switch (event.type) {
+              case 'data':
+                if (isBinaryStream) break;
+                cumulativeOutput = event.chunk;
+                shouldUpdate = true;
+                break;
+              case 'binary_detected':
+                isBinaryStream = true;
+                cumulativeOutput =
+                  '[Binary output detected. Halting stream...]';
+                shouldUpdate = true;
+                break;
+              case 'binary_progress':
+                isBinaryStream = true;
+                cumulativeOutput = `[Receiving binary output... ${formatMemoryUsage(
+                  event.bytesReceived,
+                )} received]`;
+                if (Date.now() - lastUpdateTime > OUTPUT_UPDATE_INTERVAL_MS) {
+                  shouldUpdate = true;
+                }
+                break;
+              default: {
+                throw new Error('An unhandled ShellOutputEvent was found.');
+              }
+            }
+
+            if (shouldUpdate) {
+              updateOutput(
+                typeof cumulativeOutput === 'string'
+                  ? cumulativeOutput
+                  : { ansiOutput: cumulativeOutput },
+              );
+              lastUpdateTime = Date.now();
+            }
+          },
+          signal,
+          this.config.getShouldUseNodePtyShell(),
+          shellExecutionConfig ?? {},
+        );
+
+      if (pid && setPidCallback) {
+        setPidCallback(pid);
+      }
 
       const result = await resultPromise;
 
@@ -208,7 +222,7 @@ class ShellToolInvocation extends BaseToolInvocation<
         if (fs.existsSync(tempFilePath)) {
           const pgrepLines = fs
             .readFileSync(tempFilePath, 'utf8')
-            .split('\n')
+            .split(EOL)
             .filter(Boolean);
           for (const line of pgrepLines) {
             if (!/^\d+$/.test(line)) {
@@ -279,6 +293,14 @@ class ShellToolInvocation extends BaseToolInvocation<
       }
 
       const summarizeConfig = this.config.getSummarizeToolOutputConfig();
+      const executionError = result.error
+        ? {
+            error: {
+              message: result.error.message,
+              type: ToolErrorType.SHELL_EXECUTE_ERROR,
+            },
+          }
+        : {};
       if (summarizeConfig && summarizeConfig[ShellTool.Name]) {
         const summary = await summarizeToolOutput(
           llmContent,
@@ -289,12 +311,14 @@ class ShellToolInvocation extends BaseToolInvocation<
         return {
           llmContent: summary,
           returnDisplay: returnDisplayMessage,
+          ...executionError,
         };
       }
 
       return {
         llmContent,
         returnDisplay: returnDisplayMessage,
+        ...executionError,
       };
     } finally {
       if (fs.existsSync(tempFilePath)) {
@@ -341,36 +365,29 @@ Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
 }
 
 function getShellToolDescription(): string {
-  const platform = os.platform();
   const toolDescription = `
-    ${platform === 'win32' ? 'This tool executes a given shell command as `cmd.exe /c <command>`.' : 'This tool executes a given shell command as `bash -c <command>`. '}
 
-      **CRITICAL: Background vs Foreground Execution Decision:**
-      You MUST correctly choose between background and foreground execution based on command behavior:
-
-      **ALWAYS use background execution (is_background: true) for:**
-      - Development servers: \`npm run start\`, \`npm run dev\`, \`yarn dev\`, \`bun run start\`, \`python manage.py runserver\`
-      - Build watchers: \`npm run watch\`, \`webpack --watch\`, \`tsc --watch\`, \`rollup --watch\`
-      - Database servers: \`mongod\`, \`mysql\`, \`redis-server\`, \`postgres\`
-      - Web/application servers: \`python -m http.server\`, \`php -S localhost:8000\`, \`ruby -run -httpd\`
-      - File watchers/monitors: \`nodemon\`, \`watchman\`, \`fswatch\`
-      - Any command that runs continuously until manually interrupted (Ctrl+C)
-
-      **ALWAYS use foreground execution (is_background: false) for:**
-      - File operations: \`ls\`, \`cat\`, \`grep\`, \`find\`, \`cp\`, \`mv\`, \`rm\`, \`mkdir\`
-      - Build/compile commands: \`npm run build\`, \`make\`, \`cargo build\`, \`go build\`, \`tsc\`
-      - Package management: \`npm install\`, \`pip install\`, \`yarn add\`, \`cargo add\`
-      - Git operations: \`git commit\`, \`git push\`, \`git pull\`, \`git status\`, \`git log\`
-      - Test execution: \`npm test\`, \`pytest\`, \`cargo test\`, \`go test\`, \`jest\`
-      - Utility commands: \`curl\`, \`wget\`, \`echo\`, \`which\`, \`pwd\`, \`whoami\`
-      - Any command that completes a task and exits naturally
-
-      ${platform === 'win32' ? '' : 'Command is executed as a subprocess that leads its own process group. Command process group can be terminated as `kill -- -PGID` or signaled as `kill -s SIGNAL -- -PGID`.'}
-
+      **Background vs Foreground Execution:**
+      You should decide whether commands should run in background or foreground based on their nature:
+      
+      **Use background execution (is_background: true) for:**
+      - Long-running development servers: \`npm run start\`, \`npm run dev\`, \`yarn dev\`, \`bun run start\`
+      - Build watchers: \`npm run watch\`, \`webpack --watch\`
+      - Database servers: \`mongod\`, \`mysql\`, \`redis-server\`
+      - Web servers: \`python -m http.server\`, \`php -S localhost:8000\`
+      - Any command expected to run indefinitely until manually stopped
+      
+      **Use foreground execution (is_background: false) for:**
+      - One-time commands: \`ls\`, \`cat\`, \`grep\`
+      - Build commands: \`npm run build\`, \`make\`
+      - Installation commands: \`npm install\`, \`pip install\`
+      - Git operations: \`git commit\`, \`git push\`
+      - Test runs: \`npm test\`, \`pytest\`
+      
       The following information is returned:
 
       Command: Executed command.
-      Directory: Directory (relative to project root) where command was executed, or \`(root)\`.
+      Directory: Directory where command was executed, or \`(root)\`.
       Stdout: Output on stdout stream. Can be \`(empty)\` or partial on error and for any unwaited background processes.
       Stderr: Output on stderr stream. Can be \`(empty)\` or partial on error and for any unwaited background processes.
       Error: Error or \`(none)\` if no error was reported for the subprocess.
@@ -379,14 +396,26 @@ function getShellToolDescription(): string {
       Background PIDs: List of background processes started or \`(none)\`.
       Process Group PGID: Process group started or \`(none)\``;
 
-  return toolDescription;
+  if (os.platform() === 'win32') {
+    return `This tool executes a given shell command as \`cmd.exe /c <command>\`. Command can start background processes using \`start /b\`.${toolDescription}`;
+  } else {
+    return `This tool executes a given shell command as \`bash -c <command>\`. Command can start background processes using \`&\`. Command is executed as a subprocess that leads its own process group. Command process group can be terminated as \`kill -- -PGID\` or signaled as \`kill -s SIGNAL -- -PGID\`.${toolDescription}`;
+  }
 }
 
 function getCommandDescription(): string {
+  const cmd_substitution_warning =
+    '\n*** WARNING: Command substitution using $(), `` ` ``, <(), or >() is not allowed for security reasons.';
   if (os.platform() === 'win32') {
-    return 'Exact command to execute as `cmd.exe /c <command>`';
+    return (
+      'Exact command to execute as `cmd.exe /c <command>`' +
+      cmd_substitution_warning
+    );
   } else {
-    return 'Exact bash command to execute as `bash -c <command>`';
+    return (
+      'Exact bash command to execute as `bash -c <command>`' +
+      cmd_substitution_warning
+    );
   }
 }
 
@@ -394,7 +423,7 @@ export class ShellTool extends BaseDeclarativeTool<
   ShellToolParams,
   ToolResult
 > {
-  static Name: string = 'run_shell_command';
+  static Name: string = ToolNames.SHELL;
   private allowlist: Set<string> = new Set();
 
   constructor(private readonly config: Config) {
@@ -413,7 +442,7 @@ export class ShellTool extends BaseDeclarativeTool<
           is_background: {
             type: 'boolean',
             description:
-              'Whether to run the command in background. Default is false. REQUIRED: Set to true for long-running processes like development servers (npm start, npm run dev), watchers (npm run watch), database servers (mongod, redis-server), web servers (python -m http.server), or any command expected to run indefinitely. Set to false for one-time commands like builds (npm run build), installs (npm install), git operations (git commit), tests (npm test), file operations (ls, cat, grep), and other commands that complete and exit.',
+              'Whether to run the command in background. Default is false. Set to true for long-running processes like development servers, watchers, or daemons that should continue running without blocking further commands.',
           },
           description: {
             type: 'string',
@@ -423,7 +452,7 @@ export class ShellTool extends BaseDeclarativeTool<
           directory: {
             type: 'string',
             description:
-              '(OPTIONAL) Directory to run the command in, if not the project root directory. Must be relative to the project root directory and must already exist.',
+              '(OPTIONAL) The absolute path of the directory to run the command in. If not provided, the project root directory is used. Must be a directory within the workspace and must already exist.',
           },
         },
         required: ['command', 'is_background'],
@@ -453,20 +482,16 @@ export class ShellTool extends BaseDeclarativeTool<
       return 'Could not identify command root to obtain permission from user.';
     }
     if (params.directory) {
-      if (path.isAbsolute(params.directory)) {
-        return 'Directory cannot be absolute. Please refer to workspace directories by their name.';
+      if (!path.isAbsolute(params.directory)) {
+        return 'Directory must be an absolute path.';
       }
       const workspaceDirs = this.config.getWorkspaceContext().getDirectories();
-      const matchingDirs = workspaceDirs.filter(
-        (dir) => path.basename(dir) === params.directory,
+      const isWithinWorkspace = workspaceDirs.some((wsDir) =>
+        params.directory!.startsWith(wsDir),
       );
 
-      if (matchingDirs.length === 0) {
-        return `Directory '${params.directory}' is not a registered workspace directory.`;
-      }
-
-      if (matchingDirs.length > 1) {
-        return `Directory name '${params.directory}' is ambiguous as it matches multiple workspace directories.`;
+      if (!isWithinWorkspace) {
+        return `Directory '${params.directory}' is not within any of the registered workspace directories.`;
       }
     }
     return null;

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Part } from '@google/genai';
-import { Config } from '../config/config.js';
+import type { Content, Part } from '@google/genai';
+import type { Config } from '../config/config.js';
 import { getFolderStructure } from './getFolderStructure.js';
 
 /**
@@ -106,4 +106,24 @@ ${directoryContext}
   }
 
   return initialParts;
+}
+
+export async function getInitialChatHistory(
+  config: Config,
+  extraHistory?: Content[],
+): Promise<Content[]> {
+  const envParts = await getEnvironmentContext(config);
+  const envContextString = envParts.map((part) => part.text || '').join('\n\n');
+
+  return [
+    {
+      role: 'user',
+      parts: [{ text: envContextString }],
+    },
+    {
+      role: 'model',
+      parts: [{ text: 'Got it. Thanks for the context!' }],
+    },
+    ...(extraHistory ?? []),
+  ];
 }

@@ -4,29 +4,36 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  expect,
-  it,
-  describe,
-  vi,
-  beforeEach,
-  afterEach,
-  MockInstance,
-} from 'vitest';
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi,
+} from 'vitest';
+import type { Config } from '../config/config.js';
+import { getProjectHash } from '../utils/paths.js';
 import {
   ChatRecordingService,
-  ConversationRecord,
-  ToolCallRecord,
+  type ConversationRecord,
+  type ToolCallRecord,
 } from './chatRecordingService.js';
-import { Config } from '../config/config.js';
-import { getProjectHash } from '../utils/paths.js';
 
 vi.mock('node:fs');
 vi.mock('node:path');
-vi.mock('node:crypto');
+vi.mock('node:crypto', () => ({
+  randomUUID: vi.fn(),
+  createHash: vi.fn(() => ({
+    update: vi.fn(() => ({
+      digest: vi.fn(() => 'mocked-hash'),
+    })),
+  })),
+}));
 vi.mock('../utils/paths.js');
 
 describe('ChatRecordingService', () => {
@@ -40,11 +47,20 @@ describe('ChatRecordingService', () => {
     mockConfig = {
       getSessionId: vi.fn().mockReturnValue('test-session-id'),
       getProjectRoot: vi.fn().mockReturnValue('/test/project/root'),
-      getProjectTempDir: vi
-        .fn()
-        .mockReturnValue('/test/project/root/.gemini/tmp'),
+      storage: {
+        getProjectTempDir: vi
+          .fn()
+          .mockReturnValue('/test/project/root/.gemini/tmp'),
+      },
       getModel: vi.fn().mockReturnValue('gemini-pro'),
       getDebugMode: vi.fn().mockReturnValue(false),
+      getToolRegistry: vi.fn().mockReturnValue({
+        getTool: vi.fn().mockReturnValue({
+          displayName: 'Test Tool',
+          description: 'A test tool',
+          isOutputMarkdown: false,
+        }),
+      }),
     } as unknown as Config;
 
     vi.mocked(getProjectHash).mockReturnValue('test-project-hash');
@@ -118,7 +134,11 @@ describe('ChatRecordingService', () => {
       const writeFileSyncSpy = vi
         .spyOn(fs, 'writeFileSync')
         .mockImplementation(() => undefined);
-      chatRecordingService.recordMessage({ type: 'user', content: 'Hello' });
+      chatRecordingService.recordMessage({
+        type: 'user',
+        content: 'Hello',
+        model: 'gemini-pro',
+      });
       expect(mkdirSyncSpy).toHaveBeenCalled();
       expect(writeFileSyncSpy).toHaveBeenCalled();
       const conversation = JSON.parse(
@@ -129,7 +149,7 @@ describe('ChatRecordingService', () => {
       expect(conversation.messages[0].type).toBe('user');
     });
 
-    it('should append to the last message if append is true and types match', () => {
+    it('should create separate messages when recording multiple messages', () => {
       const writeFileSyncSpy = vi
         .spyOn(fs, 'writeFileSync')
         .mockImplementation(() => undefined);
@@ -151,8 +171,8 @@ describe('ChatRecordingService', () => {
 
       chatRecordingService.recordMessage({
         type: 'user',
-        content: ' World',
-        append: true,
+        content: 'World',
+        model: 'gemini-pro',
       });
 
       expect(mkdirSyncSpy).toHaveBeenCalled();
@@ -160,8 +180,9 @@ describe('ChatRecordingService', () => {
       const conversation = JSON.parse(
         writeFileSyncSpy.mock.calls[0][1] as string,
       ) as ConversationRecord;
-      expect(conversation.messages).toHaveLength(1);
-      expect(conversation.messages[0].content).toBe('Hello World');
+      expect(conversation.messages).toHaveLength(2);
+      expect(conversation.messages[0].content).toBe('Hello');
+      expect(conversation.messages[1].content).toBe('World');
     });
   });
 
@@ -198,7 +219,7 @@ describe('ChatRecordingService', () => {
         messages: [
           {
             id: '1',
-            type: 'gemini',
+            type: 'qwen',
             content: 'Response',
             timestamp: new Date().toISOString(),
           },
@@ -209,10 +230,10 @@ describe('ChatRecordingService', () => {
       );
 
       chatRecordingService.recordMessageTokens({
-        input: 1,
-        output: 2,
-        total: 3,
-        cached: 0,
+        promptTokenCount: 1,
+        candidatesTokenCount: 2,
+        totalTokenCount: 3,
+        cachedContentTokenCount: 0,
       });
 
       expect(mkdirSyncSpy).toHaveBeenCalled();
@@ -222,7 +243,14 @@ describe('ChatRecordingService', () => {
       ) as ConversationRecord;
       expect(conversation.messages[0]).toEqual({
         ...initialConversation.messages[0],
-        tokens: { input: 1, output: 2, total: 3, cached: 0 },
+        tokens: {
+          input: 1,
+          output: 2,
+          total: 3,
+          cached: 0,
+          thoughts: 0,
+          tool: 0,
+        },
       });
     });
 
@@ -233,7 +261,7 @@ describe('ChatRecordingService', () => {
         messages: [
           {
             id: '1',
-            type: 'gemini',
+            type: 'qwen',
             content: 'Response',
             timestamp: new Date().toISOString(),
             tokens: { input: 1, output: 1, total: 2, cached: 0 },
@@ -245,10 +273,10 @@ describe('ChatRecordingService', () => {
       );
 
       chatRecordingService.recordMessageTokens({
-        input: 2,
-        output: 2,
-        total: 4,
-        cached: 0,
+        promptTokenCount: 2,
+        candidatesTokenCount: 2,
+        totalTokenCount: 4,
+        cachedContentTokenCount: 0,
       });
 
       // @ts-expect-error private property
@@ -257,6 +285,8 @@ describe('ChatRecordingService', () => {
         output: 2,
         total: 4,
         cached: 0,
+        thoughts: 0,
+        tool: 0,
       });
     });
   });
@@ -276,7 +306,7 @@ describe('ChatRecordingService', () => {
         messages: [
           {
             id: '1',
-            type: 'gemini',
+            type: 'qwen',
             content: '',
             timestamp: new Date().toISOString(),
           },
@@ -293,7 +323,7 @@ describe('ChatRecordingService', () => {
         status: 'awaiting_approval',
         timestamp: new Date().toISOString(),
       };
-      chatRecordingService.recordToolCalls([toolCall]);
+      chatRecordingService.recordToolCalls('gemini-pro', [toolCall]);
 
       expect(mkdirSyncSpy).toHaveBeenCalled();
       expect(writeFileSyncSpy).toHaveBeenCalled();
@@ -302,7 +332,14 @@ describe('ChatRecordingService', () => {
       ) as ConversationRecord;
       expect(conversation.messages[0]).toEqual({
         ...initialConversation.messages[0],
-        toolCalls: [toolCall],
+        toolCalls: [
+          {
+            ...toolCall,
+            displayName: 'Test Tool',
+            description: 'A test tool',
+            renderOutputAsMarkdown: false,
+          },
+        ],
       });
     });
 
@@ -333,7 +370,7 @@ describe('ChatRecordingService', () => {
         status: 'awaiting_approval',
         timestamp: new Date().toISOString(),
       };
-      chatRecordingService.recordToolCalls([toolCall]);
+      chatRecordingService.recordToolCalls('gemini-pro', [toolCall]);
 
       expect(mkdirSyncSpy).toHaveBeenCalled();
       expect(writeFileSyncSpy).toHaveBeenCalled();
@@ -345,10 +382,17 @@ describe('ChatRecordingService', () => {
         ...conversation.messages[1],
         id: 'this-is-a-test-uuid',
         model: 'gemini-pro',
-        type: 'gemini',
+        type: 'qwen',
         thoughts: [],
         content: '',
-        toolCalls: [toolCall],
+        toolCalls: [
+          {
+            ...toolCall,
+            displayName: 'Test Tool',
+            description: 'A test tool',
+            renderOutputAsMarkdown: false,
+          },
+        ],
       });
     });
   });

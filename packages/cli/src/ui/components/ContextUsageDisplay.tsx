@@ -5,23 +5,27 @@
  */
 
 import { Text } from 'ink';
-import { Colors } from '../colors.js';
+import { theme } from '../semantic-colors.js';
 import { tokenLimit } from '@qwen-code/qwen-code-core';
 
 export const ContextUsageDisplay = ({
   promptTokenCount,
   model,
+  terminalWidth,
 }: {
   promptTokenCount: number;
   model: string;
+  terminalWidth: number;
 }) => {
-  const limit = tokenLimit(model);
-  const percentage = Math.min(promptTokenCount / limit, 1); // Cap percentage at 1 to prevent negative context
-  const contextLeft = Math.max(0, ((1 - percentage) * 100)); // Ensure non-negative percentage
+  const percentage = promptTokenCount / tokenLimit(model);
+  const percentageLeft = ((1 - percentage) * 100).toFixed(0);
+
+  const label = terminalWidth < 100 ? '%' : '% context left';
 
   return (
-    <Text color={Colors.Gray}>
-      ({contextLeft.toFixed(0)}% context left)
+    <Text color={theme.text.secondary}>
+      ({percentageLeft}
+      {label})
     </Text>
   );
 };

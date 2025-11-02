@@ -4,14 +4,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type ReactNode } from 'react';
-import { Content } from '@google/genai';
-import { HistoryItemWithoutId } from '../types.js';
-import { Config, GitService, Logger } from '@qwen-code/qwen-code-core';
-import { LoadedSettings } from '../../config/settings.js';
-import { UseHistoryManagerReturn } from '../hooks/useHistoryManager.js';
-import type { HistoryItem } from '../types.js';
-import { SessionStatsState } from '../contexts/SessionContext.js';
+import type { ReactNode } from 'react';
+import type { Content, PartListUnion } from '@google/genai';
+import type { Config, GitService, Logger } from '@qwen-code/qwen-code-core';
+import type {
+  HistoryItemWithoutId,
+  HistoryItem,
+  ConfirmationRequest,
+} from '../types.js';
+import type { LoadedSettings } from '../../config/settings.js';
+import type { UseHistoryManagerReturn } from '../hooks/useHistoryManager.js';
+import type { SessionStatsState } from '../contexts/SessionContext.js';
+import type {
+  ExtensionUpdateAction,
+  ExtensionUpdateStatus,
+} from '../state/extensions.js';
 
 // Grouped dependencies for clarity and easier mocking
 export interface CommandContext {
@@ -62,6 +69,9 @@ export interface CommandContext {
     toggleVimEnabled: () => Promise<boolean>;
     setGeminiMdFileCount: (count: number) => void;
     reloadCommands: () => void;
+    extensionsUpdateState: Map<string, ExtensionUpdateStatus>;
+    dispatchExtensionStateUpdate: (action: ExtensionUpdateAction) => void;
+    addConfirmUpdateExtensionRequest: (value: ConfirmationRequest) => void;
   };
   // Session-specific data
   session: {
@@ -88,6 +98,12 @@ export interface QuitActionReturn {
   messages: HistoryItem[];
 }
 
+/** The return type for a command action that requests quit confirmation. */
+export interface QuitConfirmationActionReturn {
+  type: 'quit_confirmation';
+  messages: HistoryItem[];
+}
+
 /**
  * The return type for a command action that results in a simple message
  * being displayed to the user.
@@ -104,7 +120,16 @@ export interface MessageActionReturn {
 export interface OpenDialogActionReturn {
   type: 'dialog';
 
-  dialog: 'help' | 'auth' | 'theme' | 'editor' | 'privacy' | 'settings';
+  dialog:
+    | 'help'
+    | 'auth'
+    | 'theme'
+    | 'editor'
+    | 'settings'
+    | 'model'
+    | 'subagent_create'
+    | 'subagent_list'
+    | 'permissions';
 }
 
 /**
@@ -123,7 +148,7 @@ export interface LoadHistoryActionReturn {
  */
 export interface SubmitPromptActionReturn {
   type: 'submit_prompt';
-  content: string;
+  content: PartListUnion;
 }
 
 /**
@@ -154,6 +179,7 @@ export type SlashCommandActionReturn =
   | ToolActionReturn
   | MessageActionReturn
   | QuitActionReturn
+  | QuitConfirmationActionReturn
   | OpenDialogActionReturn
   | LoadHistoryActionReturn
   | SubmitPromptActionReturn
@@ -171,6 +197,7 @@ export interface SlashCommand {
   name: string;
   altNames?: string[];
   description: string;
+  hidden?: boolean;
 
   kind: CommandKind;
 
