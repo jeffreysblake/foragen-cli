@@ -101,13 +101,15 @@ export function createContentGeneratorConfig(
   }
 
   // Support LOCAL auth type (custom enhancement)
-  if (authType === AuthType.LOCAL && openaiApiKey) {
-    // LOCAL auth type uses the same configuration as OpenAI but is selected differently
-    contentGeneratorConfig.apiKey = openaiApiKey;
-    contentGeneratorConfig.baseUrl = openaiBaseUrl;
-    contentGeneratorConfig.model = openaiModel || DEFAULT_QWEN_MODEL;
+  if (authType === AuthType.LOCAL) {
+    if (!newContentGeneratorConfig.apiKey) {
+      throw new Error('API key is required for LOCAL authentication');
+    }
 
-    return contentGeneratorConfig;
+    return {
+      ...newContentGeneratorConfig,
+      model: newContentGeneratorConfig?.model || DEFAULT_QWEN_MODEL,
+    } as ContentGeneratorConfig;
   }
 
   // USE_OPENAI auth type
