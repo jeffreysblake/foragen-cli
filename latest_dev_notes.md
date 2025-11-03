@@ -261,4 +261,4 @@ export interface LocalModelConfig {
 
 ---
 
-_This document tracks ongoing development priorities for optimizing Fora Code with local model deployments. Updates should be made as features are implemented or priorities change._
+_This document tracks ongoing development priorities for optimizing Foragen CLI with local model deployments. Updates should be made as features are implemented or priorities change._

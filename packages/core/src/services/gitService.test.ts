@@ -174,7 +174,7 @@ describe('GitService', () => {
       await service.setupShadowGitRepository();
 
       const expectedConfigContent =
-        '[user]\n  name = Fora Code\n  email = foragen-cli@fora.ai\n[commit]\n  gpgsign = false\n';
+        '[user]\n  name = Foragen CLI\n  email = foragen-cli@fora.ai\n[commit]\n  gpgsign = false\n';
       const actualConfigContent = await fs.readFile(gitConfigPath, 'utf-8');
       expect(actualConfigContent).toBe(expectedConfigContent);
     });

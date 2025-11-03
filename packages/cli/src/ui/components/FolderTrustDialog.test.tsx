@@ -40,7 +40,7 @@ describe('FolderTrustDialog', () => {
 
     expect(lastFrame()).toContain('Do you trust this folder?');
     expect(lastFrame()).toContain(
-      'Trusting a folder allows Fora Code to execute commands it suggests.',
+      'Trusting a folder allows Foragen CLI to execute commands it suggests.',
     );
   });
 
@@ -75,7 +75,7 @@ describe('FolderTrustDialog', () => {
       <FolderTrustDialog onSelect={vi.fn()} isRestarting={true} />,
     );
 
-    expect(lastFrame()).toContain(' Fora Code is restarting');
+    expect(lastFrame()).toContain(' Foragen CLI is restarting');
   });
 
   it('should call relaunchApp when isRestarting is true', async () => {

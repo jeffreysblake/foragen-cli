@@ -23,7 +23,7 @@ export const ToolsList: React.FC<ToolsListProps> = ({
 }) => (
   <Box flexDirection="column" marginBottom={1}>
     <Text bold color={theme.text.primary}>
-      Available Fora Code CLI tools:
+      Available Foragen CLI CLI tools:
     </Text>
     <Box height={1} />
     {tools.length > 0 ? (

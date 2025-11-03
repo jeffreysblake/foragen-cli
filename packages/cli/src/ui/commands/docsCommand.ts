@@ -15,7 +15,7 @@ import { MessageType } from '../types.js';
 
 export const docsCommand: SlashCommand = {
   name: 'docs',
-  description: 'open full Fora Code documentation in your browser',
+  description: 'open full Foragen CLI documentation in your browser',
   kind: CommandKind.BUILT_IN,
   action: async (context: CommandContext): Promise<void> => {
     const docsUrl = 'https://foralm.github.io/foragen-cli-docs/en';

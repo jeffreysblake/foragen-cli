@@ -15,7 +15,7 @@ interface GenerationOption {
 
 const generationOptions: GenerationOption[] = [
   {
-    label: 'Generate with Fora Code (Recommended)',
+    label: 'Generate with Foragen CLI (Recommended)',
     value: 'fora',
   },
   {

@@ -21,7 +21,7 @@ export const AVAILABLE_MODELS_FORA: AvailableModel[] = [
     id: MAINLINE_CODER,
     label: MAINLINE_CODER,
     description:
-      'The latest Fora Coder model from Alibaba Cloud ModelStudio (version: fora3-coder-plus-2025-09-23)',
+      'The latest Foragen CLIr model from Alibaba Cloud ModelStudio (version: fora3-coder-plus-2025-09-23)',
   },
   {
     id: MAINLINE_VLM,

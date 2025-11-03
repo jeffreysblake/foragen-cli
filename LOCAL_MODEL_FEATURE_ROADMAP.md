@@ -1,8 +1,8 @@
-# Local Model Feature Roadmap for Fora Code CLI
+# Local Model Feature Roadmap for Foragen CLI CLI
 
 ## Executive Summary
 
-This roadmap outlines the implementation plan for enhancing the Fora Code CLI with advanced features specifically designed for local model optimization, including memory management, context optimization, MCP integrations, and performance improvements.
+This roadmap outlines the implementation plan for enhancing the Foragen CLI CLI with advanced features specifically designed for local model optimization, including memory management, context optimization, MCP integrations, and performance improvements.
 
 ## Development Phases
 
@@ -375,7 +375,7 @@ export class ToolChainService {
 
 ## Conclusion
 
-This roadmap provides a comprehensive plan for enhancing the Fora Code CLI with advanced features tailored for local model usage. The phased approach ensures steady progress while maintaining system stability and user experience. Key focus areas include:
+This roadmap provides a comprehensive plan for enhancing the Foragen CLI CLI with advanced features tailored for local model usage. The phased approach ensures steady progress while maintaining system stability and user experience. Key focus areas include:
 
 1. **Intelligent Memory Management** - Reducing context overhead while maintaining relevance
 2. **Comprehensive MCP Integration** - Expanding tool ecosystem capabilities

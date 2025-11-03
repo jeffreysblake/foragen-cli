@@ -1,8 +1,8 @@
 # Ignoring Files
 
-This document provides an overview of the Fora Ignore (`.foraignore`) feature of Fora Code.
+This document provides an overview of the Fora Ignore (`.foraignore`) feature of Foragen CLI.
 
-Fora Code includes the ability to automatically ignore files, similar to `.gitignore` (used by Git). Adding paths to your `.foraignore` file will exclude them from tools that support this feature, although they will still be visible to other services (such as Git).
+Foragen CLI includes the ability to automatically ignore files, similar to `.gitignore` (used by Git). Adding paths to your `.foraignore` file will exclude them from tools that support this feature, although they will still be visible to other services (such as Git).
 
 ## How it works
 
@@ -16,7 +16,7 @@ For the most part, `.foraignore` follows the conventions of `.gitignore` files:
 - Putting a `/` at the beginning anchors the path relative to the `.foraignore` file.
 - `!` negates a pattern.
 
-You can update your `.foraignore` file at any time. To apply the changes, you must restart your Fora Code session.
+You can update your `.foraignore` file at any time. To apply the changes, you must restart your Foragen CLI session.
 
 ## How to use `.foraignore`
 

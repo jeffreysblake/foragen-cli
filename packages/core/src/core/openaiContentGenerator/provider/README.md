@@ -1,6 +1,6 @@
 # Provider Structure
 
-This folder contains the different provider implementations for the Fora Code refactor system.
+This folder contains the different provider implementations for the Foragen CLI refactor system.
 
 ## File Structure
 

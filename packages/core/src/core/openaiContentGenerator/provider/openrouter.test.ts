@@ -105,7 +105,7 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       expect(headers).toEqual({
         'User-Agent': `ForagenCli/1.0.0 (${process.platform}; ${process.arch})`,
         'HTTP-Referer': 'https://github.com/jeffreysblake/foragen-cli.git',
-        'X-Title': 'Fora Code',
+        'X-Title': 'Foragen CLI',
       });
     });
 
@@ -125,7 +125,7 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       expect(headers).toEqual({
         'User-Agent': 'ParentAgent/1.0.0',
         'HTTP-Referer': 'https://github.com/jeffreysblake/foragen-cli.git', // OpenRouter-specific value should override
-        'X-Title': 'Fora Code',
+        'X-Title': 'Foragen CLI',
       });
 
       parentBuildHeaders.mockRestore();
@@ -142,7 +142,7 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       expect(headers['HTTP-Referer']).toBe(
         'https://github.com/jeffreysblake/foragen-cli.git',
       );
-      expect(headers['X-Title']).toBe('Fora Code');
+      expect(headers['X-Title']).toBe('Foragen CLI');
     });
   });
 
@@ -215,7 +215,7 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       expect(headers['HTTP-Referer']).toBe(
         'https://github.com/jeffreysblake/foragen-cli.git',
       ); // OpenRouter-specific
-      expect(headers['X-Title']).toBe('Fora Code'); // OpenRouter-specific
+      expect(headers['X-Title']).toBe('Foragen CLI'); // OpenRouter-specific
     });
   });
 });

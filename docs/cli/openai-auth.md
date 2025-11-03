@@ -1,6 +1,6 @@
 # OpenAI Authentication
 
-Fora Code CLI supports OpenAI authentication for users who want to use OpenAI models instead of Google's Gemini models.
+Foragen CLI CLI supports OpenAI authentication for users who want to use OpenAI models instead of Google's Gemini models.
 
 ## Authentication Methods
 

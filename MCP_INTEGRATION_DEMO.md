@@ -2,7 +2,7 @@
 
 ## What I've Built
 
-I have successfully implemented a comprehensive MCP (Model Context Protocol) integration system for the Fora Code CLI with the following components:
+I have successfully implemented a comprehensive MCP (Model Context Protocol) integration system for the Foragen CLI CLI with the following components:
 
 ### ✅ **Core Integration Framework**
 
@@ -209,6 +209,6 @@ The integrations are implemented but need build system fixes to resolve TypeScri
 - **Multi-modal operations** (text, files, web, data)
 - **Real-time capabilities** (file watching, browser interaction)
 
-This MCP integration system transforms the Fora Code CLI into a powerful automation platform that can interact with browsers, manage Git repositories, query databases, and manipulate files - all through natural language interactions with local models.
+This MCP integration system transforms the Foragen CLI CLI into a powerful automation platform that can interact with browsers, manage Git repositories, query databases, and manipulate files - all through natural language interactions with local models.
 
 The implementation follows enterprise security standards while maintaining ease of use, making it suitable for both development and production environments.

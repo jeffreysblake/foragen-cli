@@ -1,10 +1,10 @@
-# Sandboxing in Fora Code
+# Sandboxing in Foragen CLI
 
-This document provides a guide to sandboxing in Fora Code, including prerequisites, quickstart, and configuration.
+This document provides a guide to sandboxing in Foragen CLI, including prerequisites, quickstart, and configuration.
 
 ## Prerequisites
 
-Before using sandboxing, you need to install and set up Fora Code:
+Before using sandboxing, you need to install and set up Foragen CLI:
 
 ```bash
 npm install -g @jeffreysblake/foragen-cli
@@ -131,7 +131,7 @@ export SANDBOX_SET_UID_GID=false  # Disable UID/GID mapping
 DEBUG=1 fora -s -p "debug command"
 ```
 
-**Note:** If you have `DEBUG=true` in a project's `.env` file, it won't affect the CLI due to automatic exclusion. Use `.fora/.env` files for Fora Code-specific debug settings.
+**Note:** If you have `DEBUG=true` in a project's `.env` file, it won't affect the CLI due to automatic exclusion. Use `.fora/.env` files for Foragen CLI-specific debug settings.
 
 ### Inspect sandbox
 

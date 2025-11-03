@@ -1,6 +1,6 @@
-# Fora Code Keyboard Shortcuts
+# Foragen CLI Keyboard Shortcuts
 
-This document lists the available keyboard shortcuts in Fora Code.
+This document lists the available keyboard shortcuts in Foragen CLI.
 
 ## General
 

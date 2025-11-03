@@ -1,10 +1,10 @@
 # Themes
 
-Fora Code supports a variety of themes to customize its color scheme and appearance. You can change the theme to suit your preferences via the `/theme` command or `"theme":` configuration setting.
+Foragen CLI supports a variety of themes to customize its color scheme and appearance. You can change the theme to suit your preferences via the `/theme` command or `"theme":` configuration setting.
 
 ## Available Themes
 
-Fora Code comes with a selection of pre-defined themes, which you can list using the `/theme` command within the CLI:
+Foragen CLI comes with a selection of pre-defined themes, which you can list using the `/theme` command within the CLI:
 
 - **Dark Themes:**
   - `ANSI`
@@ -23,7 +23,7 @@ Fora Code comes with a selection of pre-defined themes, which you can list using
 
 ### Changing Themes
 
-1.  Enter `/theme` into Fora Code.
+1.  Enter `/theme` into Foragen CLI.
 2.  A dialog or selection prompt appears, listing the available themes.
 3.  Using the arrow keys, select a theme. Some interfaces might offer a live preview or highlight as you select.
 4.  Confirm your selection to apply the theme.
@@ -32,13 +32,13 @@ Fora Code comes with a selection of pre-defined themes, which you can list using
 
 ### Theme Persistence
 
-Selected themes are saved in Fora Code's [configuration](./configuration.md) so your preference is remembered across sessions.
+Selected themes are saved in Foragen CLI's [configuration](./configuration.md) so your preference is remembered across sessions.
 
 ---
 
 ## Custom Color Themes
 
-Fora Code allows you to create your own custom color themes by specifying them in your `settings.json` file. This gives you full control over the color palette used in the CLI.
+Foragen CLI allows you to create your own custom color themes by specifying them in your `settings.json` file. This gives you full control over the color palette used in the CLI.
 
 ### How to Define a Custom Theme
 
@@ -144,7 +144,7 @@ The theme file must be a valid JSON file that follows the same structure as a cu
 
 ### Using Your Custom Theme
 
-- Select your custom theme using the `/theme` command in Fora Code. Your custom theme will appear in the theme selection dialog.
+- Select your custom theme using the `/theme` command in Foragen CLI. Your custom theme will appear in the theme selection dialog.
 - Or, set it as the default by adding `"theme": "MyCustomTheme"` to the `ui` object in your `settings.json`.
 - Custom themes can be set at the user, project, or system level, and follow the same [configuration precedence](./configuration.md) as other settings.
 

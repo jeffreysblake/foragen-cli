@@ -78,7 +78,7 @@ const distPackageJson = {
   name: rootPackageJson.name,
   version: rootPackageJson.version,
   description:
-    rootPackageJson.description || 'Fora Code - AI-powered coding assistant',
+    rootPackageJson.description || 'Foragen CLI - AI-powered coding assistant',
   repository: rootPackageJson.repository,
   type: 'module',
   main: 'cli.js',

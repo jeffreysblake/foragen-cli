@@ -1,6 +1,6 @@
 # Headless Mode
 
-Headless mode allows you to run Fora Code programmatically from command line
+Headless mode allows you to run Foragen CLI programmatically from command line
 scripts and automation tools without any interactive UI. This is ideal for
 scripting, automation, CI/CD pipelines, and building AI-powered tools.
 
@@ -30,7 +30,7 @@ scripting, automation, CI/CD pipelines, and building AI-powered tools.
 
 ## Overview
 
-The headless mode provides a headless interface to Fora Code that:
+The headless mode provides a headless interface to Foragen CLI that:
 
 - Accepts prompts via command line arguments or stdin
 - Returns structured output (text or JSON)
@@ -50,7 +50,7 @@ fora --prompt "What is machine learning?"
 
 ### Stdin Input
 
-Pipe input to Fora Code from your terminal:
+Pipe input to Foragen CLI from your terminal:
 
 ```bash
 echo "Explain this code" | fora
@@ -58,7 +58,7 @@ echo "Explain this code" | fora
 
 ### Combining with File Input
 
-Read from files and process with Fora Code:
+Read from files and process with Foragen CLI:
 
 ```bash
 cat README.md | fora --prompt "Summarize this documentation"

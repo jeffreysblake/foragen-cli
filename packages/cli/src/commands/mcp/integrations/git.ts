@@ -102,7 +102,7 @@ export class GitMCPIntegration extends BaseMCPIntegration {
         GIT_MCP_ALLOW_DANGEROUS: allowDangerousOperations.toString(),
         // Set Git configuration for better MCP integration
         GIT_CONFIG_GLOBAL_USER_NAME:
-          this.getGitConfig('user.name') || 'Fora Code AI',
+          this.getGitConfig('user.name') || 'Foragen CLI AI',
         GIT_CONFIG_GLOBAL_USER_EMAIL:
           this.getGitConfig('user.email') || 'ai@foracode.local',
       },

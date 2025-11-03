@@ -1,6 +1,6 @@
 # Tutorials
 
-This page contains tutorials for interacting with Fora Code.
+This page contains tutorials for interacting with Foragen CLI.
 
 ## Setting up a Model Context Protocol (MCP) server
 
@@ -58,11 +58,11 @@ Use an environment variable to store your GitHub PAT:
 GITHUB_PERSONAL_ACCESS_TOKEN="pat_YourActualGitHubTokenHere"
 ```
 
-Fora Code uses this value in the `mcpServers` configuration that you defined in the `settings.json` file.
+Foragen CLI uses this value in the `mcpServers` configuration that you defined in the `settings.json` file.
 
-#### Launch Fora Code and verify the connection
+#### Launch Foragen CLI and verify the connection
 
-When you launch Fora Code, it automatically reads your configuration and launches the GitHub MCP server in the background. You can then use natural language prompts to ask Fora Code to perform GitHub actions. For example:
+When you launch Foragen CLI, it automatically reads your configuration and launches the GitHub MCP server in the background. You can then use natural language prompts to ask Foragen CLI to perform GitHub actions. For example:
 
 ```bash
 "get all open issues assigned to me in the 'foo/bar' repo and prioritize them"

@@ -15,7 +15,8 @@ import {
   type IdeInfo,
 } from '@jeffreysblake/foragen-cli-core/src/ide/detect-ide.js';
 
-const CLI_IDE_COMPANION_IDENTIFIER = 'jeffreysblake.foragen-cli-vscode-companion';
+const CLI_IDE_COMPANION_IDENTIFIER =
+  'jeffreysblake.foragen-cli-vscode-companion';
 const INFO_MESSAGE_SHOWN_KEY = 'foragenCliInfoMessageShown';
 export const DIFF_SCHEME = 'fora-diff';
 
@@ -83,7 +84,7 @@ async function checkForUpdates(
 
     if (latestVersion && semver.gt(latestVersion, currentVersion)) {
       const selection = await vscode.window.showInformationMessage(
-        `A new version (${latestVersion}) of the Fora Code Companion extension is available.`,
+        `A new version (${latestVersion}) of the Foragen CLI Companion extension is available.`,
         'Update to latest version',
       );
       if (selection === 'Update to latest version') {
@@ -101,7 +102,7 @@ async function checkForUpdates(
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  logger = vscode.window.createOutputChannel('Fora Code Companion');
+  logger = vscode.window.createOutputChannel('Foragen CLI Companion');
   log = createLogger(context, logger);
   log('Extension activated');
 
@@ -148,7 +149,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (!context.globalState.get(INFO_MESSAGE_SHOWN_KEY) && infoMessageEnabled) {
     void vscode.window.showInformationMessage(
-      'Fora Code Companion extension successfully installed.',
+      'Foragen CLI Companion extension successfully installed.',
     );
     context.globalState.update(INFO_MESSAGE_SHOWN_KEY, true);
   }
@@ -164,7 +165,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders || workspaceFolders.length === 0) {
         vscode.window.showInformationMessage(
-          'No folder open. Please open a folder to run Fora Code.',
+          'No folder open. Please open a folder to run Foragen CLI.',
         );
         return;
       }
@@ -174,14 +175,14 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedFolder = workspaceFolders[0];
       } else {
         selectedFolder = await vscode.window.showWorkspaceFolderPick({
-          placeHolder: 'Select a folder to run Fora Code in',
+          placeHolder: 'Select a folder to run Foragen CLI in',
         });
       }
 
       if (selectedFolder) {
         const foraCmd = 'fora';
         const terminal = vscode.window.createTerminal({
-          name: `Fora Code (${selectedFolder.name})`,
+          name: `Foragen CLI (${selectedFolder.name})`,
           cwd: selectedFolder.uri.fsPath,
         });
         terminal.show();

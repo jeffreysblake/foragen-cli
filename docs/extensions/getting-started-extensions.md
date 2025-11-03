@@ -1,10 +1,10 @@
-# Getting Started with Fora Code Extensions
+# Getting Started with Foragen CLI Extensions
 
-This guide will walk you through creating your first Fora Code extension. You'll learn how to set up a new extension, add a custom tool via an MCP server, create a custom command, and provide context to the model with a `FORA.md` file.
+This guide will walk you through creating your first Foragen CLI extension. You'll learn how to set up a new extension, add a custom tool via an MCP server, create a custom command, and provide context to the model with a `FORA.md` file.
 
 ## Prerequisites
 
-Before you start, make sure you have the Fora Code installed and a basic understanding of Node.js and TypeScript.
+Before you start, make sure you have the Foragen CLI installed and a basic understanding of Node.js and TypeScript.
 
 ## Step 1: Create a New Extension
 
@@ -32,7 +32,7 @@ Let's look at the key files in your new extension.
 
 ### `fora-extension.json`
 
-This is the manifest file for your extension. It tells Fora Code how to load and use your extension.
+This is the manifest file for your extension. It tells Foragen CLI how to load and use your extension.
 
 ```json
 {
@@ -51,7 +51,7 @@ This is the manifest file for your extension. It tells Fora Code how to load and
 - `name`: The unique name for your extension.
 - `version`: The version of your extension.
 - `mcpServers`: This section defines one or more Model Context Protocol (MCP) servers. MCP servers are how you can add new tools for the model to use.
-  - `command`, `args`, `cwd`: These fields specify how to start your server. Notice the use of the `${extensionPath}` variable, which Fora Code replaces with the absolute path to your extension's installation directory. This allows your extension to work regardless of where it's installed.
+  - `command`, `args`, `cwd`: These fields specify how to start your server. Notice the use of the `${extensionPath}` variable, which Foragen CLI replaces with the absolute path to your extension's installation directory. This allows your extension to work regardless of where it's installed.
 
 ### `example.ts`
 
@@ -111,7 +111,7 @@ These are standard configuration files for a TypeScript project. The `package.js
 
 ## Step 3: Build and Link Your Extension
 
-Before you can use the extension, you need to compile the TypeScript code and link the extension to your Fora Code installation for local development.
+Before you can use the extension, you need to compile the TypeScript code and link the extension to your Foragen CLI installation for local development.
 
 1.  **Install dependencies:**
 
@@ -130,13 +130,13 @@ Before you can use the extension, you need to compile the TypeScript code and li
 
 3.  **Link the extension:**
 
-    The `link` command creates a symbolic link from the Fora Code extensions directory to your development directory. This means any changes you make will be reflected immediately without needing to reinstall.
+    The `link` command creates a symbolic link from the Foragen CLI extensions directory to your development directory. This means any changes you make will be reflected immediately without needing to reinstall.
 
     ```bash
     fora extensions link .
     ```
 
-Now, restart your Fora Code session. The new `fetch_posts` tool will be available. You can test it by asking: "fetch posts".
+Now, restart your Foragen CLI session. The new `fetch_posts` tool will be available. You can test it by asking: "fetch posts".
 
 ## Step 4: Add a Custom Command
 
@@ -161,7 +161,7 @@ Custom commands provide a way to create shortcuts for complex prompts. Let's add
 
     This command, `/fs:grep-code`, will take an argument, run the `grep` shell command with it, and pipe the results into a prompt for summarization.
 
-After saving the file, restart the Fora Code. You can now run `/fs:grep-code "some pattern"` to use your new command.
+After saving the file, restart the Foragen CLI. You can now run `/fs:grep-code "some pattern"` to use your new command.
 
 ## Step 5: Add a Custom `FORA.md`
 
@@ -202,7 +202,7 @@ For detailed instructions on both methods, please refer to the [Extension Releas
 
 ## Conclusion
 
-You've successfully created a Fora Code extension! You learned how to:
+You've successfully created a Foragen CLI extension! You learned how to:
 
 - Bootstrap a new extension from a template.
 - Add custom tools with an MCP server.
@@ -210,4 +210,4 @@ You've successfully created a Fora Code extension! You learned how to:
 - Provide persistent context to the model.
 - Link your extension for local development.
 
-From here, you can explore more advanced features and build powerful new capabilities into the Fora Code.
+From here, you can explore more advanced features and build powerful new capabilities into the Foragen CLI.

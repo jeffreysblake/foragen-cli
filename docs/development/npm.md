@@ -4,7 +4,7 @@ This monorepo contains two main packages: `@jeffreysblake/foragen-cli` and `@jef
 
 ## `@jeffreysblake/foragen-cli`
 
-This is the main package for Fora Code. It is responsible for the user interface, command parsing, and all other user-facing functionality.
+This is the main package for Foragen CLI. It is responsible for the user interface, command parsing, and all other user-facing functionality.
 
 When this package is published, it is bundled into a single executable file. This bundle includes all of the package's dependencies, including `@jeffreysblake/foragen-cli-core`. This means that whether a user installs the package with `npm install -g @jeffreysblake/foragen-cli` or runs it directly with `npx @jeffreysblake/foragen-cli`, they are using this single, self-contained executable.
 

@@ -25,7 +25,7 @@ export class OpenRouterOpenAICompatibleProvider extends DefaultOpenAICompatibleP
     return {
       ...baseHeaders,
       'HTTP-Referer': 'https://github.com/jeffreysblake/foragen-cli.git',
-      'X-Title': 'Fora Code',
+      'X-Title': 'Foragen CLI',
     };
   }
 }

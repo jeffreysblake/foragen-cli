@@ -84,7 +84,7 @@ describe('<HistoryItemDisplay />', () => {
     const { lastFrame } = renderWithProviders(
       <HistoryItemDisplay {...baseItem} item={item} />,
     );
-    expect(lastFrame()).toContain('About Fora Code');
+    expect(lastFrame()).toContain('About Foragen CLI');
   });
 
   it('renders ModelStatsDisplay for "model_stats" type', () => {

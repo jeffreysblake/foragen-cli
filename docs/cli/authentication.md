@@ -1,10 +1,10 @@
 # Authentication Setup
 
-Fora Code supports two main authentication methods to access AI models. Choose the method that best fits your use case:
+Foragen CLI supports two main authentication methods to access AI models. Choose the method that best fits your use case:
 
 1.  **Fora OAuth (Recommended):**
     - Use this option to log in with your fora.ai account.
-    - During initial startup, Fora Code will direct you to the fora.ai authentication page. Once authenticated, your credentials will be cached locally so the web login can be skipped on subsequent runs.
+    - During initial startup, Foragen CLI will direct you to the fora.ai authentication page. Once authenticated, your credentials will be cached locally so the web login can be skipped on subsequent runs.
     - **Requirements:**
       - Valid fora.ai account
       - Internet connection for initial authentication
@@ -16,7 +16,7 @@ Fora Code supports two main authentication methods to access AI models. Choose t
     **Getting Started:**
 
     ```bash
-    # Start Fora Code and follow the OAuth flow
+    # Start Foragen CLI and follow the OAuth flow
     fora
     ```
 
@@ -77,11 +77,11 @@ This will allow you to reconfigure your authentication method without restarting
 
 ### Persisting Environment Variables with `.env` Files
 
-You can create a **`.fora/.env`** file in your project directory or in your home directory. Creating a plain **`.env`** file also works, but `.fora/.env` is recommended to keep Fora Code variables isolated from other tools.
+You can create a **`.fora/.env`** file in your project directory or in your home directory. Creating a plain **`.env`** file also works, but `.fora/.env` is recommended to keep Foragen CLI variables isolated from other tools.
 
 **Important:** Some environment variables (like `DEBUG` and `DEBUG_MODE`) are automatically excluded from project `.env` files to prevent interference with foragen-cli behavior. Use `.fora/.env` files for foragen-cli specific variables.
 
-Fora Code automatically loads environment variables from the **first** `.env` file it finds, using the following search order:
+Foragen CLI automatically loads environment variables from the **first** `.env` file it finds, using the following search order:
 
 1. Starting in the **current directory** and moving upward toward `/`, for each directory it checks:
    1. `.fora/.env`
@@ -118,7 +118,7 @@ EOF
 
 ## Non-Interactive Mode / Headless Environments
 
-When running Fora Code in a non-interactive environment, you cannot use the OAuth login flow.
+When running Foragen CLI in a non-interactive environment, you cannot use the OAuth login flow.
 Instead, you must configure authentication using environment variables.
 
 The CLI will automatically detect if it is running in a non-interactive terminal and will use the

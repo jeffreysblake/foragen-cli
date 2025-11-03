@@ -1,10 +1,10 @@
 # Memory Tool (`save_memory`)
 
-This document describes the `save_memory` tool for Fora Code.
+This document describes the `save_memory` tool for Foragen CLI.
 
 ## Description
 
-Use `save_memory` to save and recall information across your Fora Code sessions. With `save_memory`, you can direct the CLI to remember key details across sessions, providing personalized and directed assistance.
+Use `save_memory` to save and recall information across your Foragen CLI sessions. With `save_memory`, you can direct the CLI to remember key details across sessions, providing personalized and directed assistance.
 
 ### Arguments
 
@@ -12,7 +12,7 @@ Use `save_memory` to save and recall information across your Fora Code sessions.
 
 - `fact` (string, required): The specific fact or piece of information to remember. This should be a clear, self-contained statement written in natural language.
 
-## How to use `save_memory` with Fora Code
+## How to use `save_memory` with Foragen CLI
 
 The tool appends the provided `fact` to your context file in the user's home directory (`~/.fora/FORA.md` by default). This filename can be configured via `contextFileName`.
 

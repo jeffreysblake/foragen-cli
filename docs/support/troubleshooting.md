@@ -16,18 +16,18 @@ This guide provides solutions to common issues and debugging tips, including top
 
 ## Frequently asked questions (FAQs)
 
-- **Q: How do I update Fora Code to the latest version?**
+- **Q: How do I update Foragen CLI to the latest version?**
   - A: If you installed it globally via `npm`, update it using the command `npm install -g @jeffreysblake/foragen-cli@latest`. If you compiled it from source, pull the latest changes from the repository, and then rebuild using the command `npm run build`.
 
-- **Q: Where are the Fora Code configuration or settings files stored?**
-  - A: The Fora Code configuration is stored in two `settings.json` files:
+- **Q: Where are the Foragen CLI configuration or settings files stored?**
+  - A: The Foragen CLI configuration is stored in two `settings.json` files:
     1. In your home directory: `~/.fora/settings.json`.
     2. In your project's root directory: `./.fora/settings.json`.
 
-    Refer to [Fora Code Configuration](./cli/configuration.md) for more details.
+    Refer to [Foragen CLI Configuration](./cli/configuration.md) for more details.
 
 - **Q: Why don't I see cached token counts in my stats output?**
-  - A: Cached token information is only displayed when cached tokens are being used. This feature is available for API key users (Fora API key or Google Cloud Vertex AI) but not for OAuth users (such as Google Personal/Enterprise accounts like Google Gmail or Google Workspace, respectively). This is because the Fora Code Assist API does not support cached content creation. You can still view your total token usage using the `/stats` command.
+  - A: Cached token information is only displayed when cached tokens are being used. This feature is available for API key users (Fora API key or Google Cloud Vertex AI) but not for OAuth users (such as Google Personal/Enterprise accounts like Google Gmail or Google Workspace, respectively). This is because the Foragen CLI Assist API does not support cached content creation. You can still view your total token usage using the `/stats` command.
 
 ## Common error messages and solutions
 
@@ -36,10 +36,10 @@ This guide provides solutions to common issues and debugging tips, including top
   - **Solution:**
     Either stop the other process that is using the port or configure the MCP server to use a different port.
 
-- **Error: Command not found (when attempting to run Fora Code with `fora`).**
+- **Error: Command not found (when attempting to run Foragen CLI with `fora`).**
   - **Cause:** The CLI is not correctly installed or it is not in your system's `PATH`.
   - **Solution:**
-    The update depends on how you installed Fora Code:
+    The update depends on how you installed Foragen CLI:
     - If you installed `fora` globally, check that your `npm` global binary directory is in your `PATH`. You can update using the command `npm install -g @jeffreysblake/foragen-cli@latest`.
     - If you are running `fora` from source, ensure you are using the correct command to invoke it (e.g., `node packages/cli/dist/index.js ...`). To update, pull the latest changes from the repository, and then rebuild using the command `npm run build`.
 
@@ -51,11 +51,11 @@ This guide provides solutions to common issues and debugging tips, including top
     3.  Verify that the build completed successfully with `npm run start`.
 
 - **Error: "Operation not permitted", "Permission denied", or similar.**
-  - **Cause:** When sandboxing is enabled, Fora Code may attempt operations that are restricted by your sandbox configuration, such as writing outside the project directory or system temp directory.
+  - **Cause:** When sandboxing is enabled, Foragen CLI may attempt operations that are restricted by your sandbox configuration, such as writing outside the project directory or system temp directory.
   - **Solution:** Refer to the [Configuration: Sandboxing](./cli/configuration.md#sandboxing) documentation for more information, including how to customize your sandbox configuration.
 
-- **Fora Code is not running in interactive mode in "CI" environments**
-  - **Issue:** Fora Code does not enter interactive mode (no prompt appears) if an environment variable starting with `CI_` (e.g., `CI_TOKEN`) is set. This is because the `is-in-ci` package, used by the underlying UI framework, detects these variables and assumes a non-interactive CI environment.
+- **Foragen CLI is not running in interactive mode in "CI" environments**
+  - **Issue:** Foragen CLI does not enter interactive mode (no prompt appears) if an environment variable starting with `CI_` (e.g., `CI_TOKEN`) is set. This is because the `is-in-ci` package, used by the underlying UI framework, detects these variables and assumes a non-interactive CI environment.
   - **Cause:** The `is-in-ci` package checks for the presence of `CI`, `CONTINUOUS_INTEGRATION`, or any environment variable with a `CI_` prefix. When any of these are found, it signals that the environment is non-interactive, which prevents the CLI from starting in its interactive mode.
   - **Solution:** If the `CI_` prefixed variable is not needed for the CLI to function, you can temporarily unset it for the command. e.g., `env -u CI_TOKEN fora`
 
@@ -71,11 +71,11 @@ This guide provides solutions to common issues and debugging tips, including top
   - `FORAGEN_CLI_IDE_WORKSPACE_PATH`
   - `FORAGEN_CLI_IDE_SERVER_PORT`
 - If running in a container, verify `host.docker.internal` resolves. Otherwise, map the host appropriately.
-- Reinstall the companion with `/ide install` and use “Fora Code: Run” in the Command Palette to verify it launches.
+- Reinstall the companion with `/ide install` and use “Foragen CLI: Run” in the Command Palette to verify it launches.
 
 ## Exit Codes
 
-The Fora Code uses specific exit codes to indicate the reason for termination. This is especially useful for scripting and automation.
+The Foragen CLI uses specific exit codes to indicate the reason for termination. This is especially useful for scripting and automation.
 
 | Exit Code | Error Type                 | Description                                                                                         |
 | --------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -106,4 +106,4 @@ The Fora Code uses specific exit codes to indicate the reason for termination. T
 
 ## Existing GitHub Issues similar to yours or creating new Issues
 
-If you encounter an issue that was not covered here in this _Troubleshooting guide_, consider searching the Fora Code [Issue tracker on GitHub](https://github.com/jeffreysblake/foragen-cli/issues). If you can't find an issue similar to yours, consider creating a new GitHub Issue with a detailed description. Pull requests are also welcome!
+If you encounter an issue that was not covered here in this _Troubleshooting guide_, consider searching the Foragen CLI [Issue tracker on GitHub](https://github.com/jeffreysblake/foragen-cli/issues). If you can't find an issue similar to yours, consider creating a new GitHub Issue with a detailed description. Pull requests are also welcome!

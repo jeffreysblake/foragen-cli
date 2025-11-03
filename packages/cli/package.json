@@ -1,7 +1,7 @@
 {
   "name": "@jeffreysblake/foragen-cli",
   "version": "0.1.3",
-  "description": "Fora Code",
+  "description": "Foragen CLI",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jeffreysblake/foragen-cli.git"

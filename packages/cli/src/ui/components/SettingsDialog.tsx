@@ -900,7 +900,7 @@ export function SettingsDialog({
         </Text>
         {showRestartPrompt && (
           <Text color={theme.status.warning}>
-            To see changes, Fora Code must be restarted. Press r to exit and
+            To see changes, Foragen CLI must be restarted. Press r to exit and
             apply changes now.
           </Text>
         )}

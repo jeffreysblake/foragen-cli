@@ -484,8 +484,16 @@ class Rebrander:
         for old, new, desc in kebab_compounds:
             self.batch_replace(old, new, desc)
 
-        # Phase 1.6: Simple qwen-code replacements
-        self.log_step("Phase 1.6: Simple qwen-code/qwen_code replacements")
+        # Phase 1.6: Space-separated compounds (MUST come before simple replacements)
+        self.log_step("Phase 1.6: Space-separated compounds")
+        self.batch_replace("Qwen Code", "Foragen CLI", "Compound: Qwen Code")
+        self.batch_replace("QWEN CODE", "FORAGEN CLI", "Compound: QWEN CODE")
+        self.batch_replace("qwen code", "foragen cli", "Compound: qwen code")
+        self.batch_replace("Qwen code", "Foragen cli", "Compound: Qwen code")
+        self.batch_replace("qwen Code", "foragen Cli", "Compound: qwen Code")
+
+        # Phase 1.7: Simple qwen-code replacements
+        self.log_step("Phase 1.7: Simple qwen-code/qwen_code replacements")
         self.batch_replace("QWEN_CODE", "FORAGEN_CLI", "Simple: QWEN_CODE")
         self.batch_replace("Qwen-Code", "Foragen-Cli", "Simple: Qwen-Code")
         self.batch_replace("qwen-code", "foragen-cli", "Simple: qwen-code")

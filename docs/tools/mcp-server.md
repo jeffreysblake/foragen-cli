@@ -1,6 +1,6 @@
-# MCP servers with Fora Code
+# MCP servers with Foragen CLI
 
-This document provides a guide to configuring and using Model Context Protocol (MCP) servers with Fora Code.
+This document provides a guide to configuring and using Model Context Protocol (MCP) servers with Foragen CLI.
 
 ## What is an MCP server?
 
@@ -16,7 +16,7 @@ With an MCP server, you can extend the CLI's capabilities to perform actions bey
 
 ## Core Integration Architecture
 
-Fora Code integrates with MCP servers through a sophisticated discovery and execution system built into the core package (`packages/core/src/tools/`):
+Foragen CLI integrates with MCP servers through a sophisticated discovery and execution system built into the core package (`packages/core/src/tools/`):
 
 ### Discovery Layer (`mcp-client.ts`)
 
@@ -47,7 +47,7 @@ The CLI supports three MCP transport types:
 
 ## How to set up your MCP server
 
-Fora Code uses the `mcpServers` configuration in your `settings.json` file to locate and connect to MCP servers. This configuration supports multiple servers with different transport mechanisms.
+Foragen CLI uses the `mcpServers` configuration in your `settings.json` file to locate and connect to MCP servers. This configuration supports multiple servers with different transport mechanisms.
 
 ### Configure the MCP server in settings.json
 
@@ -122,7 +122,7 @@ Each server configuration supports the following properties:
 
 ### OAuth Support for Remote MCP Servers
 
-Fora Code supports OAuth 2.0 authentication for remote MCP servers using SSE or HTTP transports. This enables secure access to MCP servers that require authentication.
+Foragen CLI supports OAuth 2.0 authentication for remote MCP servers using SSE or HTTP transports. This enables secure access to MCP servers that require authentication.
 
 #### Automatic OAuth Discovery
 
@@ -373,7 +373,7 @@ The CLI will use your local Application Default Credentials (ADC) to generate an
 
 ## Discovery Process Deep Dive
 
-When Fora Code starts, it performs MCP server discovery through the following detailed process:
+When Foragen CLI starts, it performs MCP server discovery through the following detailed process:
 
 ### 1. Server Iteration and Connection
 
@@ -675,7 +675,7 @@ Here is an example of a valid JSON response from an MCP tool that returns both a
 }
 ```
 
-When Fora Code receives this response, it will:
+When Foragen CLI receives this response, it will:
 
 1.  Extract all the text and combine it into a single `functionResponse` part for the model.
 2.  Present the image data as a separate `inlineData` part.
@@ -685,7 +685,7 @@ This enables you to build sophisticated tools that can provide rich, multi-modal
 
 ## MCP Prompts as Slash Commands
 
-In addition to tools, MCP servers can expose predefined prompts that can be executed as slash commands within Fora Code. This allows you to create shortcuts for common or complex queries that can be easily invoked by name.
+In addition to tools, MCP servers can expose predefined prompts that can be executed as slash commands within Foragen CLI. This allows you to create shortcuts for common or complex queries that can be easily invoked by name.
 
 ### Defining Prompts on the Server
 
@@ -743,13 +743,13 @@ This can be included in `settings.json` under `mcpServers` with:
 Once a prompt is discovered, you can invoke it using its name as a slash command. The CLI will automatically handle parsing arguments.
 
 ```bash
-/poem-writer --title="Fora Code" --mood="reverent"
+/poem-writer --title="Foragen CLI" --mood="reverent"
 ```
 
 or, using positional arguments:
 
 ```bash
-/poem-writer "Fora Code" reverent
+/poem-writer "Foragen CLI" reverent
 ```
 
 When you run this command, the CLI executes the `prompts/get` method on the MCP server with the provided arguments. The server is responsible for substituting the arguments into the prompt template and returning the final prompt text. The CLI then sends this prompt to the model for execution. This provides a convenient way to automate and share common workflows.

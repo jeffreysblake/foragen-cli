@@ -30,7 +30,7 @@ export const Tips: React.FC<TipsProps> = ({ config }) => {
           <Text bold color={theme.text.accent}>
             FORA.md
           </Text>{' '}
-          files to customize your interactions with Fora Code.
+          files to customize your interactions with Foragen CLI.
         </Text>
       )}
       <Text color={theme.text.primary}>

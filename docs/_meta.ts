@@ -1,5 +1,5 @@
 export default {
-  index: 'Welcome to Fora Code',
+  index: 'Welcome to Foragen CLI',
   cli: 'CLI',
   core: 'Core',
   tools: 'Tools',

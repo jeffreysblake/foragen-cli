@@ -1,16 +1,16 @@
-# Fora Code Execution and Deployment
+# Foragen CLI Execution and Deployment
 
-This document describes how to run Fora Code and explains the deployment architecture that Fora Code uses.
+This document describes how to run Foragen CLI and explains the deployment architecture that Foragen CLI uses.
 
-## Running Fora Code
+## Running Foragen CLI
 
-There are several ways to run Fora Code. The option you choose depends on how you intend to use it.
+There are several ways to run Foragen CLI. The option you choose depends on how you intend to use it.
 
 ---
 
 ### 1. Standard installation (Recommended for typical users)
 
-This is the recommended way for end-users to install Fora Code. It involves downloading the Fora Code package from the NPM registry.
+This is the recommended way for end-users to install Foragen CLI. It involves downloading the Foragen CLI package from the NPM registry.
 
 - **Global install:**
 
@@ -35,7 +35,7 @@ This is the recommended way for end-users to install Fora Code. It involves down
 
 ### 2. Running in a sandbox (Docker/Podman)
 
-For security and isolation, Fora Code can be run inside a container. This is the default way that the CLI executes tools that might have side effects.
+For security and isolation, Foragen CLI can be run inside a container. This is the default way that the CLI executes tools that might have side effects.
 
 - **Directly from the Registry:**
   You can run the published sandbox image directly. This is useful for environments where you only have Docker and want to run the CLI.
@@ -44,14 +44,14 @@ For security and isolation, Fora Code can be run inside a container. This is the
   docker run --rm -it foragen-cli-sandbox:0.0.11
   ```
 - **Using the `--sandbox` flag:**
-  If you have Fora Code installed locally (using the standard installation described above), you can instruct it to run inside the sandbox container.
+  If you have Foragen CLI installed locally (using the standard installation described above), you can instruct it to run inside the sandbox container.
   ```bash
   fora --sandbox -y -p "your prompt here"
   ```
 
 ---
 
-### 3. Running from source (Recommended for Fora Code contributors)
+### 3. Running from source (Recommended for Foragen CLI contributors)
 
 Contributors to the project will want to run the CLI directly from the source code.
 
@@ -74,9 +74,9 @@ Contributors to the project will want to run the CLI directly from the source co
 
 ---
 
-### 4. Running the latest Fora Code commit from GitHub
+### 4. Running the latest Foragen CLI commit from GitHub
 
-You can run the most recently committed version of Fora Code directly from the GitHub repository. This is useful for testing features still in development.
+You can run the most recently committed version of Foragen CLI directly from the GitHub repository. This is useful for testing features still in development.
 
 ```bash
 # Execute the CLI directly from the main branch on GitHub
@@ -89,12 +89,12 @@ The execution methods described above are made possible by the following archite
 
 **NPM packages**
 
-Fora Code project is a monorepo that publishes core packages to the NPM registry:
+Foragen CLI project is a monorepo that publishes core packages to the NPM registry:
 
 - `@jeffreysblake/foragen-cli-core`: The backend, handling logic and tool execution.
 - `@jeffreysblake/foragen-cli`: The user-facing frontend.
 
-These packages are used when performing the standard installation and when running Fora Code from the source.
+These packages are used when performing the standard installation and when running Foragen CLI from the source.
 
 **Build and packaging processes**
 
@@ -102,11 +102,11 @@ There are two distinct build processes used, depending on the distribution chann
 
 - **NPM publication:** For publishing to the NPM registry, the TypeScript source code in `@jeffreysblake/foragen-cli-core` and `@jeffreysblake/foragen-cli` is transpiled into standard JavaScript using the TypeScript Compiler (`tsc`). The resulting `dist/` directory is what gets published in the NPM package. This is a standard approach for TypeScript libraries.
 
-- **GitHub `npx` execution:** When running the latest version of Fora Code directly from GitHub, a different process is triggered by the `prepare` script in `package.json`. This script uses `esbuild` to bundle the entire application and its dependencies into a single, self-contained JavaScript file. This bundle is created on-the-fly on the user's machine and is not checked into the repository.
+- **GitHub `npx` execution:** When running the latest version of Foragen CLI directly from GitHub, a different process is triggered by the `prepare` script in `package.json`. This script uses `esbuild` to bundle the entire application and its dependencies into a single, self-contained JavaScript file. This bundle is created on-the-fly on the user's machine and is not checked into the repository.
 
 **Docker sandbox image**
 
-The Docker-based execution method is supported by the `foragen-cli-sandbox` container image. This image is published to a container registry and contains a pre-installed, global version of Fora Code.
+The Docker-based execution method is supported by the `foragen-cli-sandbox` container image. This image is published to a container registry and contains a pre-installed, global version of Foragen CLI.
 
 ## Release process
 

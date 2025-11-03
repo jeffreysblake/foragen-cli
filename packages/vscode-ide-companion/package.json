@@ -1,7 +1,7 @@
 {
   "name": "foragen-cli-vscode-companion",
-  "displayName": "Fora Code Companion",
-  "description": "Enable Fora Code with direct access to your VS Code workspace.",
+  "displayName": "Foragen CLI Companion",
+  "description": "Enable Foragen CLI with direct access to your VS Code workspace.",
   "version": "0.1.3",
   "publisher": "foralm",
   "icon": "assets/icon.png",
@@ -39,21 +39,21 @@
     "commands": [
       {
         "command": "fora.diff.accept",
-        "title": "Fora Code: Accept Current Diff",
+        "title": "Foragen CLI: Accept Current Diff",
         "icon": "$(check)"
       },
       {
         "command": "fora.diff.cancel",
-        "title": "Fora Code: Close Diff Editor",
+        "title": "Foragen CLI: Close Diff Editor",
         "icon": "$(close)"
       },
       {
         "command": "foragen-cli.runForagenCli",
-        "title": "Fora Code: Run"
+        "title": "Foragen CLI: Run"
       },
       {
         "command": "foragen-cli.showNotices",
-        "title": "Fora Code: View Third-Party Notices"
+        "title": "Foragen CLI: View Third-Party Notices"
       }
     ],
     "menus": {

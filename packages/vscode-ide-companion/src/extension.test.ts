@@ -110,7 +110,7 @@ describe('activate', () => {
     } as vscode.Extension<unknown>);
     await activate(context);
     expect(showInformationMessageMock).toHaveBeenCalledWith(
-      'Fora Code Companion extension successfully installed.',
+      'Foragen CLI Companion extension successfully installed.',
     );
   });
 
@@ -128,17 +128,17 @@ describe('activate', () => {
     expect(vscode.workspace.onDidGrantWorkspaceTrust).toHaveBeenCalled();
   });
 
-  it('should launch the Fora Code when the user clicks the button', async () => {
+  it('should launch the Foragen CLI when the user clicks the button', async () => {
     const showInformationMessageMock = vi
       .mocked(vscode.window.showInformationMessage)
-      .mockResolvedValue('Run Fora Code' as never);
+      .mockResolvedValue('Run Foragen CLI' as never);
     vi.mocked(context.globalState.get).mockReturnValue(undefined);
     vi.mocked(vscode.extensions.getExtension).mockReturnValue({
       packageJSON: { version: '1.1.0' },
     } as vscode.Extension<unknown>);
     await activate(context);
     expect(showInformationMessageMock).toHaveBeenCalledWith(
-      'Fora Code Companion extension successfully installed.',
+      'Foragen CLI Companion extension successfully installed.',
     );
   });
 
@@ -171,7 +171,7 @@ describe('activate', () => {
       await activate(context);
 
       expect(showInformationMessageMock).toHaveBeenCalledWith(
-        'A new version (1.2.0) of the Fora Code Companion extension is available.',
+        'A new version (1.2.0) of the Foragen CLI Companion extension is available.',
         'Update to latest version',
       );
     });

@@ -184,13 +184,13 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
 
     it('should handle circular references without infinite loops', () => {
       const circular: unknown = { name: 'circular' };
-      (circular as Record<string, unknown>).self = circular;
+      (circular as Record<string, unknown>)['self'] = circular;
 
       expect(() => normalizeParams(circular)).not.toThrow();
 
       const result = normalizeParams(circular) as Record<string, unknown>;
-      expect(result.name).toBe('circular');
-      expect(result.self).toBe(result); // Should maintain circular reference
+      expect(result['name']).toBe('circular');
+      expect(result['self']).toBe(result); // Should maintain circular reference
     });
 
     it('should handle very deep nested structures', () => {
@@ -206,12 +206,12 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
       const result = normalizeParams(deep);
 
       // Navigate to the deep value and verify it was normalized
-      let current = result;
+      let current = result as Record<string, unknown>;
       for (let i = 0; i < 100; i++) {
-        current = current.nested;
+        current = current['nested'] as Record<string, unknown>;
       }
 
-      expect(current.value).toBe(true);
+      expect(current['value']).toBe(true);
     });
 
     it('should handle functions in objects', () => {
@@ -288,9 +288,9 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
       expect(duration).toBeLessThan(1000); // Should complete in under 1 second
 
       // Verify some conversions worked
-      expect(result.prop0).toBe(true);
-      expect(result.prop1).toBe(false);
-      expect(result.prop100).toBe(true);
+      expect(result['prop0']).toBe(true);
+      expect(result['prop1']).toBe(false);
+      expect(result['prop100']).toBe(true);
     });
 
     it('should handle large arrays efficiently', () => {

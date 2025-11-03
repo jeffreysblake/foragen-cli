@@ -1,10 +1,10 @@
-# Fora Code: Terms of Service and Privacy Notice
+# Foragen CLI: Terms of Service and Privacy Notice
 
-Fora Code is an open-source AI coding assistant tool maintained by the Fora Code team. This document outlines the terms of service and privacy policies that apply when using Fora Code's authentication methods and AI model services.
+Foragen CLI is an open-source AI coding assistant tool maintained by the Foragen CLI team. This document outlines the terms of service and privacy policies that apply when using Foragen CLI's authentication methods and AI model services.
 
 ## How to determine your authentication method
 
-Fora Code supports two main authentication methods to access AI models. Your authentication method determines which terms of service and privacy policies apply to your usage:
+Foragen CLI supports two main authentication methods to access AI models. Your authentication method determines which terms of service and privacy policies apply to your usage:
 
 1. **Fora OAuth** - Log in with your fora.ai account
 2. **OpenAI-Compatible API** - Use API keys from various AI model providers
@@ -29,17 +29,17 @@ For details about authentication setup, quotas, and supported features, see [Aut
 
 When you authenticate using API keys from OpenAI-compatible providers, the applicable Terms of Service and Privacy Notice depend on your chosen provider.
 
-**Important:** When using OpenAI-compatible API authentication, you are subject to the terms and privacy policies of your chosen API provider, not Fora Code's terms. Please review your provider's documentation for specific details about data usage, retention, and privacy practices.
+**Important:** When using OpenAI-compatible API authentication, you are subject to the terms and privacy policies of your chosen API provider, not Foragen CLI's terms. Please review your provider's documentation for specific details about data usage, retention, and privacy practices.
 
-Fora Code supports various OpenAI-compatible providers. Please refer to your specific provider's terms of service and privacy policy for detailed information.
+Foragen CLI supports various OpenAI-compatible providers. Please refer to your specific provider's terms of service and privacy policy for detailed information.
 
 ## Usage Statistics and Telemetry
 
-Fora Code may collect anonymous usage statistics and telemetry data to improve the user experience and product quality. This data collection is optional and can be controlled through configuration settings.
+Foragen CLI may collect anonymous usage statistics and telemetry data to improve the user experience and product quality. This data collection is optional and can be controlled through configuration settings.
 
 ### What Data is Collected
 
-When enabled, Fora Code may collect:
+When enabled, Foragen CLI may collect:
 
 - Anonymous usage statistics (commands run, performance metrics)
 - Error reports and crash data
@@ -47,8 +47,8 @@ When enabled, Fora Code may collect:
 
 ### Data Collection by Authentication Method
 
-- **Fora OAuth:** Usage statistics are governed by Fora's privacy policy. You can opt-out through Fora Code's configuration settings.
-- **OpenAI-Compatible API:** No additional data is collected by Fora Code beyond what your chosen API provider collects.
+- **Fora OAuth:** Usage statistics are governed by Fora's privacy policy. You can opt-out through Foragen CLI's configuration settings.
+- **OpenAI-Compatible API:** No additional data is collected by Foragen CLI beyond what your chosen API provider collects.
 
 ### Opt-Out Instructions
 
@@ -64,26 +64,26 @@ Whether your code, including prompts and answers, is used to train AI models dep
 
 - **OpenAI-Compatible API**: Data usage depends entirely on your chosen API provider. Each provider has their own data usage policies. Please review the privacy policy and terms of service of your specific provider.
 
-**Important**: Fora Code itself does not use your prompts, code, or responses for model training. Any data usage for training purposes would be governed by the policies of the AI service provider you authenticate with.
+**Important**: Foragen CLI itself does not use your prompts, code, or responses for model training. Any data usage for training purposes would be governed by the policies of the AI service provider you authenticate with.
 
 ### 2. What are Usage Statistics and what does the opt-out control?
 
-The **Usage Statistics** setting controls optional data collection by Fora Code for improving the user experience and product quality.
+The **Usage Statistics** setting controls optional data collection by Foragen CLI for improving the user experience and product quality.
 
-When enabled, Fora Code may collect:
+When enabled, Foragen CLI may collect:
 
 - Anonymous telemetry (commands run, performance metrics, feature usage)
 - Error reports and crash data
 - General usage patterns
 
-**What is NOT collected by Fora Code:**
+**What is NOT collected by Foragen CLI:**
 
 - Your code content
 - Prompts sent to AI models
 - Responses from AI models
 - Personal information
 
-The Usage Statistics setting only controls data collection by Fora Code itself. It does not affect what data your chosen AI service provider (Fora, OpenAI, etc.) may collect according to their own privacy policies.
+The Usage Statistics setting only controls data collection by Foragen CLI itself. It does not affect what data your chosen AI service provider (Fora, OpenAI, etc.) may collect according to their own privacy policies.
 
 You can disable Usage Statistics collection by following the instructions in the [Usage Statistics Configuration](./cli/configuration.md#usage-statistics) documentation.
 

@@ -32,7 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is **Fora Code**, a command-line AI workflow tool adapted from Google's Gemini CLI, specifically optimized for Fora3-Coder models. It's a TypeScript monorepo using npm workspaces.
+This is **Foragen CLI**, a command-line AI workflow tool adapted from Google's Gemini CLI, specifically optimized for Fora3-Coder models. It's a TypeScript monorepo using npm workspaces.
 
 ### Core Structure
 

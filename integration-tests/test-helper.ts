@@ -206,7 +206,7 @@ export class TestRig {
   }
 
   /**
-   * The command and args to use to invoke Fora Code CLI. Allows us to switch
+   * The command and args to use to invoke Foragen CLI CLI. Allows us to switch
    * between using the bundled gemini.js (the default) and using the installed
    * 'fora' (used to verify npm bundles).
    */

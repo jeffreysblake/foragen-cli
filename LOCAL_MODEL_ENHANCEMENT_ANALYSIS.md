@@ -1,8 +1,8 @@
-# Local Model Enhancement Analysis for Fora Code CLI
+# Local Model Enhancement Analysis for Foragen CLI CLI
 
 ## Executive Summary
 
-Based on comprehensive codebase analysis, this document identifies key areas for enhancing the Fora Code CLI for local model optimization, with focus on memory management, context optimization, MCP integration, and performance improvements specifically tailored for local LLMs.
+Based on comprehensive codebase analysis, this document identifies key areas for enhancing the Foragen CLI CLI for local model optimization, with focus on memory management, context optimization, MCP integration, and performance improvements specifically tailored for local LLMs.
 
 ## Current Architecture Overview
 
@@ -291,7 +291,7 @@ packages/cli/src/ui/commands/
 
 ## Conclusion
 
-The Fora Code CLI has a solid foundation for local model enhancements. The proposed improvements focus on three key areas:
+The Foragen CLI CLI has a solid foundation for local model enhancements. The proposed improvements focus on three key areas:
 
 1. **Intelligent Memory Management**: Reducing context bloat while maintaining relevance
 2. **Enhanced Tool Ecosystem**: Better MCP integration and tool composition

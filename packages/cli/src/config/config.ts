@@ -128,7 +128,7 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
     .locale('en')
     .scriptName('fora')
     .usage(
-      'Usage: fora [options] [command]\n\nFora Code - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
+      'Usage: fora [options] [command]\n\nForagen CLI - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
     )
     .option('telemetry', {
       type: 'boolean',
@@ -193,13 +193,14 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
     })
     .option('proxy', {
       type: 'string',
-      description: 'Proxy for Fora Code, like schema://user:password@host:port',
+      description:
+        'Proxy for Foragen CLI, like schema://user:password@host:port',
     })
     .deprecateOption(
       'proxy',
       'Use the "proxy" setting in settings.json instead. This flag will be removed in a future version.',
     )
-    .command('$0 [query..]', 'Launch Fora Code CLI', (yargsInstance: Argv) =>
+    .command('$0 [query..]', 'Launch Foragen CLI CLI', (yargsInstance: Argv) =>
       yargsInstance
         .positional('query', {
           description:

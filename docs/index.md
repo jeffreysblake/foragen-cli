@@ -1,8 +1,8 @@
-# Welcome to Fora Code documentation
+# Welcome to Foragen CLI documentation
 
-Fora Code is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
+Foragen CLI is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
 
-## 🚀 Why Choose Fora Code?
+## 🚀 Why Choose Foragen CLI?
 
 - 🎯 **Free Tier:** Up to 60 requests/min and 2,000 requests/day with your [ForaChat](https://chat.fora.ai/) account.
 - 🧠 **Advanced Model:** Specially optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) for superior code understanding and assistance.
@@ -46,7 +46,7 @@ brew install foragen-cli
 ## Quick Start
 
 ```bash
-# Start Fora Code
+# Start Foragen CLI
 fora
 
 # Example commands
@@ -79,7 +79,7 @@ Create or edit `.fora/settings.json` in your home directory:
 
 ### Vision Model Configuration
 
-Fora Code includes intelligent vision model auto-switching that detects images in your input and can automatically switch to vision-capable models for multimodal analysis. **This feature is enabled by default** - when you include images in your queries, you'll see a dialog asking how you'd like to handle the vision model switch.
+Foragen CLI includes intelligent vision model auto-switching that detects images in your input and can automatically switch to vision-capable models for multimodal analysis. **This feature is enabled by default** - when you include images in your queries, you'll see a dialog asking how you'd like to handle the vision model switch.
 
 #### Skip the Switch Dialog (Optional)
 
@@ -335,7 +335,7 @@ fora
 - `/clear` - Clear conversation history
 - `/compress` - Compress history to save tokens
 - `/stats` - Show current session information
-- `/exit` or `/quit` - Exit Fora Code
+- `/exit` or `/quit` - Exit Foragen CLI
 
 ### Keyboard Shortcuts
 

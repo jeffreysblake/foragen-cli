@@ -1,8 +1,8 @@
-# Fora Code
+# Foragen CLI
 
 <div align="center">
 
-![Fora Code Screenshot](./docs/assets/fora-screenshot.png)
+![Foragen CLI Screenshot](./docs/assets/fora-screenshot.png)
 
 [![npm version](https://img.shields.io/npm/v/@jeffreysblake/foragen-cli.svg)](https://www.npmjs.com/package/@jeffreysblake/foragen-cli)
 [![License](https://img.shields.io/github/license/jeffreysblake/foragen-cli.svg)](./LICENSE)
@@ -25,11 +25,11 @@
   
 </div>
 
-Fora Code is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
+Foragen CLI is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
 
 ## 💡 Free Options Available
 
-Get started with Fora Code at no cost using any of these free options:
+Get started with Foragen CLI at no cost using any of these free options:
 
 ### 🔥 Fora OAuth (Recommended)
 
@@ -47,7 +47,7 @@ Get started with Fora Code at no cost using any of these free options:
 For detailed setup instructions, see [Authorization](#authorization).
 
 > [!WARNING]
-> **Token Usage Notice**: Fora Code may issue multiple API calls per cycle, resulting in higher token usage (similar to Claude Code). We're actively optimizing API efficiency.
+> **Token Usage Notice**: Foragen CLI may issue multiple API calls per cycle, resulting in higher token usage (similar to Claude Code). We're actively optimizing API efficiency.
 
 ## Key Features
 
@@ -91,7 +91,7 @@ brew install foragen-cli
 ## Quick Start
 
 ```bash
-# Start Fora Code
+# Start Foragen CLI
 fora
 
 # Example commands
@@ -124,7 +124,7 @@ Create or edit `.fora/settings.json` in your home directory:
 
 ### Vision Model Configuration
 
-Fora Code includes intelligent vision model auto-switching that detects images in your input and can automatically switch to vision-capable models for multimodal analysis. **This feature is enabled by default** - when you include images in your queries, you'll see a dialog asking how you'd like to handle the vision model switch.
+Foragen CLI includes intelligent vision model auto-switching that detects images in your input and can automatically switch to vision-capable models for multimodal analysis. **This feature is enabled by default** - when you include images in your queries, you'll see a dialog asking how you'd like to handle the vision model switch.
 
 #### Skip the Switch Dialog (Optional)
 
@@ -380,7 +380,7 @@ fora
 - `/clear` - Clear conversation history
 - `/compress` - Compress history to save tokens
 - `/stats` - Show current session information
-- `/exit` or `/quit` - Exit Fora Code
+- `/exit` or `/quit` - Exit Foragen CLI
 
 ### Keyboard Shortcuts
 
@@ -392,10 +392,10 @@ fora
 
 ### Terminal-Bench Performance
 
-| Agent     | Model              | Accuracy |
-| --------- | ------------------ | -------- |
-| Fora Code | Fora3-Coder-480A35 | 37.5%    |
-| Fora Code | Fora3-Coder-30BA3B | 31.3%    |
+| Agent       | Model              | Accuracy |
+| ----------- | ------------------ | -------- |
+| Foragen CLI | Fora3-Coder-480A35 | 37.5%    |
+| Foragen CLI | Fora3-Coder-30BA3B | 31.3%    |
 
 ## Development & Contributing
 

@@ -1,6 +1,6 @@
 # Observability with OpenTelemetry
 
-Learn how to enable and setup OpenTelemetry for Fora Code.
+Learn how to enable and setup OpenTelemetry for Foragen CLI.
 
 - [Observability with OpenTelemetry](#observability-with-opentelemetry)
   - [Key Benefits](#key-benefits)
@@ -33,7 +33,7 @@ Learn how to enable and setup OpenTelemetry for Fora Code.
 ## OpenTelemetry Integration
 
 Built on **[OpenTelemetry]** — the vendor-neutral, industry-standard
-observability framework — Fora Code's observability system provides:
+observability framework — Foragen CLI's observability system provides:
 
 - **Universal Compatibility**: Export to any OpenTelemetry backend (Google
   Cloud, Jaeger, Prometheus, Datadog, etc.)
@@ -120,7 +120,7 @@ Sends telemetry directly to Google Cloud services. No collector needed.
      }
    }
    ```
-2. Run Fora Code and send prompts.
+2. Run Foragen CLI and send prompts.
 3. View logs and metrics:
    - Open the Google Cloud Console in your browser after sending prompts:
      - Logs: https://console.cloud.google.com/logs/
@@ -152,7 +152,7 @@ forward data to Google Cloud.
    - Provide links to view traces, metrics, and logs in Google Cloud Console
    - Save collector logs to `~/.fora/tmp/<projectHash>/otel/collector-gcp.log`
    - Stop collector on exit (e.g. `Ctrl+C`)
-3. Run Fora Code and send prompts.
+3. Run Foragen CLI and send prompts.
 4. View logs and metrics:
    - Open the Google Cloud Console in your browser after sending prompts:
      - Logs: https://console.cloud.google.com/logs/
@@ -178,7 +178,7 @@ For local development and debugging, you can capture telemetry data locally:
      }
    }
    ```
-2. Run Fora Code and send prompts.
+2. Run Foragen CLI and send prompts.
 3. View logs and metrics in the specified file (e.g., `.fora/telemetry.log`).
 
 ### Collector-Based Export (Advanced)
@@ -193,20 +193,20 @@ For local development and debugging, you can capture telemetry data locally:
    - Provide a Jaeger UI at http://localhost:16686
    - Save logs/metrics to `~/.fora/tmp/<projectHash>/otel/collector.log`
    - Stop collector on exit (e.g. `Ctrl+C`)
-2. Run Fora Code and send prompts.
+2. Run Foragen CLI and send prompts.
 3. View traces at http://localhost:16686 and logs/metrics in the collector log
    file.
 
 ## Logs and Metrics
 
 The following section describes the structure of logs and metrics generated for
-Fora Code.
+Foragen CLI.
 
 - A `sessionId` is included as a common attribute on all logs and metrics.
 
 ### Logs
 
-Logs are timestamped records of specific events. The following events are logged for Fora Code:
+Logs are timestamped records of specific events. The following events are logged for Foragen CLI:
 
 - `foragen-cli.config`: This event occurs once at startup with the CLI's configuration.
   - **Attributes**:
@@ -300,7 +300,7 @@ Logs are timestamped records of specific events. The following events are logged
   - **Attributes**:
     - `model`
 
-- `foragen-cli.flash_fallback`: This event occurs when Fora Code switches to flash as fallback.
+- `foragen-cli.flash_fallback`: This event occurs when Foragen CLI switches to flash as fallback.
   - **Attributes**:
     - `auth_type`
 
@@ -320,7 +320,7 @@ Logs are timestamped records of specific events. The following events are logged
 
 ### Metrics
 
-Metrics are numerical measurements of behavior over time. The following metrics are collected for Fora Code (metric names remain `foragen-cli.*` for compatibility):
+Metrics are numerical measurements of behavior over time. The following metrics are collected for Foragen CLI (metric names remain `foragen-cli.*` for compatibility):
 
 - `foragen-cli.session.count` (Counter, Int): Incremented once per CLI startup.
 
