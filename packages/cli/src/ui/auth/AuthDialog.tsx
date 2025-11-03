@@ -13,6 +13,7 @@ import { type LoadedSettings, SettingScope } from '../../config/settings.js';
 import { Colors } from '../colors.js';
 import { useKeypress } from '../hooks/useKeypress.js';
 import { OpenAIKeyPrompt } from '../components/OpenAIKeyPrompt.js';
+import { LocalModelPrompt } from '../components/LocalModelPrompt.js';
 import { RadioButtonSelect } from '../components/shared/RadioButtonSelect.js';
 
 interface AuthDialogProps {
@@ -50,6 +51,7 @@ export function AuthDialog({
     initialErrorMessage || null,
   );
   const [showOpenAIKeyPrompt, setShowOpenAIKeyPrompt] = useState(false);
+  const [showLocalModelPrompt, setShowLocalModelPrompt] = useState(false);
   const items = [
     {
       key: AuthType.FORA_OAUTH,
@@ -57,6 +59,11 @@ export function AuthDialog({
       value: AuthType.FORA_OAUTH,
     },
     { key: AuthType.USE_OPENAI, label: 'OpenAI', value: AuthType.USE_OPENAI },
+    {
+      key: AuthType.LOCAL,
+      label: 'Local Model Server',
+      value: AuthType.LOCAL,
+    },
   ];
 
   const initialAuthIndex = Math.max(
@@ -86,6 +93,13 @@ export function AuthDialog({
       ) {
         setShowOpenAIKeyPrompt(true);
         setErrorMessage(null);
+      } else if (
+        authMethod === AuthType.LOCAL &&
+        !process.env['OPENAI_BASE_URL']
+      ) {
+        // Show local model prompt if no base URL is configured
+        setShowLocalModelPrompt(true);
+        setErrorMessage(null);
       } else {
         setErrorMessage(error);
       }
@@ -113,9 +127,29 @@ export function AuthDialog({
     setErrorMessage('OpenAI API key is required to use OpenAI authentication.');
   };
 
+  const handleLocalModelSubmit = (
+    serverUrl: string,
+    model: string,
+    apiKey?: string,
+  ) => {
+    setShowLocalModelPrompt(false);
+    onSelect(AuthType.LOCAL, SettingScope.User, {
+      baseUrl: serverUrl,
+      model,
+      apiKey: apiKey || 'local', // Use 'local' as default if no API key provided
+    });
+  };
+
+  const handleLocalModelCancel = () => {
+    setShowLocalModelPrompt(false);
+    setErrorMessage(
+      'Local model server configuration is required to use local models.',
+    );
+  };
+
   useKeypress(
     (key) => {
-      if (showOpenAIKeyPrompt) {
+      if (showOpenAIKeyPrompt || showLocalModelPrompt) {
         return;
       }
 
@@ -143,6 +177,18 @@ export function AuthDialog({
       <OpenAIKeyPrompt
         onSubmit={handleOpenAIKeySubmit}
         onCancel={handleOpenAIKeyCancel}
+      />
+    );
+  }
+
+  if (showLocalModelPrompt) {
+    return (
+      <LocalModelPrompt
+        onSubmit={handleLocalModelSubmit}
+        onCancel={handleLocalModelCancel}
+        initialUrl={
+          settings.merged.security?.auth?.baseUrl || 'http://localhost:1234'
+        }
       />
     );
   }

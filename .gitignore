@@ -24,6 +24,12 @@ package-lock.json
 *.iml
 .cursor
 
+# Claude Code Configs
+.claude/
+CODE.md
+claude-quick-ref.md
+CLAUDE.md
+
 # OS metadata
 .DS_Store
 Thumbs.db
@@ -52,6 +58,7 @@ packages/vscode-ide-companion/*.vsix
 # Fora Code Configs
 .fora/
 logs/
+
 # GHA credentials
 gha-creds-*.json
 

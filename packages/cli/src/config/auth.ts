@@ -27,15 +27,23 @@ export function validateAuthMethod(authMethod: string): string | null {
   }
 
   if (authMethod === AuthType.LOCAL) {
-    // Local auth uses environment variables that are set interactively
-    // Check if required environment variables are set
-    if (
-      !process.env['OPENAI_API_KEY'] ||
-      !process.env['OPENAI_BASE_URL'] ||
-      !process.env['OPENAI_MODEL']
-    ) {
-      return 'Local authentication requires OPENAI_API_KEY, OPENAI_BASE_URL, and OPENAI_MODEL to be configured. These will be prompted for interactively.';
+    // Local auth requires a base URL (server address) and model
+    // API key is optional for local servers
+    const hasBaseUrl =
+      process.env['OPENAI_BASE_URL'] || settings.merged.security?.auth?.baseUrl;
+    const hasModel =
+      process.env['OPENAI_MODEL'] ||
+      process.env['FORA_MODEL'] ||
+      settings.merged.model?.name;
+
+    if (!hasBaseUrl) {
+      return 'Local authentication requires a server URL (OPENAI_BASE_URL or security.auth.baseUrl). Please configure your local model server.';
     }
+
+    if (!hasModel) {
+      return 'Local authentication requires a model to be specified (OPENAI_MODEL, FORA_MODEL, or model.name). Please select a model from your local server.';
+    }
+
     return null;
   }
 

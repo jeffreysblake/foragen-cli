@@ -8,6 +8,8 @@
  * Utilities for detecting and optimizing local model deployments
  */
 
+import { fetchModelContextLength } from './serverHealth.js';
+
 export interface LocalModelConfig {
   maxConcurrentRequests?: number;
   adaptiveTimeout?: boolean;
@@ -77,7 +79,7 @@ export function isLocalModel(baseUrl?: string, model?: string): boolean {
 }
 
 /**
- * Gets optimal token limit for local models
+ * Gets optimal token limit for local models (synchronous version)
  */
 export function getLocalModelTokenLimit(model: string): number {
   // Check for explicit environment variable override
@@ -117,6 +119,61 @@ export function getLocalModelTokenLimit(model: string): number {
 
   // Conservative default for unknown local models - increased to 80k as requested
   return 80000;
+}
+
+/**
+ * Gets optimal token limit for local models with auto-detection (async version)
+ * Tries to detect the actual context length from the server, falls back to defaults
+ *
+ * @param model - Model name/ID
+ * @param baseUrl - Base URL of the local server (optional)
+ * @param apiKey - API key for the local server (optional)
+ * @returns Detected or default token limit
+ */
+export async function getLocalModelTokenLimitAsync(
+  model: string,
+  baseUrl?: string,
+  apiKey?: string,
+): Promise<number> {
+  // Check for explicit environment variable override first
+  const configLimit = process.env['LOCAL_MODEL_TOKEN_LIMIT'];
+  if (configLimit) {
+    const limit = parseInt(configLimit, 10);
+    if (!isNaN(limit) && limit > 0) {
+      console.log(`Using LOCAL_MODEL_TOKEN_LIMIT override: ${limit}`);
+      return limit;
+    }
+  }
+
+  // Try to auto-detect from server if baseUrl is provided
+  if (baseUrl && model) {
+    try {
+      const detectedLimit = await fetchModelContextLength(
+        baseUrl,
+        model,
+        apiKey,
+      );
+
+      if (detectedLimit && detectedLimit > 0) {
+        console.log(
+          `Auto-detected context length for ${model}: ${detectedLimit} tokens`,
+        );
+        return detectedLimit;
+      }
+    } catch (error) {
+      console.warn(
+        'Failed to auto-detect context length, using defaults:',
+        error,
+      );
+    }
+  }
+
+  // Fall back to synchronous default detection
+  const defaultLimit = getLocalModelTokenLimit(model);
+  console.log(
+    `Using default context length for ${model}: ${defaultLimit} tokens`,
+  );
+  return defaultLimit;
 }
 
 /**

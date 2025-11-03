@@ -392,10 +392,10 @@ fora
 
 ### Terminal-Bench Performance
 
-| Agent       | Model              | Accuracy |
-| ----------- | ------------------ | -------- |
-| Foragen CLI | Qwen3-Coder-480A35 | 37.5%    |
-| Foragen CLI | Qwen3-Coder-30BA3B | 31.3%    |
+| Agent       | Model                | Accuracy |
+| ----------- | -------------------- | -------- |
+| Foragen CLI | Qwen3-Coder-48B-A3.5 | 37.5%    |
+| Foragen CLI | Qwen3-Coder-30B-A3B  | 31.3%    |
 
 ## Development & Contributing
 

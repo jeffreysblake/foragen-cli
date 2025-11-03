@@ -58,6 +58,7 @@ export * from './utils/subagentGenerator.js';
 export * from './utils/projectSummary.js';
 export * from './utils/promptIdContext.js';
 export * from './utils/thoughtUtils.js';
+export * from './utils/serverHealth.js';
 
 // Export services
 export * from './services/fileDiscoveryService.js';

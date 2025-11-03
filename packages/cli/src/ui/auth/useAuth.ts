@@ -5,14 +5,17 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import type { LoadedSettings, SettingScope } from '../../config/settings.js';
+import type { LoadedSettings } from '../../config/settings.js';
+import { SettingScope } from '../../config/settings.js';
 import type { AuthType, Config } from '@jeffreysblake/foragen-cli-core';
 import {
   clearCachedCredentialFile,
   getErrorMessage,
+  autoDetectLocalServer,
 } from '@jeffreysblake/foragen-cli-core';
 import { AuthState } from '../types.js';
 import { validateAuthMethod } from '../../config/auth.js';
+import { clearLocalModelCache } from '../models/availableModels.js';
 
 export function validateAuthMethodWithSettings(
   authType: AuthType,
@@ -40,6 +43,7 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(unAuthenticated);
+  const [autoDetectionAttempted, setAutoDetectionAttempted] = useState(false);
 
   const onAuthError = useCallback(
     (error: string | null) => {
@@ -51,6 +55,65 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
     },
     [setAuthError, setAuthState],
   );
+
+  // Auto-detection of local model servers on first run
+  useEffect(() => {
+    const detectLocalServer = async () => {
+      // Only attempt auto-detection once and only if no auth type is selected
+      if (
+        autoDetectionAttempted ||
+        settings.merged.security?.auth?.selectedType
+      ) {
+        return;
+      }
+
+      setAutoDetectionAttempted(true);
+
+      // Known servers to check (user's LM Studio server first, then common ports)
+      const knownServers = ['http://192.168.1.227:1234'];
+
+      console.log('Attempting to auto-detect local model servers...');
+
+      const detected = await autoDetectLocalServer(knownServers, true);
+
+      if (detected && detected.models.length > 0) {
+        console.log(
+          `Auto-detected local model server at ${detected.url} with ${detected.models.length} model(s)`,
+        );
+
+        // Auto-populate settings with detected server
+        config.updateCredentials({
+          apiKey: 'local', // Default API key for local servers
+          baseUrl: detected.url,
+          model: detected.models[0], // Use first available model
+        });
+
+        settings.setValue(SettingScope.User, 'security.auth.apiKey', 'local');
+        settings.setValue(
+          SettingScope.User,
+          'security.auth.baseUrl',
+          detected.url,
+        );
+        settings.setValue(
+          SettingScope.User,
+          'model.name',
+          detected.models[0] || '',
+        );
+        settings.setValue(
+          SettingScope.User,
+          'security.auth.selectedType',
+          'local',
+        );
+
+        // Close auth dialog since we auto-configured
+        setIsAuthDialogOpen(false);
+      } else {
+        console.log('No local model servers detected');
+      }
+    };
+
+    void detectLocalServer();
+  }, [autoDetectionAttempted, settings, config]);
 
   // Authentication flow
   useEffect(() => {
@@ -65,8 +128,62 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
         settings,
       );
       if (validationError) {
+        // For LOCAL auth, if validation fails due to server unavailability,
+        // clear the config and show auth dialog
+        if (authType === 'local') {
+          console.log(
+            'Local model server configuration invalid or server unreachable. Clearing config.',
+          );
+          settings.setValue(
+            SettingScope.User,
+            'security.auth.selectedType',
+            undefined,
+          );
+          settings.setValue(
+            SettingScope.User,
+            'security.auth.baseUrl',
+            undefined,
+          );
+        }
         onAuthError(validationError);
         return;
+      }
+
+      // Additional health check for LOCAL auth type
+      if (authType === 'local') {
+        const baseUrl = settings.merged.security?.auth?.baseUrl;
+        if (baseUrl) {
+          console.log(`Checking local model server health at ${baseUrl}...`);
+          const { pingLocalServer } = await import(
+            '@jeffreysblake/foragen-cli-core'
+          );
+          const health = await pingLocalServer(baseUrl, 5000);
+
+          if (!health.isReachable) {
+            console.log(
+              `Local model server at ${baseUrl} is unreachable: ${health.error}`,
+            );
+            // Clear invalid config and show auth dialog
+            settings.setValue(
+              SettingScope.User,
+              'security.auth.selectedType',
+              undefined,
+            );
+            settings.setValue(
+              SettingScope.User,
+              'security.auth.baseUrl',
+              undefined,
+            );
+            onAuthError(
+              `Local model server at ${baseUrl} is unreachable. ${health.error || 'Please check the server and try again.'}`,
+            );
+            return;
+          }
+
+          console.log(
+            `Local model server is reachable (${health.responseTime}ms)`,
+          );
+        }
       }
 
       try {
@@ -98,6 +215,8 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
     ) => {
       if (authType) {
         await clearCachedCredentialFile();
+        // Clear model cache when changing auth types
+        clearLocalModelCache();
 
         // Save OpenAI credentials if provided
         if (credentials) {

@@ -1,3 +1,8 @@
+import {
+  isLocalModel,
+  getLocalModelTokenLimitAsync,
+} from '../utils/localModelUtils.js';
+
 type Model = string;
 type TokenCount = number;
 
@@ -229,4 +234,50 @@ export function tokenLimit(
 
   // Return appropriate default based on token type
   return type === 'output' ? DEFAULT_OUTPUT_TOKEN_LIMIT : DEFAULT_TOKEN_LIMIT;
+}
+
+/**
+ * Async version of tokenLimit with auto-detection for local models.
+ *
+ * For local models, this function attempts to detect the actual context length
+ * from the server's /v1/models endpoint before falling back to pattern matching.
+ *
+ * @param model - The model name to get the token limit for
+ * @param type - The type of token limit ('input' for context window, 'output' for generation)
+ * @param baseUrl - Base URL of the local server (for local model detection)
+ * @param apiKey - API key for the local server (optional)
+ * @returns Promise of the maximum number of tokens allowed for this model and type
+ */
+export async function tokenLimitAsync(
+  model: Model,
+  type: TokenLimitType = 'input',
+  baseUrl?: string,
+  apiKey?: string,
+): Promise<TokenCount> {
+  // For output limits, use synchronous version (doesn't benefit from detection)
+  if (type === 'output') {
+    return tokenLimit(model, type);
+  }
+
+  // Check if this is a local model deployment
+  if (baseUrl && isLocalModel(baseUrl, model)) {
+    try {
+      const detectedLimit = await getLocalModelTokenLimitAsync(
+        model,
+        baseUrl,
+        apiKey,
+      );
+      if (detectedLimit > 0) {
+        return detectedLimit;
+      }
+    } catch (error) {
+      console.warn(
+        'Failed to auto-detect token limit, falling back to pattern matching:',
+        error,
+      );
+    }
+  }
+
+  // Fall back to synchronous pattern matching
+  return tokenLimit(model, type);
 }

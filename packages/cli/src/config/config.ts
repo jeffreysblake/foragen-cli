@@ -12,6 +12,7 @@ import type {
 import { extensionsCommand } from '../commands/extensions.js';
 import {
   ApprovalMode,
+  AuthType,
   Config,
   DEFAULT_FORA_EMBEDDING_MODEL,
   DEFAULT_MEMORY_FILE_FILTERING_OPTIONS,
@@ -668,11 +669,37 @@ export async function loadCliConfig(
     );
   }
 
-  const resolvedModel =
+  let resolvedModel =
     argv.model ||
     process.env['OPENAI_MODEL'] ||
     process.env['FORA_MODEL'] ||
     settings.model?.name;
+
+  // If no model resolved and using LOCAL auth, fetch first model from server as default
+  if (!resolvedModel && settings.security?.auth?.selectedType === 'local') {
+    const baseUrl = settings.security?.auth?.baseUrl;
+
+    if (baseUrl) {
+      try {
+        const { getAvailableModelsForAuthTypeAsync } = await import(
+          '../ui/models/availableModels.js'
+        );
+        const localModels = await getAvailableModelsForAuthTypeAsync(
+          AuthType.LOCAL,
+        );
+
+        if (localModels.length > 0) {
+          resolvedModel = localModels[0].id;
+          console.log(
+            `Auto-selected first model from server: ${resolvedModel}`,
+          );
+          // Note: Persistence happens when user explicitly selects model via /model command or dialog
+        }
+      } catch (error) {
+        console.warn('Failed to fetch default model from local server:', error);
+      }
+    }
+  }
 
   const sandboxConfig = await loadSandboxConfig(settings, argv);
   const screenReader =

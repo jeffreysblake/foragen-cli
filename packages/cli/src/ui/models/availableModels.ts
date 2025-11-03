@@ -4,7 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AuthType, DEFAULT_FORA_MODEL } from '@jeffreysblake/foragen-cli-core';
+import {
+  AuthType,
+  DEFAULT_FORA_MODEL,
+  fetchAvailableModels,
+} from '@jeffreysblake/foragen-cli-core';
+import { loadSettings } from '../../config/settings.js';
 
 export type AvailableModel = {
   id: string;
@@ -83,4 +88,108 @@ export function isVisionModel(modelId: string): boolean {
   return AVAILABLE_MODELS_FORA.some(
     (model) => model.id === modelId && model.isVision,
   );
+}
+
+/**
+ * Cache for local model server models
+ */
+interface LocalModelCache {
+  models: AvailableModel[];
+  timestamp: number;
+  baseUrl: string;
+}
+
+let localModelCache: LocalModelCache | null = null;
+const CACHE_TTL_MS = 60000; // 60 seconds
+
+/**
+ * Clear the local model cache
+ */
+export function clearLocalModelCache(): void {
+  localModelCache = null;
+}
+
+/**
+ * Fetch models from a local model server
+ * @param baseUrl - The base URL of the local server
+ * @param apiKey - Optional API key
+ * @returns Array of available models
+ */
+export async function getLocalModelsFromServer(
+  baseUrl: string,
+  apiKey?: string,
+): Promise<AvailableModel[]> {
+  // Check cache first
+  if (
+    localModelCache &&
+    localModelCache.baseUrl === baseUrl &&
+    Date.now() - localModelCache.timestamp < CACHE_TTL_MS
+  ) {
+    return localModelCache.models;
+  }
+
+  try {
+    const modelIds = await fetchAvailableModels(baseUrl, apiKey, 5000);
+
+    const models: AvailableModel[] = modelIds.map((id) => ({
+      id,
+      label: id,
+      description: `Local model from ${baseUrl}`,
+    }));
+
+    // Update cache
+    localModelCache = {
+      models,
+      timestamp: Date.now(),
+      baseUrl,
+    };
+
+    return models;
+  } catch (error) {
+    console.error(`Failed to fetch models from ${baseUrl}:`, error);
+    // Return cached models if available, even if expired
+    if (localModelCache && localModelCache.baseUrl === baseUrl) {
+      console.log('Returning stale cached models due to fetch error');
+      return localModelCache.models;
+    }
+    return [];
+  }
+}
+
+/**
+ * Async version of getAvailableModelsForAuthType that supports LOCAL auth
+ * @param authType - The authentication type
+ * @returns Promise of available models
+ */
+export async function getAvailableModelsForAuthTypeAsync(
+  authType: AuthType,
+): Promise<AvailableModel[]> {
+  switch (authType) {
+    case AuthType.FORA_OAUTH:
+      return AVAILABLE_MODELS_FORA;
+    case AuthType.USE_OPENAI: {
+      const openAIModel = getOpenAIAvailableModelFromEnv();
+      return openAIModel ? [openAIModel] : [];
+    }
+    case AuthType.LOCAL: {
+      const settings = loadSettings();
+      const baseUrl =
+        process.env['OPENAI_BASE_URL'] ||
+        settings.merged.security?.auth?.baseUrl;
+      const apiKey =
+        process.env['OPENAI_API_KEY'] || settings.merged.security?.auth?.apiKey;
+
+      if (!baseUrl) {
+        console.warn(
+          'LOCAL auth type requires OPENAI_BASE_URL or security.auth.baseUrl',
+        );
+        return [];
+      }
+
+      return await getLocalModelsFromServer(baseUrl, apiKey);
+    }
+    default:
+      // For other auth types, return empty array for now
+      return [];
+  }
 }
