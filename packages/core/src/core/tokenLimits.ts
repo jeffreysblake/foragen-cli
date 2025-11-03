@@ -47,8 +47,8 @@ export function normalize(model: string): string {
   // remove trailing build / date / revision suffixes:
   // - dates (e.g., -20250219), -v1, version numbers, 'latest', 'preview' etc.
   s = s.replace(/-preview/g, '');
-  // Special handling for Qwen model names that include "-latest" as part of the model name
-  if (!s.match(/^qwen-(?:plus|flash|vl-max)-latest$/)) {
+  // Special handling for Fora model names that include "-latest" as part of the model name
+  if (!s.match(/^fora-(?:plus|flash|vl-max)-latest$/)) {
     // Regex breakdown:
     // -(?:...)$ - Non-capturing group for suffixes at the end of the string
     // The following patterns are matched within the group:
@@ -106,42 +106,42 @@ const PATTERNS: Array<[RegExp, TokenCount]> = [
   [/^claude-opus-4.*$/, LIMITS['1m']],
 
   // -------------------
-  // Alibaba / Qwen
+  // Alibaba / Fora
   // -------------------
-  // Commercial Qwen3-Coder-Plus: 1M token context
-  [/^qwen3-coder-plus(-.*)?$/, LIMITS['1m']], // catches "qwen3-coder-plus" and date variants
+  // Commercial Fora3-Coder-Plus: 1M token context
+  [/^fora3-coder-plus(-.*)?$/, LIMITS['1m']], // catches "fora3-coder-plus" and date variants
 
-  // Commercial Qwen3-Coder-Flash: 1M token context
-  [/^qwen3-coder-flash(-.*)?$/, LIMITS['1m']], // catches "qwen3-coder-flash" and date variants
+  // Commercial Fora3-Coder-Flash: 1M token context
+  [/^fora3-coder-flash(-.*)?$/, LIMITS['1m']], // catches "fora3-coder-flash" and date variants
 
-  // Generic coder-model: same as qwen3-coder-plus (1M token context)
+  // Generic coder-model: same as fora3-coder-plus (1M token context)
   [/^coder-model$/, LIMITS['1m']],
 
-  // Commercial Qwen3-Max-Preview: 256K token context
-  [/^qwen3-max(-preview)?(-.*)?$/, LIMITS['256k']], // catches "qwen3-max" or "qwen3-max-preview" and date variants
+  // Commercial Fora3-Max-Preview: 256K token context
+  [/^fora3-max(-preview)?(-.*)?$/, LIMITS['256k']], // catches "fora3-max" or "fora3-max-preview" and date variants
 
-  // Open-source Qwen3-Coder variants: 256K native
-  [/^qwen3-coder-.*$/, LIMITS['256k']],
-  // Open-source Qwen3 2507 variants: 256K native
-  [/^qwen3-.*-2507-.*$/, LIMITS['256k']],
+  // Open-source Fora3-Coder variants: 256K native
+  [/^fora3-coder-.*$/, LIMITS['256k']],
+  // Open-source Fora3 2507 variants: 256K native
+  [/^fora3-.*-2507-.*$/, LIMITS['256k']],
 
-  // Open-source long-context Qwen2.5-1M
-  [/^qwen2\.5-1m.*$/, LIMITS['1m']],
+  // Open-source long-context Fora2.5-1M
+  [/^fora2\.5-1m.*$/, LIMITS['1m']],
 
-  // Standard Qwen2.5: 128K
-  [/^qwen2\.5.*$/, LIMITS['128k']],
+  // Standard Fora2.5: 128K
+  [/^fora2\.5.*$/, LIMITS['128k']],
 
-  // Studio commercial Qwen-Plus / Qwen-Flash / Qwen-Turbo
-  [/^qwen-plus-latest$/, LIMITS['1m']], // Commercial latest: 1M
-  [/^qwen-plus.*$/, LIMITS['128k']], // Standard: 128K
-  [/^qwen-flash-latest$/, LIMITS['1m']],
-  [/^qwen-turbo.*$/, LIMITS['128k']],
+  // Studio commercial Fora-Plus / Fora-Flash / Fora-Turbo
+  [/^fora-plus-latest$/, LIMITS['1m']], // Commercial latest: 1M
+  [/^fora-plus.*$/, LIMITS['128k']], // Standard: 128K
+  [/^fora-flash-latest$/, LIMITS['1m']],
+  [/^fora-turbo.*$/, LIMITS['128k']],
 
-  // Qwen Vision Models
-  [/^qwen3-vl-plus$/, LIMITS['256k']], // Qwen3-VL-Plus: 256K input
-  [/^qwen-vl-max.*$/, LIMITS['128k']],
+  // Fora Vision Models
+  [/^fora3-vl-plus$/, LIMITS['256k']], // Fora3-VL-Plus: 256K input
+  [/^fora-vl-max.*$/, LIMITS['128k']],
 
-  // Generic vision-model: same as qwen-vl-max (128K token context)
+  // Generic vision-model: same as fora-vl-max (128K token context)
   [/^vision-model$/, LIMITS['128k']],
 
   // -------------------
@@ -180,25 +180,25 @@ const PATTERNS: Array<[RegExp, TokenCount]> = [
  */
 const OUTPUT_PATTERNS: Array<[RegExp, TokenCount]> = [
   // -------------------
-  // Alibaba / Qwen - DashScope Models
+  // Alibaba / Fora - DashScope Models
   // -------------------
-  // Qwen3-Coder-Plus: 65,536 max output tokens
-  [/^qwen3-coder-plus(-.*)?$/, LIMITS['64k']],
+  // Fora3-Coder-Plus: 65,536 max output tokens
+  [/^fora3-coder-plus(-.*)?$/, LIMITS['64k']],
 
-  // Generic coder-model: same as qwen3-coder-plus (64K max output tokens)
+  // Generic coder-model: same as fora3-coder-plus (64K max output tokens)
   [/^coder-model$/, LIMITS['64k']],
 
-  // Qwen3-Max: 65,536 max output tokens
-  [/^qwen3-max(-preview)?(-.*)?$/, LIMITS['64k']],
+  // Fora3-Max: 65,536 max output tokens
+  [/^fora3-max(-preview)?(-.*)?$/, LIMITS['64k']],
 
-  // Qwen-VL-Max-Latest: 8,192 max output tokens
-  [/^qwen-vl-max-latest$/, LIMITS['8k']],
+  // Fora-VL-Max-Latest: 8,192 max output tokens
+  [/^fora-vl-max-latest$/, LIMITS['8k']],
 
-  // Generic vision-model: same as qwen-vl-max-latest (8K max output tokens)
+  // Generic vision-model: same as fora-vl-max-latest (8K max output tokens)
   [/^vision-model$/, LIMITS['8k']],
 
-  // Qwen3-VL-Plus: 32K max output tokens
-  [/^qwen3-vl-plus$/, LIMITS['32k']],
+  // Fora3-VL-Plus: 32K max output tokens
+  [/^fora3-vl-plus$/, LIMITS['32k']],
 ];
 
 /**

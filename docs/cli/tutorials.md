@@ -1,6 +1,6 @@
 # Tutorials
 
-This page contains tutorials for interacting with Qwen Code.
+This page contains tutorials for interacting with Fora Code.
 
 ## Setting up a Model Context Protocol (MCP) server
 
@@ -24,7 +24,7 @@ Before you begin, ensure you have the following installed and configured:
 
 #### Configure the MCP server in `settings.json`
 
-In your project's root directory, create or open the [`.qwen/settings.json` file](./configuration.md). Within the file, add the `mcpServers` configuration block, which provides instructions for how to launch the GitHub MCP server.
+In your project's root directory, create or open the [`.fora/settings.json` file](./configuration.md). Within the file, add the `mcpServers` configuration block, which provides instructions for how to launch the GitHub MCP server.
 
 ```json
 {
@@ -58,11 +58,11 @@ Use an environment variable to store your GitHub PAT:
 GITHUB_PERSONAL_ACCESS_TOKEN="pat_YourActualGitHubTokenHere"
 ```
 
-Qwen Code uses this value in the `mcpServers` configuration that you defined in the `settings.json` file.
+Fora Code uses this value in the `mcpServers` configuration that you defined in the `settings.json` file.
 
-#### Launch Qwen Code and verify the connection
+#### Launch Fora Code and verify the connection
 
-When you launch Qwen Code, it automatically reads your configuration and launches the GitHub MCP server in the background. You can then use natural language prompts to ask Qwen Code to perform GitHub actions. For example:
+When you launch Fora Code, it automatically reads your configuration and launches the GitHub MCP server in the background. You can then use natural language prompts to ask Fora Code to perform GitHub actions. For example:
 
 ```bash
 "get all open issues assigned to me in the 'foo/bar' repo and prioritize them"

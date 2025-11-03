@@ -16,11 +16,11 @@ import {
   loadServerHierarchicalMemory,
   type FileDiscoveryService,
   type LoadServerHierarchicalMemoryResponse,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('@jeffreysblake/foragen-cli-core', async (importOriginal) => {
   const original =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('@jeffreysblake/foragen-cli-core')>();
   return {
     ...original,
     getErrorMessage: vi.fn((error: unknown) => {

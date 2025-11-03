@@ -10,11 +10,11 @@ import type {
   TelemetrySettings,
   AuthType,
   ChatCompressionSettings,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import {
   DEFAULT_TRUNCATE_TOOL_OUTPUT_LINES,
   DEFAULT_TRUNCATE_TOOL_OUTPUT_THRESHOLD,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import type { CustomTheme } from '../ui/themes/theme.js';
 
 export type SettingsType =
@@ -679,13 +679,13 @@ const SETTINGS_SCHEMA = {
             description: 'Respect .gitignore files when searching',
             showInDialog: true,
           },
-          respectQwenIgnore: {
+          respectForaIgnore: {
             type: 'boolean',
-            label: 'Respect .qwenignore',
+            label: 'Respect .foraignore',
             category: 'Context',
             requiresRestart: true,
             default: true,
-            description: 'Respect .qwenignore files when searching',
+            description: 'Respect .foraignore files when searching',
             showInDialog: true,
           },
           enableRecursiveFileSearch: {
@@ -1108,7 +1108,7 @@ const SETTINGS_SCHEMA = {
         requiresRestart: false,
         default: true,
         description:
-          'Enable vision model support and auto-switching functionality. When disabled, vision models like qwen-vl-max-latest will be hidden and auto-switching will not occur.',
+          'Enable vision model support and auto-switching functionality. When disabled, vision models like fora-vl-max-latest will be hidden and auto-switching will not occur.',
         showInDialog: true,
       },
       vlmSwitchMode: {

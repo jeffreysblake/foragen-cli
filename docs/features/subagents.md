@@ -1,6 +1,6 @@
 # Subagents
 
-Subagents are specialized AI assistants that handle specific types of tasks within Qwen Code. They allow you to delegate focused work to AI agents that are configured with task-specific prompts, tools, and behaviors.
+Subagents are specialized AI assistants that handle specific types of tasks within Fora Code. They allow you to delegate focused work to AI agents that are configured with task-specific prompts, tools, and behaviors.
 
 ## What are Subagents?
 
@@ -91,8 +91,8 @@ Opens an interactive management dialog for viewing and managing existing subagen
 
 Subagents are stored as Markdown files in two locations:
 
-- **Project-level**: `.qwen/agents/` (takes precedence)
-- **User-level**: `~/.qwen/agents/` (fallback)
+- **Project-level**: `.fora/agents/` (takes precedence)
+- **User-level**: `~/.fora/agents/` (fallback)
 
 This allows you to have both project-specific agents and personal agents that work across all projects.
 
@@ -137,7 +137,7 @@ new contributors and end users understand the project.
 
 ### Automatic Delegation
 
-Qwen Code proactively delegates tasks based on:
+Fora Code proactively delegates tasks based on:
 
 - The task description in your request
 - The description field in subagent configurations

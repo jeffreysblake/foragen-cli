@@ -1,6 +1,6 @@
 # OpenAI Authentication
 
-Qwen Code CLI supports OpenAI authentication for users who want to use OpenAI models instead of Google's Gemini models.
+Fora Code CLI supports OpenAI authentication for users who want to use OpenAI models instead of Google's Gemini models.
 
 ## Authentication Methods
 
@@ -26,13 +26,13 @@ You can also provide the OpenAI credentials via command line arguments:
 
 ```bash
 # Basic usage with API key
-qwen-code --openai-api-key "your-api-key-here"
+foragen-cli --openai-api-key "your-api-key-here"
 
 # With custom base URL
-qwen-code --openai-api-key "your-api-key-here" --openai-base-url "https://your-custom-endpoint.com/v1"
+foragen-cli --openai-api-key "your-api-key-here" --openai-base-url "https://your-custom-endpoint.com/v1"
 
 # With custom model
-qwen-code --openai-api-key "your-api-key-here" --model "gpt-4-turbo"
+foragen-cli --openai-api-key "your-api-key-here" --model "gpt-4-turbo"
 ```
 
 ### 3. Environment Variables

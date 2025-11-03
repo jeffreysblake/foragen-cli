@@ -17,7 +17,7 @@ describe('normalize', () => {
   });
 
   it('should handle pipe and colon separators', () => {
-    expect(normalize('qwen|qwen2.5:qwen2.5-1m')).toBe('qwen2.5-1m');
+    expect(normalize('fora|fora2.5:fora2.5-1m')).toBe('fora2.5-1m');
   });
 
   it('should collapse whitespace to a single hyphen', () => {
@@ -35,11 +35,11 @@ describe('normalize', () => {
   });
 
   it('should remove quantization and numeric suffixes', () => {
-    expect(normalize('qwen3-coder-7b-4bit')).toBe('qwen3-coder-7b');
+    expect(normalize('fora3-coder-7b-4bit')).toBe('fora3-coder-7b');
     expect(normalize('llama-4-scout-int8')).toBe('llama-4-scout');
     expect(normalize('mistral-large-2-bf16')).toBe('mistral-large-2');
     expect(normalize('deepseek-v3.1-q4')).toBe('deepseek-v3.1');
-    expect(normalize('qwen2.5-quantized')).toBe('qwen2.5');
+    expect(normalize('fora2.5-quantized')).toBe('fora2.5');
   });
 
   it('should handle a combination of normalization rules', () => {
@@ -58,10 +58,10 @@ describe('normalize', () => {
     expect(normalize('gemini-2.0-flash-preview')).toBe('gemini-2.0-flash');
   });
 
-  it('should not remove "-latest" from specific Qwen model names', () => {
-    expect(normalize('qwen-plus-latest')).toBe('qwen-plus-latest');
-    expect(normalize('qwen-flash-latest')).toBe('qwen-flash-latest');
-    expect(normalize('qwen-vl-max-latest')).toBe('qwen-vl-max-latest');
+  it('should not remove "-latest" from specific Fora model names', () => {
+    expect(normalize('fora-plus-latest')).toBe('fora-plus-latest');
+    expect(normalize('fora-flash-latest')).toBe('fora-flash-latest');
+    expect(normalize('fora-vl-max-latest')).toBe('fora-vl-max-latest');
   });
 
   it('should remove date like suffixes', () => {
@@ -149,46 +149,46 @@ describe('tokenLimit', () => {
     });
   });
 
-  describe('Alibaba Qwen', () => {
-    it('should return the correct limit for qwen3-coder commercial models', () => {
-      expect(tokenLimit('qwen3-coder-plus')).toBe(1048576);
-      expect(tokenLimit('qwen3-coder-plus-20250601')).toBe(1048576);
-      expect(tokenLimit('qwen3-coder-flash')).toBe(1048576);
-      expect(tokenLimit('qwen3-coder-flash-20250601')).toBe(1048576);
+  describe('Alibaba Fora', () => {
+    it('should return the correct limit for fora3-coder commercial models', () => {
+      expect(tokenLimit('fora3-coder-plus')).toBe(1048576);
+      expect(tokenLimit('fora3-coder-plus-20250601')).toBe(1048576);
+      expect(tokenLimit('fora3-coder-flash')).toBe(1048576);
+      expect(tokenLimit('fora3-coder-flash-20250601')).toBe(1048576);
     });
 
-    it('should return the correct limit for qwen3-coder open source models', () => {
-      expect(tokenLimit('qwen3-coder-7b')).toBe(262144);
-      expect(tokenLimit('qwen3-coder-480b-a35b-instruct')).toBe(262144);
-      expect(tokenLimit('qwen3-coder-30b-a3b-instruct')).toBe(262144);
+    it('should return the correct limit for fora3-coder open source models', () => {
+      expect(tokenLimit('fora3-coder-7b')).toBe(262144);
+      expect(tokenLimit('fora3-coder-480b-a35b-instruct')).toBe(262144);
+      expect(tokenLimit('fora3-coder-30b-a3b-instruct')).toBe(262144);
     });
 
-    it('should return the correct limit for qwen3 2507 variants', () => {
-      expect(tokenLimit('qwen3-some-model-2507-instruct')).toBe(262144);
+    it('should return the correct limit for fora3 2507 variants', () => {
+      expect(tokenLimit('fora3-some-model-2507-instruct')).toBe(262144);
     });
 
-    it('should return the correct limit for qwen2.5-1m', () => {
-      expect(tokenLimit('qwen2.5-1m')).toBe(1048576);
-      expect(tokenLimit('qwen2.5-1m-instruct')).toBe(1048576);
+    it('should return the correct limit for fora2.5-1m', () => {
+      expect(tokenLimit('fora2.5-1m')).toBe(1048576);
+      expect(tokenLimit('fora2.5-1m-instruct')).toBe(1048576);
     });
 
-    it('should return the correct limit for qwen2.5', () => {
-      expect(tokenLimit('qwen2.5')).toBe(131072);
-      expect(tokenLimit('qwen2.5-instruct')).toBe(131072);
+    it('should return the correct limit for fora2.5', () => {
+      expect(tokenLimit('fora2.5')).toBe(131072);
+      expect(tokenLimit('fora2.5-instruct')).toBe(131072);
     });
 
-    it('should return the correct limit for qwen-plus', () => {
-      expect(tokenLimit('qwen-plus-latest')).toBe(1048576);
-      expect(tokenLimit('qwen-plus')).toBe(131072);
+    it('should return the correct limit for fora-plus', () => {
+      expect(tokenLimit('fora-plus-latest')).toBe(1048576);
+      expect(tokenLimit('fora-plus')).toBe(131072);
     });
 
-    it('should return the correct limit for qwen-flash', () => {
-      expect(tokenLimit('qwen-flash-latest')).toBe(1048576);
+    it('should return the correct limit for fora-flash', () => {
+      expect(tokenLimit('fora-flash-latest')).toBe(1048576);
     });
 
-    it('should return the correct limit for qwen-turbo', () => {
-      expect(tokenLimit('qwen-turbo')).toBe(131072);
-      expect(tokenLimit('qwen-turbo-latest')).toBe(131072);
+    it('should return the correct limit for fora-turbo', () => {
+      expect(tokenLimit('fora-turbo')).toBe(131072);
+      expect(tokenLimit('fora-turbo-latest')).toBe(131072);
     });
   });
 
@@ -258,14 +258,14 @@ describe('tokenLimit', () => {
 });
 
 describe('tokenLimit with output type', () => {
-  describe('Qwen models with output limits', () => {
-    it('should return the correct output limit for qwen3-coder-plus', () => {
-      expect(tokenLimit('qwen3-coder-plus', 'output')).toBe(65536);
-      expect(tokenLimit('qwen3-coder-plus-20250601', 'output')).toBe(65536);
+  describe('Fora models with output limits', () => {
+    it('should return the correct output limit for fora3-coder-plus', () => {
+      expect(tokenLimit('fora3-coder-plus', 'output')).toBe(65536);
+      expect(tokenLimit('fora3-coder-plus-20250601', 'output')).toBe(65536);
     });
 
-    it('should return the correct output limit for qwen-vl-max-latest', () => {
-      expect(tokenLimit('qwen-vl-max-latest', 'output')).toBe(8192);
+    it('should return the correct output limit for fora-vl-max-latest', () => {
+      expect(tokenLimit('fora-vl-max-latest', 'output')).toBe(8192);
     });
   });
 
@@ -281,32 +281,32 @@ describe('tokenLimit with output type', () => {
     });
 
     it('should return the default output limit for models without specific output patterns', () => {
-      expect(tokenLimit('qwen3-coder-7b', 'output')).toBe(
+      expect(tokenLimit('fora3-coder-7b', 'output')).toBe(
         DEFAULT_OUTPUT_TOKEN_LIMIT,
       );
-      expect(tokenLimit('qwen-plus', 'output')).toBe(
+      expect(tokenLimit('fora-plus', 'output')).toBe(
         DEFAULT_OUTPUT_TOKEN_LIMIT,
       );
-      expect(tokenLimit('qwen-vl-max', 'output')).toBe(
+      expect(tokenLimit('fora-vl-max', 'output')).toBe(
         DEFAULT_OUTPUT_TOKEN_LIMIT,
       );
     });
   });
 
   describe('Input vs Output limits comparison', () => {
-    it('should return different limits for input vs output for qwen3-coder-plus', () => {
-      expect(tokenLimit('qwen3-coder-plus', 'input')).toBe(1048576); // 1M input
-      expect(tokenLimit('qwen3-coder-plus', 'output')).toBe(65536); // 64K output
+    it('should return different limits for input vs output for fora3-coder-plus', () => {
+      expect(tokenLimit('fora3-coder-plus', 'input')).toBe(1048576); // 1M input
+      expect(tokenLimit('fora3-coder-plus', 'output')).toBe(65536); // 64K output
     });
 
-    it('should return different limits for input vs output for qwen-vl-max-latest', () => {
-      expect(tokenLimit('qwen-vl-max-latest', 'input')).toBe(131072); // 128K input
-      expect(tokenLimit('qwen-vl-max-latest', 'output')).toBe(8192); // 8K output
+    it('should return different limits for input vs output for fora-vl-max-latest', () => {
+      expect(tokenLimit('fora-vl-max-latest', 'input')).toBe(131072); // 128K input
+      expect(tokenLimit('fora-vl-max-latest', 'output')).toBe(8192); // 8K output
     });
 
-    it('should return different limits for input vs output for qwen3-vl-plus', () => {
-      expect(tokenLimit('qwen3-vl-plus', 'input')).toBe(262144); // 256K input
-      expect(tokenLimit('qwen3-vl-plus', 'output')).toBe(32768); // 32K output
+    it('should return different limits for input vs output for fora3-vl-plus', () => {
+      expect(tokenLimit('fora3-vl-plus', 'input')).toBe(262144); // 256K input
+      expect(tokenLimit('fora3-vl-plus', 'output')).toBe(32768); // 32K output
     });
 
     it('should return same default limits for unknown models', () => {
@@ -319,35 +319,35 @@ describe('tokenLimit with output type', () => {
 
   describe('Backward compatibility', () => {
     it('should default to input type when no type is specified', () => {
-      expect(tokenLimit('qwen3-coder-plus')).toBe(1048576); // Should be input limit
-      expect(tokenLimit('qwen-vl-max-latest')).toBe(131072); // Should be input limit
+      expect(tokenLimit('fora3-coder-plus')).toBe(1048576); // Should be input limit
+      expect(tokenLimit('fora-vl-max-latest')).toBe(131072); // Should be input limit
       expect(tokenLimit('unknown-model')).toBe(DEFAULT_TOKEN_LIMIT); // Should be input default
     });
 
     it('should work with explicit input type', () => {
-      expect(tokenLimit('qwen3-coder-plus', 'input')).toBe(1048576);
-      expect(tokenLimit('qwen-vl-max-latest', 'input')).toBe(131072);
+      expect(tokenLimit('fora3-coder-plus', 'input')).toBe(1048576);
+      expect(tokenLimit('fora-vl-max-latest', 'input')).toBe(131072);
       expect(tokenLimit('unknown-model', 'input')).toBe(DEFAULT_TOKEN_LIMIT);
     });
   });
 
   describe('Model normalization with output limits', () => {
     it('should handle normalized model names for output limits', () => {
-      expect(tokenLimit('QWEN3-CODER-PLUS', 'output')).toBe(65536);
-      expect(tokenLimit('qwen3-coder-plus-20250601', 'output')).toBe(65536);
-      expect(tokenLimit('QWEN-VL-MAX-LATEST', 'output')).toBe(8192);
+      expect(tokenLimit('FORA3-CODER-PLUS', 'output')).toBe(65536);
+      expect(tokenLimit('fora3-coder-plus-20250601', 'output')).toBe(65536);
+      expect(tokenLimit('FORA-VL-MAX-LATEST', 'output')).toBe(8192);
     });
 
     it('should handle complex model strings for output limits', () => {
       expect(
         tokenLimit(
-          '  a/b/c|QWEN3-CODER-PLUS:qwen3-coder-plus-2024-05-13  ',
+          '  a/b/c|FORA3-CODER-PLUS:fora3-coder-plus-2024-05-13  ',
           'output',
         ),
       ).toBe(65536);
       expect(
         tokenLimit(
-          'provider/qwen-vl-max-latest:qwen-vl-max-latest-v1',
+          'provider/fora-vl-max-latest:fora-vl-max-latest-v1',
           'output',
         ),
       ).toBe(8192);

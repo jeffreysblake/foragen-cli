@@ -6,7 +6,7 @@
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { spawnAsync } from '@qwen-code/qwen-code-core';
+import { spawnAsync } from '@jeffreysblake/foragen-cli-core';
 
 /**
  * Checks if the system clipboard contains an image (macOS only for now)

@@ -26,11 +26,11 @@ describe('UserAccountManager', () => {
 
   beforeEach(() => {
     tempHomeDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'qwen-code-test-home-'),
+      path.join(os.tmpdir(), 'foragen-cli-test-home-'),
     );
     (os.homedir as Mock).mockReturnValue(tempHomeDir);
     accountsFile = () =>
-      path.join(tempHomeDir, '.qwen', 'google_accounts.json');
+      path.join(tempHomeDir, '.fora', 'google_accounts.json');
     userAccountManager = new UserAccountManager();
   });
 

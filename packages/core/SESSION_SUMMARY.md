@@ -37,7 +37,7 @@ This session focused on implementing comprehensive local model enhancements and 
 - **File:** `packages/core/src/utils/localModelUtils.ts` (new)
 - **Features:**
   - URL pattern detection (localhost, private IPs, common ports)
-  - Model name pattern matching (Ollama, Llama, Qwen, etc.)
+  - Model name pattern matching (Ollama, Llama, Fora, etc.)
   - System capability detection (memory, GPU availability)
   - Performance monitoring and metrics collection
   - Sampling parameter optimization

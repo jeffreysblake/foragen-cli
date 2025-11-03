@@ -9,8 +9,8 @@ import { AuthType } from '../core/contentGenerator.js';
 import {
   isProQuotaExceededError,
   isGenericQuotaExceededError,
-  isQwenQuotaExceededError,
-  isQwenThrottlingError,
+  isForaQuotaExceededError,
+  isForaThrottlingError,
 } from './quotaErrorDetection.js';
 import { getLocalModelRetryConfig } from './localModelUtils.js';
 
@@ -192,18 +192,18 @@ export async function retryWithBackoff<T>(
         }
       }
 
-      // Check for Qwen OAuth quota exceeded error - throw immediately without retry
-      if (authType === AuthType.QWEN_OAUTH && isQwenQuotaExceededError(error)) {
+      // Check for Fora OAuth quota exceeded error - throw immediately without retry
+      if (authType === AuthType.FORA_OAUTH && isForaQuotaExceededError(error)) {
         throw new Error(
-          `Qwen API quota exceeded: Your Qwen API quota has been exhausted. Please wait for your quota to reset.`,
+          `Fora API quota exceeded: Your Fora API quota has been exhausted. Please wait for your quota to reset.`,
         );
       }
 
-      // Track consecutive 429 errors, but handle Qwen throttling differently
+      // Track consecutive 429 errors, but handle Fora throttling differently
       if (errorStatus === 429) {
-        // For Qwen throttling errors, we still want to track them for exponential backoff
-        // but not for quota fallback logic (since Qwen doesn't have model fallback)
-        if (authType === AuthType.QWEN_OAUTH && isQwenThrottlingError(error)) {
+        // For Fora throttling errors, we still want to track them for exponential backoff
+        // but not for quota fallback logic (since Fora doesn't have model fallback)
+        if (authType === AuthType.FORA_OAUTH && isForaThrottlingError(error)) {
           // Keep track of 429s but reset the consecutive count to avoid fallback logic
           consecutive429Count = 0;
         } else {

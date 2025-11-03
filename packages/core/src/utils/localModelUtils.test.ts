@@ -70,7 +70,7 @@ describe('LocalModelUtils', () => {
         expect(
           isLocalModel('https://generativelanguage.googleapis.com', 'gemini'),
         ).toBe(false);
-        expect(isLocalModel('https://dashscope.aliyuncs.com', 'qwen')).toBe(
+        expect(isLocalModel('https://dashscope.aliyuncs.com', 'fora')).toBe(
           false,
         );
       });
@@ -79,7 +79,7 @@ describe('LocalModelUtils', () => {
     describe('Model name-based detection', () => {
       it('should detect common local model names', () => {
         expect(isLocalModel('https://api.openai.com', 'llama-7b')).toBe(true);
-        expect(isLocalModel('https://api.openai.com', 'qwen2.5-72b')).toBe(
+        expect(isLocalModel('https://api.openai.com', 'fora2.5-72b')).toBe(
           true,
         );
         expect(isLocalModel('https://api.openai.com', 'mistral-large')).toBe(
@@ -95,7 +95,7 @@ describe('LocalModelUtils', () => {
 
       it('should handle case insensitive model names', () => {
         expect(isLocalModel('https://api.openai.com', 'LLAMA-7B')).toBe(true);
-        expect(isLocalModel('https://api.openai.com', 'Qwen2.5-Chat')).toBe(
+        expect(isLocalModel('https://api.openai.com', 'Fora2.5-Chat')).toBe(
           true,
         );
         expect(isLocalModel('https://api.openai.com', 'LOCAL-MODEL')).toBe(
@@ -175,28 +175,28 @@ describe('LocalModelUtils', () => {
 
     it('should return model-specific limits based on size', () => {
       // Large models
-      expect(getLocalModelTokenLimit('qwen2.5-72b-instruct')).toBe(32768);
+      expect(getLocalModelTokenLimit('fora2.5-72b-instruct')).toBe(32768);
       expect(getLocalModelTokenLimit('llama-70b-chat')).toBe(32768);
 
       // Medium-large models
-      expect(getLocalModelTokenLimit('qwen2.5-32b')).toBe(16384);
+      expect(getLocalModelTokenLimit('fora2.5-32b')).toBe(16384);
       expect(getLocalModelTokenLimit('llama-30b')).toBe(16384);
 
       // Medium models
-      expect(getLocalModelTokenLimit('qwen2.5-14b')).toBe(8192);
+      expect(getLocalModelTokenLimit('fora2.5-14b')).toBe(8192);
       expect(getLocalModelTokenLimit('llama-13b')).toBe(8192);
 
       // Small models
-      expect(getLocalModelTokenLimit('qwen2.5-7b')).toBe(4096);
+      expect(getLocalModelTokenLimit('fora2.5-7b')).toBe(4096);
       expect(getLocalModelTokenLimit('llama-7b')).toBe(4096);
 
       // Very small models
-      expect(getLocalModelTokenLimit('qwen2.5-3b')).toBe(2048);
-      expect(getLocalModelTokenLimit('qwen2.5-1.5b')).toBe(2048);
+      expect(getLocalModelTokenLimit('fora2.5-3b')).toBe(2048);
+      expect(getLocalModelTokenLimit('fora2.5-1.5b')).toBe(2048);
     });
 
     it('should handle case insensitive model names', () => {
-      expect(getLocalModelTokenLimit('QWEN2.5-72B-INSTRUCT')).toBe(32768);
+      expect(getLocalModelTokenLimit('FORA2.5-72B-INSTRUCT')).toBe(32768);
       expect(getLocalModelTokenLimit('Llama-7B-Chat')).toBe(4096);
     });
 
@@ -209,11 +209,11 @@ describe('LocalModelUtils', () => {
     describe('Model pattern matching accuracy', () => {
       it('should not be confused by partial matches', () => {
         expect(getLocalModelTokenLimit('not-llama-70b-but-7b')).toBe(4096); // Should match 7b, not 70b
-        expect(getLocalModelTokenLimit('qwen2.5-7b-based-on-14b')).toBe(4096); // Should match 7b, not 14b
+        expect(getLocalModelTokenLimit('fora2.5-7b-based-on-14b')).toBe(4096); // Should match 7b, not 14b
       });
 
       it('should handle versioned model names', () => {
-        expect(getLocalModelTokenLimit('qwen2.5-72b-instruct-v1.2')).toBe(
+        expect(getLocalModelTokenLimit('fora2.5-72b-instruct-v1.2')).toBe(
           32768,
         );
         expect(getLocalModelTokenLimit('llama-7b-chat-v2')).toBe(4096);
@@ -454,7 +454,7 @@ describe('LocalModelUtils', () => {
 
       for (let i = 0; i < 1000; i++) {
         isLocalModel('http://localhost:8080', 'llama-7b');
-        getLocalModelTokenLimit('qwen2.5-14b');
+        getLocalModelTokenLimit('fora2.5-14b');
         getLocalModelSamplingParams();
       }
 
@@ -493,7 +493,7 @@ describe('LocalModelUtils', () => {
         },
         {
           baseUrl: 'http://192.168.1.100:8080',
-          model: 'qwen2.5:14b-instruct',
+          model: 'fora2.5:14b-instruct',
           expectedLocal: true,
         },
         {
@@ -503,7 +503,7 @@ describe('LocalModelUtils', () => {
         },
         {
           baseUrl: 'https://dashscope.aliyuncs.com',
-          model: 'qwen-max',
+          model: 'fora-max',
           expectedLocal: false,
         },
       ];

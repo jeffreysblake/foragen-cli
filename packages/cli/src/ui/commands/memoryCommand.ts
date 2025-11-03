@@ -7,8 +7,8 @@
 import {
   getErrorMessage,
   loadServerHierarchicalMemory,
-  QWEN_DIR,
-} from '@qwen-code/qwen-code-core';
+  FORA_DIR,
+} from '@jeffreysblake/foragen-cli-core';
 import path from 'node:path';
 import os from 'os';
 import fs from 'fs/promises';
@@ -49,7 +49,7 @@ export const memoryCommand: SlashCommand = {
           kind: CommandKind.BUILT_IN,
           action: async (context) => {
             try {
-              const projectMemoryPath = path.join(process.cwd(), 'QWEN.md');
+              const projectMemoryPath = path.join(process.cwd(), 'FORA.md');
               const memoryContent = await fs.readFile(
                 projectMemoryPath,
                 'utf-8',
@@ -86,8 +86,8 @@ export const memoryCommand: SlashCommand = {
             try {
               const globalMemoryPath = path.join(
                 os.homedir(),
-                QWEN_DIR,
-                'QWEN.md',
+                FORA_DIR,
+                'FORA.md',
               );
               const globalMemoryContent = await fs.readFile(
                 globalMemoryPath,

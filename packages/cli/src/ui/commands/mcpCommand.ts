@@ -11,7 +11,7 @@ import type {
   MessageActionReturn,
 } from './types.js';
 import { CommandKind } from './types.js';
-import type { DiscoveredMCPPrompt } from '@qwen-code/qwen-code-core';
+import type { DiscoveredMCPPrompt } from '@jeffreysblake/foragen-cli-core';
 import {
   DiscoveredMCPTool,
   getMCPDiscoveryState,
@@ -21,7 +21,7 @@ import {
   getErrorMessage,
   MCPOAuthTokenStorage,
   MCPOAuthProvider,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import { appEvents, AppEvent } from '../../utils/events.js';
 import { MessageType, type HistoryItemMcpStatus } from '../types.js';
 

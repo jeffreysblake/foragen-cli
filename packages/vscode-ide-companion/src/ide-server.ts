@@ -9,7 +9,7 @@ import {
   CloseDiffRequestSchema,
   IdeContextNotificationSchema,
   OpenDiffRequestSchema,
-} from '@qwen-code/qwen-code-core/src/ide/types.js';
+} from '@jeffreysblake/foragen-cli-core/src/ide/types.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -36,8 +36,8 @@ class CORSError extends Error {
 }
 
 const MCP_SESSION_ID_HEADER = 'mcp-session-id';
-const IDE_SERVER_PORT_ENV_VAR = 'QWEN_CODE_IDE_SERVER_PORT';
-const IDE_WORKSPACE_PATH_ENV_VAR = 'QWEN_CODE_IDE_WORKSPACE_PATH';
+const IDE_SERVER_PORT_ENV_VAR = 'FORAGEN_CLI_IDE_SERVER_PORT';
+const IDE_WORKSPACE_PATH_ENV_VAR = 'FORAGEN_CLI_IDE_WORKSPACE_PATH';
 
 interface WritePortAndWorkspaceArgs {
   context: vscode.ExtensionContext;
@@ -328,11 +328,11 @@ export class IDEServer {
           this.port = address.port;
           this.portFile = path.join(
             os.tmpdir(),
-            `qwen-code-ide-server-${this.port}.json`,
+            `foragen-cli-ide-server-${this.port}.json`,
           );
           this.ppidPortFile = path.join(
             os.tmpdir(),
-            `qwen-code-ide-server-${process.ppid}.json`,
+            `foragen-cli-ide-server-${process.ppid}.json`,
           );
           this.log(`IDE server listening on http://127.0.0.1:${this.port}`);
 
@@ -424,7 +424,7 @@ export class IDEServer {
 const createMcpServer = (diffManager: DiffManager) => {
   const server = new McpServer(
     {
-      name: 'qwen-code-companion-mcp-server',
+      name: 'foragen-cli-companion-mcp-server',
       version: '1.0.0',
     },
     { capabilities: { logging: {} } },

@@ -16,7 +16,7 @@ import type {
   HistoryItemWithoutId,
   StreamingState,
 } from '../types.js';
-import type { DeviceAuthorizationInfo } from '../hooks/useQwenAuth.js';
+import type { DeviceAuthorizationInfo } from '../hooks/useForaAuth.js';
 import type { CommandContext, SlashCommand } from '../commands/types.js';
 import type { TextBuffer } from '../components/shared/text-buffer.js';
 import type {
@@ -25,7 +25,7 @@ import type {
   UserTierId,
   IdeInfo,
   FallbackIntent,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import type { DOMElement } from 'ink';
 import type { SessionStatsState } from '../contexts/SessionContext.js';
 import type { ExtensionUpdateState } from '../state/extensions.js';
@@ -49,9 +49,9 @@ export interface UIState {
   isConfigInitialized: boolean;
   authError: string | null;
   isAuthDialogOpen: boolean;
-  // Qwen OAuth state
-  isQwenAuth: boolean;
-  isQwenAuthenticating: boolean;
+  // Fora OAuth state
+  isForaAuth: boolean;
+  isForaAuthenticating: boolean;
   deviceAuth: DeviceAuthorizationInfo | null;
   authStatus:
     | 'idle'

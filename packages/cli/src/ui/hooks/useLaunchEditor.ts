@@ -1,12 +1,12 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { useCallback } from 'react';
 import { useStdin } from 'ink';
-import type { EditorType } from '@qwen-code/qwen-code-core';
+import type { EditorType } from '@jeffreysblake/foragen-cli-core';
 import { spawnSync } from 'child_process';
 import { useSettings } from '../contexts/SettingsContext.js';
 

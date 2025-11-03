@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -20,20 +20,20 @@ import {
 } from './sharedTokenManager.js';
 
 // OAuth Endpoints
-const QWEN_OAUTH_BASE_URL = 'https://chat.qwen.ai';
+const FORA_OAUTH_BASE_URL = 'https://chat.fora.ai';
 
-const QWEN_OAUTH_DEVICE_CODE_ENDPOINT = `${QWEN_OAUTH_BASE_URL}/api/v1/oauth2/device/code`;
-const QWEN_OAUTH_TOKEN_ENDPOINT = `${QWEN_OAUTH_BASE_URL}/api/v1/oauth2/token`;
+const FORA_OAUTH_DEVICE_CODE_ENDPOINT = `${FORA_OAUTH_BASE_URL}/api/v1/oauth2/device/code`;
+const FORA_OAUTH_TOKEN_ENDPOINT = `${FORA_OAUTH_BASE_URL}/api/v1/oauth2/token`;
 
 // OAuth Client Configuration
-const QWEN_OAUTH_CLIENT_ID = 'f0304373b74a44d2b584a3fb70ca9e56';
+const FORA_OAUTH_CLIENT_ID = 'f0304373b74a44d2b584a3fb70ca9e56';
 
-const QWEN_OAUTH_SCOPE = 'openid profile email model.completion';
-const QWEN_OAUTH_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code';
+const FORA_OAUTH_SCOPE = 'openid profile email model.completion';
+const FORA_OAUTH_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code';
 
 // File System Configuration
-const QWEN_DIR = '.qwen';
-const QWEN_CREDENTIAL_FILENAME = 'oauth_creds.json';
+const FORA_DIR = '.fora';
+const FORA_CREDENTIAL_FILENAME = 'oauth_creds.json';
 
 /**
  * PKCE (Proof Key for Code Exchange) utilities
@@ -107,9 +107,9 @@ export class CredentialsClearRequiredError extends Error {
 }
 
 /**
- * Qwen OAuth2 credentials interface
+ * Fora OAuth2 credentials interface
  */
-export interface QwenCredentials {
+export interface ForaCredentials {
   access_token?: string;
   refresh_token?: string;
   id_token?: string;
@@ -228,11 +228,11 @@ export interface TokenRefreshData {
 export type TokenRefreshResponse = TokenRefreshData | ErrorData;
 
 /**
- * Qwen OAuth2 client interface
+ * Fora OAuth2 client interface
  */
-export interface IQwenOAuth2Client {
-  setCredentials(credentials: QwenCredentials): void;
-  getCredentials(): QwenCredentials;
+export interface IForaOAuth2Client {
+  setCredentials(credentials: ForaCredentials): void;
+  getCredentials(): ForaCredentials;
   getAccessToken(): Promise<{ token?: string }>;
   requestDeviceAuthorization(options: {
     scope: string;
@@ -247,21 +247,21 @@ export interface IQwenOAuth2Client {
 }
 
 /**
- * Qwen OAuth2 client implementation
+ * Fora OAuth2 client implementation
  */
-export class QwenOAuth2Client implements IQwenOAuth2Client {
-  private credentials: QwenCredentials = {};
+export class ForaOAuth2Client implements IForaOAuth2Client {
+  private credentials: ForaCredentials = {};
   private sharedManager: SharedTokenManager;
 
   constructor() {
     this.sharedManager = SharedTokenManager.getInstance();
   }
 
-  setCredentials(credentials: QwenCredentials): void {
+  setCredentials(credentials: ForaCredentials): void {
     this.credentials = credentials;
   }
 
-  getCredentials(): QwenCredentials {
+  getCredentials(): ForaCredentials {
     return this.credentials;
   }
 
@@ -287,13 +287,13 @@ export class QwenOAuth2Client implements IQwenOAuth2Client {
     code_challenge_method: string;
   }): Promise<DeviceAuthorizationResponse> {
     const bodyData = {
-      client_id: QWEN_OAUTH_CLIENT_ID,
+      client_id: FORA_OAUTH_CLIENT_ID,
       scope: options.scope,
       code_challenge: options.code_challenge,
       code_challenge_method: options.code_challenge_method,
     };
 
-    const response = await fetch(QWEN_OAUTH_DEVICE_CODE_ENDPOINT, {
+    const response = await fetch(FORA_OAUTH_DEVICE_CODE_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -329,13 +329,13 @@ export class QwenOAuth2Client implements IQwenOAuth2Client {
     code_verifier: string;
   }): Promise<DeviceTokenResponse> {
     const bodyData = {
-      grant_type: QWEN_OAUTH_GRANT_TYPE,
-      client_id: QWEN_OAUTH_CLIENT_ID,
+      grant_type: FORA_OAUTH_GRANT_TYPE,
+      client_id: FORA_OAUTH_CLIENT_ID,
       device_code: options.device_code,
       code_verifier: options.code_verifier,
     };
 
-    const response = await fetch(QWEN_OAUTH_TOKEN_ENDPOINT, {
+    const response = await fetch(FORA_OAUTH_TOKEN_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -396,10 +396,10 @@ export class QwenOAuth2Client implements IQwenOAuth2Client {
     const bodyData = {
       grant_type: 'refresh_token',
       refresh_token: this.credentials.refresh_token,
-      client_id: QWEN_OAUTH_CLIENT_ID,
+      client_id: FORA_OAUTH_CLIENT_ID,
     };
 
-    const response = await fetch(QWEN_OAUTH_TOKEN_ENDPOINT, {
+    const response = await fetch(FORA_OAUTH_TOKEN_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -412,7 +412,7 @@ export class QwenOAuth2Client implements IQwenOAuth2Client {
       const errorData = await response.text();
       // Handle 400 errors which might indicate refresh token expiry
       if (response.status === 400) {
-        await clearQwenCredentials();
+        await clearForaCredentials();
         throw new CredentialsClearRequiredError(
           "Refresh token expired or invalid. Please use '/auth' to re-authenticate.",
           { status: response.status, response: errorData },
@@ -435,7 +435,7 @@ export class QwenOAuth2Client implements IQwenOAuth2Client {
 
     // Handle successful response
     const tokenData = responseData as TokenRefreshData;
-    const tokens: QwenCredentials = {
+    const tokens: ForaCredentials = {
       access_token: tokenData.access_token,
       token_type: tokenData.token_type,
       // Use new refresh token if provided, otherwise preserve existing one
@@ -453,7 +453,7 @@ export class QwenOAuth2Client implements IQwenOAuth2Client {
   }
 }
 
-export enum QwenOAuth2Event {
+export enum ForaOAuth2Event {
   AuthUri = 'auth-uri',
   AuthProgress = 'auth-progress',
   AuthCancel = 'auth-cancel',
@@ -470,14 +470,14 @@ export type AuthResult =
     };
 
 /**
- * Global event emitter instance for QwenOAuth2 authentication events
+ * Global event emitter instance for ForaOAuth2 authentication events
  */
-export const qwenOAuth2Events = new EventEmitter();
+export const foraOAuth2Events = new EventEmitter();
 
-export async function getQwenOAuthClient(
+export async function getForaOAuthClient(
   config: Config,
-): Promise<QwenOAuth2Client> {
-  const client = new QwenOAuth2Client();
+): Promise<ForaOAuth2Client> {
+  const client = new ForaOAuth2Client();
 
   // Use shared token manager to get valid credentials with cross-session synchronization
   const sharedManager = SharedTokenManager.getInstance();
@@ -515,24 +515,24 @@ export async function getQwenOAuthClient(
     }
 
     // If shared manager fails, check if we have cached credentials for device flow
-    if (await loadCachedQwenCredentials(client)) {
+    if (await loadCachedForaCredentials(client)) {
       // We have cached credentials but they might be expired
       // Try device flow instead of forcing refresh
-      const result = await authWithQwenDeviceFlow(client, config);
+      const result = await authWithForaDeviceFlow(client, config);
       if (!result.success) {
-        throw new Error('Qwen OAuth authentication failed');
+        throw new Error('Fora OAuth authentication failed');
       }
       return client;
     }
 
     // No cached credentials, use device authorization flow for authentication
-    const result = await authWithQwenDeviceFlow(client, config);
+    const result = await authWithForaDeviceFlow(client, config);
     if (!result.success) {
       // Only emit timeout event if the failure reason is actually timeout
       // Other error types (401, 429, etc.) have already emitted their specific events
       if (result.reason === 'timeout') {
-        qwenOAuth2Events.emit(
-          QwenOAuth2Event.AuthProgress,
+        foraOAuth2Events.emit(
+          ForaOAuth2Event.AuthProgress,
           'timeout',
           'Authentication timed out. Please try again or select a different authentication method.',
         );
@@ -541,16 +541,16 @@ export async function getQwenOAuthClient(
       // Throw error with appropriate message based on failure reason
       switch (result.reason) {
         case 'timeout':
-          throw new Error('Qwen OAuth authentication timed out');
+          throw new Error('Fora OAuth authentication timed out');
         case 'cancelled':
-          throw new Error('Qwen OAuth authentication was cancelled by user');
+          throw new Error('Fora OAuth authentication was cancelled by user');
         case 'rate_limit':
           throw new Error(
-            'Too many request for Qwen OAuth authentication, please try again later.',
+            'Too many request for Fora OAuth authentication, please try again later.',
           );
         case 'error':
         default:
-          throw new Error('Qwen OAuth authentication failed');
+          throw new Error('Fora OAuth authentication failed');
       }
     }
 
@@ -558,8 +558,8 @@ export async function getQwenOAuthClient(
   }
 }
 
-async function authWithQwenDeviceFlow(
-  client: QwenOAuth2Client,
+async function authWithForaDeviceFlow(
+  client: ForaOAuth2Client,
   config: Config,
 ): Promise<AuthResult> {
   let isCancelled = false;
@@ -568,7 +568,7 @@ async function authWithQwenDeviceFlow(
   const cancelHandler = () => {
     isCancelled = true;
   };
-  qwenOAuth2Events.once(QwenOAuth2Event.AuthCancel, cancelHandler);
+  foraOAuth2Events.once(ForaOAuth2Event.AuthCancel, cancelHandler);
 
   try {
     // Generate PKCE code verifier and challenge
@@ -576,7 +576,7 @@ async function authWithQwenDeviceFlow(
 
     // Request device authorization
     const deviceAuth = await client.requestDeviceAuthorization({
-      scope: QWEN_OAUTH_SCOPE,
+      scope: FORA_OAUTH_SCOPE,
       code_challenge,
       code_challenge_method: 'S256',
     });
@@ -590,10 +590,10 @@ async function authWithQwenDeviceFlow(
     }
 
     // Emit device authorization event for UI integration immediately
-    qwenOAuth2Events.emit(QwenOAuth2Event.AuthUri, deviceAuth);
+    foraOAuth2Events.emit(ForaOAuth2Event.AuthUri, deviceAuth);
 
     const showFallbackMessage = () => {
-      console.log('\n=== Qwen OAuth Device Authorization ===');
+      console.log('\n=== Fora OAuth Device Authorization ===');
       console.log(
         'Please visit the following URL in your browser to authorize:',
       );
@@ -627,8 +627,8 @@ async function authWithQwenDeviceFlow(
     }
 
     // Emit auth progress event
-    qwenOAuth2Events.emit(
-      QwenOAuth2Event.AuthProgress,
+    foraOAuth2Events.emit(
+      ForaOAuth2Event.AuthProgress,
       'polling',
       'Waiting for authorization...',
     );
@@ -645,8 +645,8 @@ async function authWithQwenDeviceFlow(
       // Check if authentication was cancelled
       if (isCancelled) {
         console.debug('\nAuthentication cancelled by user.');
-        qwenOAuth2Events.emit(
-          QwenOAuth2Event.AuthProgress,
+        foraOAuth2Events.emit(
+          ForaOAuth2Event.AuthProgress,
           'error',
           'Authentication cancelled by user.',
         );
@@ -664,8 +664,8 @@ async function authWithQwenDeviceFlow(
         if (isDeviceTokenSuccess(tokenResponse)) {
           const tokenData = tokenResponse as DeviceTokenData;
 
-          // Convert to QwenCredentials format
-          const credentials: QwenCredentials = {
+          // Convert to ForaCredentials format
+          const credentials: ForaCredentials = {
             access_token: tokenData.access_token!, // Safe to assert as non-null due to isDeviceTokenSuccess check
             refresh_token: tokenData.refresh_token || undefined,
             token_type: tokenData.token_type,
@@ -678,11 +678,11 @@ async function authWithQwenDeviceFlow(
           client.setCredentials(credentials);
 
           // Cache the new tokens
-          await cacheQwenCredentials(credentials);
+          await cacheForaCredentials(credentials);
 
           // Emit auth progress success event
-          qwenOAuth2Events.emit(
-            QwenOAuth2Event.AuthProgress,
+          foraOAuth2Events.emit(
+            ForaOAuth2Event.AuthProgress,
             'success',
             'Authentication successful! Access token obtained.',
           );
@@ -706,8 +706,8 @@ async function authWithQwenDeviceFlow(
           }
 
           // Emit polling progress event
-          qwenOAuth2Events.emit(
-            QwenOAuth2Event.AuthProgress,
+          foraOAuth2Events.emit(
+            ForaOAuth2Event.AuthProgress,
             'polling',
             `Polling... (attempt ${attempt + 1}/${maxAttempts})`,
           );
@@ -739,8 +739,8 @@ async function authWithQwenDeviceFlow(
           // Check for cancellation after waiting
           if (isCancelled) {
             console.debug('\nAuthentication cancelled by user.');
-            qwenOAuth2Events.emit(
-              QwenOAuth2Event.AuthProgress,
+            foraOAuth2Events.emit(
+              ForaOAuth2Event.AuthProgress,
               'error',
               'Authentication cancelled by user.',
             );
@@ -771,7 +771,7 @@ async function authWithQwenDeviceFlow(
             'Device code expired or invalid, please restart the authorization process.';
 
           // Emit error event
-          qwenOAuth2Events.emit(QwenOAuth2Event.AuthProgress, 'error', message);
+          foraOAuth2Events.emit(ForaOAuth2Event.AuthProgress, 'error', message);
 
           return { success: false, reason: 'error' };
         }
@@ -782,8 +782,8 @@ async function authWithQwenDeviceFlow(
             'Too many requests. The server is rate limiting our requests. Please select a different authentication method or try again later.';
 
           // Emit rate limit event to notify user
-          qwenOAuth2Events.emit(
-            QwenOAuth2Event.AuthProgress,
+          foraOAuth2Events.emit(
+            ForaOAuth2Event.AuthProgress,
             'rate_limit',
             message,
           );
@@ -797,7 +797,7 @@ async function authWithQwenDeviceFlow(
         const message = `Error polling for token: ${errorMessage}`;
 
         // Emit error event
-        qwenOAuth2Events.emit(QwenOAuth2Event.AuthProgress, 'error', message);
+        foraOAuth2Events.emit(ForaOAuth2Event.AuthProgress, 'error', message);
 
         // Check for cancellation before waiting
         if (isCancelled) {
@@ -811,8 +811,8 @@ async function authWithQwenDeviceFlow(
     const timeoutMessage = 'Authorization timeout, please restart the process.';
 
     // Emit timeout error event
-    qwenOAuth2Events.emit(
-      QwenOAuth2Event.AuthProgress,
+    foraOAuth2Events.emit(
+      ForaOAuth2Event.AuthProgress,
       'timeout',
       timeoutMessage,
     );
@@ -825,17 +825,17 @@ async function authWithQwenDeviceFlow(
     return { success: false, reason: 'error' };
   } finally {
     // Clean up event listener
-    qwenOAuth2Events.off(QwenOAuth2Event.AuthCancel, cancelHandler);
+    foraOAuth2Events.off(ForaOAuth2Event.AuthCancel, cancelHandler);
   }
 }
 
-async function loadCachedQwenCredentials(
-  client: QwenOAuth2Client,
+async function loadCachedForaCredentials(
+  client: ForaOAuth2Client,
 ): Promise<boolean> {
   try {
-    const keyFile = getQwenCachedCredentialPath();
+    const keyFile = getForaCachedCredentialPath();
     const creds = await fs.readFile(keyFile, 'utf-8');
-    const credentials = JSON.parse(creds) as QwenCredentials;
+    const credentials = JSON.parse(creds) as ForaCredentials;
     client.setCredentials(credentials);
 
     // Verify that the credentials are still valid
@@ -850,8 +850,8 @@ async function loadCachedQwenCredentials(
   }
 }
 
-async function cacheQwenCredentials(credentials: QwenCredentials) {
-  const filePath = getQwenCachedCredentialPath();
+async function cacheForaCredentials(credentials: ForaCredentials) {
+  const filePath = getForaCachedCredentialPath();
   await fs.mkdir(path.dirname(filePath), { recursive: true });
 
   const credString = JSON.stringify(credentials, null, 2);
@@ -859,14 +859,14 @@ async function cacheQwenCredentials(credentials: QwenCredentials) {
 }
 
 /**
- * Clear cached Qwen credentials from disk
+ * Clear cached Fora credentials from disk
  * This is useful when credentials have expired or need to be reset
  */
-export async function clearQwenCredentials(): Promise<void> {
+export async function clearForaCredentials(): Promise<void> {
   try {
-    const filePath = getQwenCachedCredentialPath();
+    const filePath = getForaCachedCredentialPath();
     await fs.unlink(filePath);
-    console.debug('Cached Qwen credentials cleared successfully.');
+    console.debug('Cached Fora credentials cleared successfully.');
   } catch (error: unknown) {
     // If file doesn't exist or can't be deleted, we consider it cleared
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
@@ -874,10 +874,10 @@ export async function clearQwenCredentials(): Promise<void> {
       return;
     }
     // Log other errors but don't throw - clearing credentials should be non-critical
-    console.warn('Warning: Failed to clear cached Qwen credentials:', error);
+    console.warn('Warning: Failed to clear cached Fora credentials:', error);
   }
 }
 
-function getQwenCachedCredentialPath(): string {
-  return path.join(os.homedir(), QWEN_DIR, QWEN_CREDENTIAL_FILENAME);
+function getForaCachedCredentialPath(): string {
+  return path.join(os.homedir(), FORA_DIR, FORA_CREDENTIAL_FILENAME);
 }

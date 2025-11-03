@@ -36,7 +36,7 @@ export class DashScopeOpenAICompatibleProvider
     const authType = contentGeneratorConfig.authType;
     const baseUrl = contentGeneratorConfig.baseUrl;
     return (
-      authType === AuthType.QWEN_OAUTH ||
+      authType === AuthType.FORA_OAUTH ||
       baseUrl === 'https://dashscope.aliyuncs.com/compatible-mode/v1' ||
       baseUrl === 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1'
     );
@@ -44,7 +44,7 @@ export class DashScopeOpenAICompatibleProvider
 
   buildHeaders(): Record<string, string | undefined> {
     const version = this.cliConfig.getCliVersion() || 'unknown';
-    const userAgent = `QwenCode/${version} (${process.platform}; ${process.arch})`;
+    const userAgent = `ForagenCli/${version} (${process.platform}; ${process.arch})`;
     const { authType } = this.contentGeneratorConfig;
     return {
       'User-Agent': userAgent,
@@ -282,11 +282,11 @@ export class DashScopeOpenAICompatibleProvider
       return true;
     }
 
-    if (normalized.startsWith('qwen-vl')) {
+    if (normalized.startsWith('fora-vl')) {
       return true;
     }
 
-    if (normalized.startsWith('qwen3-vl-plus')) {
+    if (normalized.startsWith('fora3-vl-plus')) {
       return true;
     }
 

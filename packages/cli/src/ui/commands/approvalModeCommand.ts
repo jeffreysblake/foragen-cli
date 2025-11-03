@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,7 +10,7 @@ import type {
   MessageActionReturn,
 } from './types.js';
 import { CommandKind } from './types.js';
-import { ApprovalMode, APPROVAL_MODES } from '@qwen-code/qwen-code-core';
+import { ApprovalMode, APPROVAL_MODES } from '@jeffreysblake/foragen-cli-core';
 import { SettingScope } from '../../config/settings.js';
 
 const USAGE_MESSAGE =

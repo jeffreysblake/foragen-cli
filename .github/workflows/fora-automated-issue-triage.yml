@@ -1,4 +1,4 @@
-name: 'Qwen Automated Issue Triage'
+name: 'Fora Automated Issue Triage'
 
 on:
   issues:
@@ -35,12 +35,12 @@ jobs:
   triage-issue:
     timeout-minutes: 5
     if: |-
-      ${{ github.repository == 'QwenLM/qwen-code' }}
+      ${{ github.repository == 'jeffreysblake/foragen-cli' }}
     runs-on: 'ubuntu-latest'
     steps:
-      - name: 'Run Qwen Issue Analysis'
-        uses: 'QwenLM/qwen-code-action@5fd6818d04d64e87d255ee4d5f77995e32fbf4c2'
-        id: 'qwen_issue_analysis'
+      - name: 'Run Fora Issue Analysis'
+        uses: 'jeffreysblake/foragen-cli-action@5fd6818d04d64e87d255ee4d5f77995e32fbf4c2'
+        id: 'fora_issue_analysis'
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           ISSUE_TITLE: '${{ github.event.issue.title }}'
@@ -103,7 +103,7 @@ jobs:
             - Causes data loss or corruption with no workaround.
             - Crashes the application or makes a core feature completely unusable for all or most users in a production environment. Will it cause severe quality degration? Is it preventing contributors from contributing to the repository or is it a release blocker?
             Qualifier: Is the main function of the software broken?
-            Example: The qwen auth login command fails with an unrecoverable error, preventing any user from authenticating and using the rest of the CLI.
+            Example: The fora auth login command fails with an unrecoverable error, preventing any user from authenticating and using the rest of the CLI.
             P1: High
             - A P1 bug is a serious issue that significantly degrades the user experience or impacts a core feature.
             - While not a complete blocker, it's a major problem that needs a fast resolution. Feature requests are almost never P1.
@@ -115,7 +115,7 @@ jobs:
             - Severe performance degradation making the application frustratingly slow.
             - No straightforward workaround exists, or the workaround is difficult and non-obvious.
             Qualifier: Is a key feature unusable or giving very wrong results?
-            Example: Qwen Code enters a loop when making read-many-files tool call. I am unable to break out of the loop and qwen doesn't follow instructions subsequently.
+            Example: Fora Code enters a loop when making read-many-files tool call. I am unable to break out of the loop and fora doesn't follow instructions subsequently.
             P2: Medium
             - A P2 bug is a moderately impactful issue. It's a noticeable problem but doesn't prevent the use of the software's main functionality.
             Impact:
@@ -186,7 +186,7 @@ jobs:
 
       - name: 'Post Issue Analysis Failure Comment'
         if: |-
-          ${{ failure() && steps.qwen_issue_analysis.outcome == 'failure' }}
+          ${{ failure() && steps.fora_issue_analysis.outcome == 'failure' }}
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea' # ratchet:actions/github-script@v7
         env:
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
@@ -199,5 +199,5 @@ jobs:
               owner: process.env.REPOSITORY.split('/')[0],
               repo: process.env.REPOSITORY.split('/')[1],
               issue_number: parseInt(process.env.ISSUE_NUMBER),
-              body: 'There is a problem with the Qwen Code issue analysis. Please check the [action logs](${process.env.RUN_URL}) for details.'
+              body: 'There is a problem with the Fora Code issue analysis. Please check the [action logs](${process.env.RUN_URL}) for details.'
             })

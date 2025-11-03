@@ -11,8 +11,8 @@ import { type CommandContext } from './types.js';
 import { createMockCommandContext } from '../../test-utils/mockCommandContext.js';
 
 // Mock the telemetry service
-vi.mock('@qwen-code/qwen-code-core', async () => {
-  const actual = await vi.importActual('@qwen-code/qwen-code-core');
+vi.mock('@jeffreysblake/foragen-cli-core', async () => {
+  const actual = await vi.importActual('@jeffreysblake/foragen-cli-core');
   return {
     ...actual,
     uiTelemetryService: {
@@ -21,8 +21,8 @@ vi.mock('@qwen-code/qwen-code-core', async () => {
   };
 });
 
-import type { GeminiClient } from '@qwen-code/qwen-code-core';
-import { uiTelemetryService } from '@qwen-code/qwen-code-core';
+import type { GeminiClient } from '@jeffreysblake/foragen-cli-core';
+import { uiTelemetryService } from '@jeffreysblake/foragen-cli-core';
 
 describe('clearCommand', () => {
   let mockContext: CommandContext;

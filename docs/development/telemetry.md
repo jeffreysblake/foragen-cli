@@ -1,6 +1,6 @@
 # Observability with OpenTelemetry
 
-Learn how to enable and setup OpenTelemetry for Qwen Code.
+Learn how to enable and setup OpenTelemetry for Fora Code.
 
 - [Observability with OpenTelemetry](#observability-with-opentelemetry)
   - [Key Benefits](#key-benefits)
@@ -33,7 +33,7 @@ Learn how to enable and setup OpenTelemetry for Qwen Code.
 ## OpenTelemetry Integration
 
 Built on **[OpenTelemetry]** — the vendor-neutral, industry-standard
-observability framework — Qwen Code's observability system provides:
+observability framework — Fora Code's observability system provides:
 
 - **Universal Compatibility**: Export to any OpenTelemetry backend (Google
   Cloud, Jaeger, Prometheus, Datadog, etc.)
@@ -48,7 +48,7 @@ observability framework — Qwen Code's observability system provides:
 
 ## Configuration
 
-All telemetry behavior is controlled through your `.qwen/settings.json` file.
+All telemetry behavior is controlled through your `.fora/settings.json` file.
 These settings can be overridden by environment variables or CLI flags.
 
 | Setting        | Environment Variable             | CLI Flag                                                 | Description                                       | Values            | Default                 |
@@ -111,7 +111,7 @@ Before using either method below, complete these steps:
 
 Sends telemetry directly to Google Cloud services. No collector needed.
 
-1. Enable telemetry in your `.qwen/settings.json`:
+1. Enable telemetry in your `.fora/settings.json`:
    ```json
    {
      "telemetry": {
@@ -120,7 +120,7 @@ Sends telemetry directly to Google Cloud services. No collector needed.
      }
    }
    ```
-2. Run Qwen Code and send prompts.
+2. Run Fora Code and send prompts.
 3. View logs and metrics:
    - Open the Google Cloud Console in your browser after sending prompts:
      - Logs: https://console.cloud.google.com/logs/
@@ -132,7 +132,7 @@ Sends telemetry directly to Google Cloud services. No collector needed.
 For custom processing, filtering, or routing, use an OpenTelemetry collector to
 forward data to Google Cloud.
 
-1. Configure your `.qwen/settings.json`:
+1. Configure your `.fora/settings.json`:
    ```json
    {
      "telemetry": {
@@ -150,15 +150,15 @@ forward data to Google Cloud.
    - Start a local OTEL collector that forwards to Google Cloud
    - Configure your workspace
    - Provide links to view traces, metrics, and logs in Google Cloud Console
-   - Save collector logs to `~/.qwen/tmp/<projectHash>/otel/collector-gcp.log`
+   - Save collector logs to `~/.fora/tmp/<projectHash>/otel/collector-gcp.log`
    - Stop collector on exit (e.g. `Ctrl+C`)
-3. Run Qwen Code and send prompts.
+3. Run Fora Code and send prompts.
 4. View logs and metrics:
    - Open the Google Cloud Console in your browser after sending prompts:
      - Logs: https://console.cloud.google.com/logs/
      - Metrics: https://console.cloud.google.com/monitoring/metrics-explorer
      - Traces: https://console.cloud.google.com/traces/list
-   - Open `~/.qwen/tmp/<projectHash>/otel/collector-gcp.log` to view local
+   - Open `~/.fora/tmp/<projectHash>/otel/collector-gcp.log` to view local
      collector logs.
 
 ## Local Telemetry
@@ -167,19 +167,19 @@ For local development and debugging, you can capture telemetry data locally:
 
 ### File-based Output (Recommended)
 
-1. Enable telemetry in your `.qwen/settings.json`:
+1. Enable telemetry in your `.fora/settings.json`:
    ```json
    {
      "telemetry": {
        "enabled": true,
        "target": "local",
        "otlpEndpoint": "",
-       "outfile": ".qwen/telemetry.log"
+       "outfile": ".fora/telemetry.log"
      }
    }
    ```
-2. Run Qwen Code and send prompts.
-3. View logs and metrics in the specified file (e.g., `.qwen/telemetry.log`).
+2. Run Fora Code and send prompts.
+3. View logs and metrics in the specified file (e.g., `.fora/telemetry.log`).
 
 ### Collector-Based Export (Advanced)
 
@@ -191,24 +191,24 @@ For local development and debugging, you can capture telemetry data locally:
    - Download and start Jaeger and OTEL collector
    - Configure your workspace for local telemetry
    - Provide a Jaeger UI at http://localhost:16686
-   - Save logs/metrics to `~/.qwen/tmp/<projectHash>/otel/collector.log`
+   - Save logs/metrics to `~/.fora/tmp/<projectHash>/otel/collector.log`
    - Stop collector on exit (e.g. `Ctrl+C`)
-2. Run Qwen Code and send prompts.
+2. Run Fora Code and send prompts.
 3. View traces at http://localhost:16686 and logs/metrics in the collector log
    file.
 
 ## Logs and Metrics
 
 The following section describes the structure of logs and metrics generated for
-Qwen Code.
+Fora Code.
 
 - A `sessionId` is included as a common attribute on all logs and metrics.
 
 ### Logs
 
-Logs are timestamped records of specific events. The following events are logged for Qwen Code:
+Logs are timestamped records of specific events. The following events are logged for Fora Code:
 
-- `qwen-code.config`: This event occurs once at startup with the CLI's configuration.
+- `foragen-cli.config`: This event occurs once at startup with the CLI's configuration.
   - **Attributes**:
     - `model` (string)
     - `embedding_model` (string)
@@ -224,7 +224,7 @@ Logs are timestamped records of specific events. The following events are logged
     - `mcp_servers` (string)
     - `output_format` (string: "text" or "json")
 
-- `qwen-code.user_prompt`: This event occurs when a user submits a prompt.
+- `foragen-cli.user_prompt`: This event occurs when a user submits a prompt.
   - **Attributes**:
     - `prompt_length` (int)
     - `prompt_id` (string)
@@ -232,7 +232,7 @@ Logs are timestamped records of specific events. The following events are logged
       configured to be `false`)
     - `auth_type` (string)
 
-- `qwen-code.tool_call`: This event occurs for each function call.
+- `foragen-cli.tool_call`: This event occurs for each function call.
   - **Attributes**:
     - `function_name`
     - `function_args`
@@ -245,7 +245,7 @@ Logs are timestamped records of specific events. The following events are logged
     - `content_length` (int, if applicable)
     - `metadata` (if applicable, dictionary of string -> any)
 
-- `qwen-code.file_operation`: This event occurs for each file operation.
+- `foragen-cli.file_operation`: This event occurs for each file operation.
   - **Attributes**:
     - `tool_name` (string)
     - `operation` (string: "create", "read", "update")
@@ -259,12 +259,12 @@ Logs are timestamped records of specific events. The following events are logged
       - `user_added_lines` (int)
       - `user_removed_lines` (int)
 
-- `qwen-code.api_request`: This event occurs when making a request to Qwen API.
+- `foragen-cli.api_request`: This event occurs when making a request to Fora API.
   - **Attributes**:
     - `model`
     - `request_text` (if applicable)
 
-- `qwen-code.api_error`: This event occurs if the API request fails.
+- `foragen-cli.api_error`: This event occurs if the API request fails.
   - **Attributes**:
     - `model`
     - `error`
@@ -273,7 +273,7 @@ Logs are timestamped records of specific events. The following events are logged
     - `duration_ms`
     - `auth_type`
 
-- `qwen-code.api_response`: This event occurs upon receiving a response from Qwen API.
+- `foragen-cli.api_response`: This event occurs upon receiving a response from Fora API.
   - **Attributes**:
     - `model`
     - `status_code`
@@ -287,7 +287,7 @@ Logs are timestamped records of specific events. The following events are logged
     - `response_text` (if applicable)
     - `auth_type`
 
-- `qwen-code.tool_output_truncated`: This event occurs when the output of a tool call is too large and gets truncated.
+- `foragen-cli.tool_output_truncated`: This event occurs when the output of a tool call is too large and gets truncated.
   - **Attributes**:
     - `tool_name` (string)
     - `original_content_length` (int)
@@ -296,62 +296,62 @@ Logs are timestamped records of specific events. The following events are logged
     - `lines` (int)
     - `prompt_id` (string)
 
-- `qwen-code.malformed_json_response`: This event occurs when a `generateJson` response from Qwen API cannot be parsed as a json.
+- `foragen-cli.malformed_json_response`: This event occurs when a `generateJson` response from Fora API cannot be parsed as a json.
   - **Attributes**:
     - `model`
 
-- `qwen-code.flash_fallback`: This event occurs when Qwen Code switches to flash as fallback.
+- `foragen-cli.flash_fallback`: This event occurs when Fora Code switches to flash as fallback.
   - **Attributes**:
     - `auth_type`
 
-- `qwen-code.slash_command`: This event occurs when a user executes a slash command.
+- `foragen-cli.slash_command`: This event occurs when a user executes a slash command.
   - **Attributes**:
     - `command` (string)
     - `subcommand` (string, if applicable)
 
-- `qwen-code.extension_enable`: This event occurs when an extension is enabled
-- `qwen-code.extension_install`: This event occurs when an extension is installed
+- `foragen-cli.extension_enable`: This event occurs when an extension is enabled
+- `foragen-cli.extension_install`: This event occurs when an extension is installed
   - **Attributes**:
     - `extension_name` (string)
     - `extension_version` (string)
     - `extension_source` (string)
     - `status` (string)
-- `qwen-code.extension_uninstall`: This event occurs when an extension is uninstalled
+- `foragen-cli.extension_uninstall`: This event occurs when an extension is uninstalled
 
 ### Metrics
 
-Metrics are numerical measurements of behavior over time. The following metrics are collected for Qwen Code (metric names remain `qwen-code.*` for compatibility):
+Metrics are numerical measurements of behavior over time. The following metrics are collected for Fora Code (metric names remain `foragen-cli.*` for compatibility):
 
-- `qwen-code.session.count` (Counter, Int): Incremented once per CLI startup.
+- `foragen-cli.session.count` (Counter, Int): Incremented once per CLI startup.
 
-- `qwen-code.tool.call.count` (Counter, Int): Counts tool calls.
+- `foragen-cli.tool.call.count` (Counter, Int): Counts tool calls.
   - **Attributes**:
     - `function_name`
     - `success` (boolean)
     - `decision` (string: "accept", "reject", or "modify", if applicable)
     - `tool_type` (string: "mcp", or "native", if applicable)
 
-- `qwen-code.tool.call.latency` (Histogram, ms): Measures tool call latency.
+- `foragen-cli.tool.call.latency` (Histogram, ms): Measures tool call latency.
   - **Attributes**:
     - `function_name`
     - `decision` (string: "accept", "reject", or "modify", if applicable)
 
-- `qwen-code.api.request.count` (Counter, Int): Counts all API requests.
+- `foragen-cli.api.request.count` (Counter, Int): Counts all API requests.
   - **Attributes**:
     - `model`
     - `status_code`
     - `error_type` (if applicable)
 
-- `qwen-code.api.request.latency` (Histogram, ms): Measures API request latency.
+- `foragen-cli.api.request.latency` (Histogram, ms): Measures API request latency.
   - **Attributes**:
     - `model`
 
-- `qwen-code.token.usage` (Counter, Int): Counts the number of tokens used.
+- `foragen-cli.token.usage` (Counter, Int): Counts the number of tokens used.
   - **Attributes**:
     - `model`
     - `type` (string: "input", "output", "thought", "cache", or "tool")
 
-- `qwen-code.file.operation.count` (Counter, Int): Counts file operations.
+- `foragen-cli.file.operation.count` (Counter, Int): Counts file operations.
   - **Attributes**:
     - `operation` (string: "create", "read", "update"): The type of file operation.
     - `lines` (Int, if applicable): Number of lines in the file.
@@ -363,7 +363,7 @@ Metrics are numerical measurements of behavior over time. The following metrics 
     - `user_removed_lines` (Int, if applicable): Number of lines removed/changed by user in AI proposed changes.
     - `programming_language` (string, if applicable): The programming language of the file.
 
-- `qwen-code.chat_compression` (Counter, Int): Counts chat compression operations
+- `foragen-cli.chat_compression` (Counter, Int): Counts chat compression operations
   - **Attributes**:
     - `tokens_before`: (Int): Number of tokens in context prior to compression
     - `tokens_after`: (Int): Number of tokens in context after compression

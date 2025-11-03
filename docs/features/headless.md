@@ -1,6 +1,6 @@
 # Headless Mode
 
-Headless mode allows you to run Qwen Code programmatically from command line
+Headless mode allows you to run Fora Code programmatically from command line
 scripts and automation tools without any interactive UI. This is ideal for
 scripting, automation, CI/CD pipelines, and building AI-powered tools.
 
@@ -30,7 +30,7 @@ scripting, automation, CI/CD pipelines, and building AI-powered tools.
 
 ## Overview
 
-The headless mode provides a headless interface to Qwen Code that:
+The headless mode provides a headless interface to Fora Code that:
 
 - Accepts prompts via command line arguments or stdin
 - Returns structured output (text or JSON)
@@ -45,23 +45,23 @@ The headless mode provides a headless interface to Qwen Code that:
 Use the `--prompt` (or `-p`) flag to run in headless mode:
 
 ```bash
-qwen --prompt "What is machine learning?"
+fora --prompt "What is machine learning?"
 ```
 
 ### Stdin Input
 
-Pipe input to Qwen Code from your terminal:
+Pipe input to Fora Code from your terminal:
 
 ```bash
-echo "Explain this code" | qwen
+echo "Explain this code" | fora
 ```
 
 ### Combining with File Input
 
-Read from files and process with Qwen Code:
+Read from files and process with Fora Code:
 
 ```bash
-cat README.md | qwen --prompt "Summarize this documentation"
+cat README.md | fora --prompt "Summarize this documentation"
 ```
 
 ## Output Formats
@@ -71,7 +71,7 @@ cat README.md | qwen --prompt "Summarize this documentation"
 Standard human-readable output:
 
 ```bash
-qwen -p "What is the capital of France?"
+fora -p "What is the capital of France?"
 ```
 
 Response format:
@@ -136,7 +136,7 @@ The JSON output follows this high-level structure:
 #### Example Usage
 
 ```bash
-qwen -p "What is the capital of France?" --output-format json
+fora -p "What is the capital of France?" --output-format json
 ```
 
 Response:
@@ -146,7 +146,7 @@ Response:
   "response": "The capital of France is Paris.",
   "stats": {
     "models": {
-      "qwen3-coder-plus": {
+      "fora3-coder-plus": {
         "api": {
           "totalRequests": 2,
           "totalErrors": 0,
@@ -202,16 +202,16 @@ Save output to files or pipe to other commands:
 
 ```bash
 # Save to file
-qwen -p "Explain Docker" > docker-explanation.txt
-qwen -p "Explain Docker" --output-format json > docker-explanation.json
+fora -p "Explain Docker" > docker-explanation.txt
+fora -p "Explain Docker" --output-format json > docker-explanation.json
 
 # Append to file
-qwen -p "Add more details" >> docker-explanation.txt
+fora -p "Add more details" >> docker-explanation.txt
 
 # Pipe to other tools
-qwen -p "What is Kubernetes?" --output-format json | jq '.response'
-qwen -p "Explain microservices" | wc -w
-qwen -p "List programming languages" | grep -i "python"
+fora -p "What is Kubernetes?" --output-format json | jq '.response'
+fora -p "Explain microservices" | wc -w
+fora -p "List programming languages" | grep -i "python"
 ```
 
 ## Configuration Options
@@ -220,14 +220,14 @@ Key command-line options for headless usage:
 
 | Option                  | Description                        | Example                                          |
 | ----------------------- | ---------------------------------- | ------------------------------------------------ |
-| `--prompt`, `-p`        | Run in headless mode               | `qwen -p "query"`                                |
-| `--output-format`       | Specify output format (text, json) | `qwen -p "query" --output-format json`           |
-| `--model`, `-m`         | Specify the Qwen model             | `qwen -p "query" -m qwen3-coder-plus`            |
-| `--debug`, `-d`         | Enable debug mode                  | `qwen -p "query" --debug`                        |
-| `--all-files`, `-a`     | Include all files in context       | `qwen -p "query" --all-files`                    |
-| `--include-directories` | Include additional directories     | `qwen -p "query" --include-directories src,docs` |
-| `--yolo`, `-y`          | Auto-approve all actions           | `qwen -p "query" --yolo`                         |
-| `--approval-mode`       | Set approval mode                  | `qwen -p "query" --approval-mode auto_edit`      |
+| `--prompt`, `-p`        | Run in headless mode               | `fora -p "query"`                                |
+| `--output-format`       | Specify output format (text, json) | `fora -p "query" --output-format json`           |
+| `--model`, `-m`         | Specify the Fora model             | `fora -p "query" -m fora3-coder-plus`            |
+| `--debug`, `-d`         | Enable debug mode                  | `fora -p "query" --debug`                        |
+| `--all-files`, `-a`     | Include all files in context       | `fora -p "query" --all-files`                    |
+| `--include-directories` | Include additional directories     | `fora -p "query" --include-directories src,docs` |
+| `--yolo`, `-y`          | Auto-approve all actions           | `fora -p "query" --yolo`                         |
+| `--approval-mode`       | Set approval mode                  | `fora -p "query" --approval-mode auto_edit`      |
 
 For complete details on all available configuration options, settings files, and environment variables, see the [Configuration Guide](./cli/configuration.md).
 
@@ -236,20 +236,20 @@ For complete details on all available configuration options, settings files, and
 #### Code review
 
 ```bash
-cat src/auth.py | qwen -p "Review this authentication code for security issues" > security-review.txt
+cat src/auth.py | fora -p "Review this authentication code for security issues" > security-review.txt
 ```
 
 #### Generate commit messages
 
 ```bash
-result=$(git diff --cached | qwen -p "Write a concise commit message for these changes" --output-format json)
+result=$(git diff --cached | fora -p "Write a concise commit message for these changes" --output-format json)
 echo "$result" | jq -r '.response'
 ```
 
 #### API documentation
 
 ```bash
-result=$(cat api/routes.js | qwen -p "Generate OpenAPI spec for these routes" --output-format json)
+result=$(cat api/routes.js | fora -p "Generate OpenAPI spec for these routes" --output-format json)
 echo "$result" | jq -r '.response' > openapi.json
 ```
 
@@ -258,7 +258,7 @@ echo "$result" | jq -r '.response' > openapi.json
 ```bash
 for file in src/*.py; do
     echo "Analyzing $file..."
-    result=$(cat "$file" | qwen -p "Find potential bugs and suggest improvements" --output-format json)
+    result=$(cat "$file" | fora -p "Find potential bugs and suggest improvements" --output-format json)
     echo "$result" | jq -r '.response' > "reports/$(basename "$file").analysis"
     echo "Completed analysis for $(basename "$file")" >> reports/progress.log
 done
@@ -267,20 +267,20 @@ done
 #### Code review
 
 ```bash
-result=$(git diff origin/main...HEAD | qwen -p "Review these changes for bugs, security issues, and code quality" --output-format json)
+result=$(git diff origin/main...HEAD | fora -p "Review these changes for bugs, security issues, and code quality" --output-format json)
 echo "$result" | jq -r '.response' > pr-review.json
 ```
 
 #### Log analysis
 
 ```bash
-grep "ERROR" /var/log/app.log | tail -20 | qwen -p "Analyze these errors and suggest root cause and fixes" > error-analysis.txt
+grep "ERROR" /var/log/app.log | tail -20 | fora -p "Analyze these errors and suggest root cause and fixes" > error-analysis.txt
 ```
 
 #### Release notes generation
 
 ```bash
-result=$(git log --oneline v1.0.0..HEAD | qwen -p "Generate release notes from these commits" --output-format json)
+result=$(git log --oneline v1.0.0..HEAD | fora -p "Generate release notes from these commits" --output-format json)
 response=$(echo "$result" | jq -r '.response')
 echo "$response"
 echo "$response" >> CHANGELOG.md
@@ -289,7 +289,7 @@ echo "$response" >> CHANGELOG.md
 #### Model and tool usage tracking
 
 ```bash
-result=$(qwen -p "Explain this database schema" --include-directories db --output-format json)
+result=$(fora -p "Explain this database schema" --include-directories db --output-format json)
 total_tokens=$(echo "$result" | jq -r '.stats.models // {} | to_entries | map(.value.tokens.total) | add // 0')
 models_used=$(echo "$result" | jq -r '.stats.models // {} | keys | join(", ") | if . == "" then "none" else . end')
 tool_calls=$(echo "$result" | jq -r '.stats.tools.totalCalls // 0')

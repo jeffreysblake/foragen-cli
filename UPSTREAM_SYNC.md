@@ -1,6 +1,6 @@
 # Upstream Sync Documentation
 
-This document tracks the synchronization history between Foragen CLI fork and the upstream QwenLM/qwen-code repository.
+This document tracks the synchronization history between Foragen CLI fork and the upstream jeffreysblake/foragen-cli repository.
 
 ## Remote Configuration
 
@@ -9,7 +9,7 @@ This document tracks the synchronization history between Foragen CLI fork and th
 origin: https://github.com/jeffreysblake/foragen-cli.git
 
 # Upstream repository
-qwen-upstream: https://github.com/QwenLM/qwen-code.git
+fora-upstream: https://github.com/jeffreysblake/foragen-cli.git
 ```
 
 ## Sync Workflow
@@ -18,18 +18,18 @@ qwen-upstream: https://github.com/QwenLM/qwen-code.git
 
 ```bash
 # Configure remotes
-git remote rename origin qwen-upstream
+git remote rename origin fora-upstream
 git remote add origin https://github.com/jeffreysblake/foragen-cli.git
 
 # Fetch upstream
-git fetch qwen-upstream
+git fetch fora-upstream
 ```
 
 ### 2. Regular Sync Process
 
 ```bash
 # 1. Fetch latest from upstream
-git fetch qwen-upstream
+git fetch fora-upstream
 
 # 2. Checkout main branch
 git checkout main
@@ -38,7 +38,7 @@ git checkout main
 git checkout -b sync/upstream-YYYYMMDD
 
 # 4. Merge upstream changes
-git merge qwen-upstream/main
+git merge fora-upstream/main
 
 # 5. Resolve conflicts
 # - Keep our customizations
@@ -66,11 +66,11 @@ git push origin main
 ### 2025-11-02: Initial Fork and Rebranding
 
 - **Upstream Commit**: d6795c0e (fixed tool calling for background parameters)
-- **Action**: Complete rebranding from Qwen to Fora
+- **Action**: Complete rebranding from Fora to Fora
 - **Changes**:
   - 204 files updated with new branding
   - Package names changed to @jeffreysblake/foragen-\*
-  - Binary renamed from `qwen` to `fora`
+  - Binary renamed from `fora` to `fora`
   - Configuration directory changed to `~/.fora/`
 - **Conflicts**: None (initial fork)
 - **Notes**: First major customization of the fork
@@ -99,7 +99,7 @@ When merging from upstream, follow these principles:
 
 - `package.json` files (keep our package names)
 - Import statements (keep our package references)
-- Class/function names containing "Qwen" (keep "Fora")
+- Class/function names containing "Fora" (keep "Fora")
 - Configuration paths (keep `.fora` directory)
 - Docker image references (keep local builds)
 
@@ -108,12 +108,12 @@ When merging from upstream, follow these principles:
 ### Scripts Available
 
 1. **rebrand-to-fora.sh**: Re-applies branding after merge
-2. **verify-rebranding.sh**: Checks for missed qwen references
+2. **verify-rebranding.sh**: Checks for missed fora references
 3. **update-imports.sh**: Updates import statements
 
 ### Post-Merge Checklist
 
-- [ ] Run `./scripts/verify-rebranding.sh` to check for qwen references
+- [ ] Run `./scripts/verify-rebranding.sh` to check for fora references
 - [ ] Run `npm install` to update dependencies
 - [ ] Run `npm run build` to verify build
 - [ ] Run `npm test` to ensure tests pass

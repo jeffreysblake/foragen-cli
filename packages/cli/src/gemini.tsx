@@ -30,12 +30,12 @@ import {
   runExitCleanup,
 } from './utils/cleanup.js';
 import { getCliVersion } from './utils/version.js';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from '@jeffreysblake/foragen-cli-core';
 import {
   AuthType,
   getOauthClient,
   logUserPrompt,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import {
   initializeApp,
   type InitializationResult,

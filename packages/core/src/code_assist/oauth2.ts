@@ -503,22 +503,22 @@ export async function clearCachedCredentialFile() {
     clearOauthClientCache();
 
     /**
-     * Also clear Qwen SharedTokenManager cache and credentials file to prevent stale credentials
+     * Also clear Fora SharedTokenManager cache and credentials file to prevent stale credentials
      * when switching between auth types
      * TODO: We do not depend on code_assist, we'll have to build an independent auth-cleaning procedure.
      */
     try {
       const { SharedTokenManager } = await import(
-        '../qwen/sharedTokenManager.js'
+        '../fora/sharedTokenManager.js'
       );
-      const { clearQwenCredentials } = await import('../qwen/qwenOAuth2.js');
+      const { clearForaCredentials } = await import('../fora/foraOAuth2.js');
 
       const sharedManager = SharedTokenManager.getInstance();
       sharedManager.clearCache();
 
-      await clearQwenCredentials();
-    } catch (qwenError) {
-      console.debug('Could not clear Qwen credentials:', qwenError);
+      await clearForaCredentials();
+    } catch (foraError) {
+      console.debug('Could not clear Fora credentials:', foraError);
     }
   } catch (e) {
     console.error('Failed to clear cached credentials:', e);

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -8,10 +8,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { Part, PartListUnion } from '@google/genai';
-import { AuthType, type Config, ApprovalMode } from '@qwen-code/qwen-code-core';
+import { AuthType, type Config, ApprovalMode } from '@jeffreysblake/foragen-cli-core';
 
 // Mock the image format functions from core package
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('@jeffreysblake/foragen-cli-core', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
@@ -42,14 +42,14 @@ import { getDefaultVisionModel } from '../models/availableModels.js';
 
 describe('useVisionAutoSwitch helpers', () => {
   describe('shouldOfferVisionSwitch', () => {
-    it('returns false when authType is not QWEN_OAUTH', () => {
+    it('returns false when authType is not FORA_OAUTH', () => {
       const parts: PartListUnion = [
         { inlineData: { mimeType: 'image/png', data: '...' } },
       ];
       const result = shouldOfferVisionSwitch(
         parts,
         AuthType.USE_GEMINI,
-        'qwen3-coder-plus',
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(false);
@@ -61,22 +61,22 @@ describe('useVisionAutoSwitch helpers', () => {
       ];
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
+        AuthType.FORA_OAUTH,
         'vision-model',
         true,
       );
       expect(result).toBe(false);
     });
 
-    it('returns true when image parts exist, QWEN_OAUTH, and model is not vision', () => {
+    it('returns true when image parts exist, FORA_OAUTH, and model is not vision', () => {
       const parts: PartListUnion = [
         { text: 'hello' },
         { inlineData: { mimeType: 'image/jpeg', data: '...' } },
       ];
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(true);
@@ -88,8 +88,8 @@ describe('useVisionAutoSwitch helpers', () => {
       } as Part;
       const result = shouldOfferVisionSwitch(
         singleImagePart,
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(true);
@@ -99,8 +99,8 @@ describe('useVisionAutoSwitch helpers', () => {
       const parts: PartListUnion = [{ text: 'just text' }];
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(false);
@@ -110,8 +110,8 @@ describe('useVisionAutoSwitch helpers', () => {
       const parts: PartListUnion = 'plain text';
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(false);
@@ -123,8 +123,8 @@ describe('useVisionAutoSwitch helpers', () => {
       ];
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         false,
       );
       expect(result).toBe(false);
@@ -136,8 +136,8 @@ describe('useVisionAutoSwitch helpers', () => {
       ];
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(true);
@@ -147,8 +147,8 @@ describe('useVisionAutoSwitch helpers', () => {
       const parts: PartListUnion = [{ text: 'just text' }];
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(false);
@@ -160,21 +160,21 @@ describe('useVisionAutoSwitch helpers', () => {
       ];
       const result = shouldOfferVisionSwitch(
         parts,
-        AuthType.QWEN_OAUTH,
+        AuthType.FORA_OAUTH,
         'vision-model',
         true,
       );
       expect(result).toBe(false);
     });
 
-    it('returns false when authType is not QWEN_OAUTH in YOLO mode context', () => {
+    it('returns false when authType is not FORA_OAUTH in YOLO mode context', () => {
       const parts: PartListUnion = [
         { inlineData: { mimeType: 'image/png', data: '...' } },
       ];
       const result = shouldOfferVisionSwitch(
         parts,
         AuthType.USE_GEMINI,
-        'qwen3-coder-plus',
+        'fora3-coder-plus',
         true,
       );
       expect(result).toBe(false);
@@ -254,7 +254,7 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('returns shouldProceed=true immediately for continuations', async () => {
-    const config = createMockConfig(AuthType.QWEN_OAUTH, 'qwen3-coder-plus');
+    const config = createMockConfig(AuthType.FORA_OAUTH, 'fora3-coder-plus');
     const { result } = renderHook(() =>
       useVisionAutoSwitch(config, addItem as any, true, vi.fn()),
     );
@@ -270,8 +270,8 @@ describe('useVisionAutoSwitch hook', () => {
     expect(addItem).not.toHaveBeenCalled();
   });
 
-  it('does nothing when authType is not QWEN_OAUTH', async () => {
-    const config = createMockConfig(AuthType.USE_GEMINI, 'qwen3-coder-plus');
+  it('does nothing when authType is not FORA_OAUTH', async () => {
+    const config = createMockConfig(AuthType.USE_GEMINI, 'fora3-coder-plus');
     const onVisionSwitchRequired = vi.fn();
     const { result } = renderHook(() =>
       useVisionAutoSwitch(config, addItem as any, true, onVisionSwitchRequired),
@@ -289,7 +289,7 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('does nothing when there are no image parts', async () => {
-    const config = createMockConfig(AuthType.QWEN_OAUTH, 'qwen3-coder-plus');
+    const config = createMockConfig(AuthType.FORA_OAUTH, 'fora3-coder-plus');
     const onVisionSwitchRequired = vi.fn();
     const { result } = renderHook(() =>
       useVisionAutoSwitch(config, addItem as any, true, onVisionSwitchRequired),
@@ -305,7 +305,7 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('continues with current model when dialog returns empty result', async () => {
-    const config = createMockConfig(AuthType.QWEN_OAUTH, 'qwen3-coder-plus');
+    const config = createMockConfig(AuthType.FORA_OAUTH, 'fora3-coder-plus');
     const onVisionSwitchRequired = vi.fn().mockResolvedValue({}); // Empty result for ContinueWithCurrentModel
     const { result } = renderHook(() =>
       useVisionAutoSwitch(config, addItem as any, true, onVisionSwitchRequired),
@@ -331,8 +331,8 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('applies a one-time override and returns originalModel, then restores', async () => {
-    const initialModel = 'qwen3-coder-plus';
-    const config = createMockConfig(AuthType.QWEN_OAUTH, initialModel);
+    const initialModel = 'fora3-coder-plus';
+    const config = createMockConfig(AuthType.FORA_OAUTH, initialModel);
     const onVisionSwitchRequired = vi
       .fn()
       .mockResolvedValue({ modelOverride: 'coder-model' });
@@ -366,7 +366,7 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('persists session model when dialog requests persistence', async () => {
-    const config = createMockConfig(AuthType.QWEN_OAUTH, 'qwen3-coder-plus');
+    const config = createMockConfig(AuthType.FORA_OAUTH, 'fora3-coder-plus');
     const onVisionSwitchRequired = vi
       .fn()
       .mockResolvedValue({ persistSessionModel: 'coder-model' });
@@ -398,7 +398,7 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('returns shouldProceed=true when dialog returns no special flags', async () => {
-    const config = createMockConfig(AuthType.QWEN_OAUTH, 'qwen3-coder-plus');
+    const config = createMockConfig(AuthType.FORA_OAUTH, 'fora3-coder-plus');
     const onVisionSwitchRequired = vi.fn().mockResolvedValue({});
     const { result } = renderHook(() =>
       useVisionAutoSwitch(config, addItem as any, true, onVisionSwitchRequired),
@@ -416,7 +416,7 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('blocks when dialog throws or is cancelled', async () => {
-    const config = createMockConfig(AuthType.QWEN_OAUTH, 'qwen3-coder-plus');
+    const config = createMockConfig(AuthType.FORA_OAUTH, 'fora3-coder-plus');
     const onVisionSwitchRequired = vi.fn().mockRejectedValue(new Error('x'));
     const { result } = renderHook(() =>
       useVisionAutoSwitch(config, addItem as any, true, onVisionSwitchRequired),
@@ -434,7 +434,7 @@ describe('useVisionAutoSwitch hook', () => {
   });
 
   it('does nothing when visionModelPreviewEnabled is false', async () => {
-    const config = createMockConfig(AuthType.QWEN_OAUTH, 'qwen3-coder-plus');
+    const config = createMockConfig(AuthType.FORA_OAUTH, 'fora3-coder-plus');
     const onVisionSwitchRequired = vi.fn();
     const { result } = renderHook(() =>
       useVisionAutoSwitch(
@@ -458,9 +458,9 @@ describe('useVisionAutoSwitch hook', () => {
 
   describe('YOLO mode behavior', () => {
     it('automatically switches to vision model in YOLO mode without showing dialog', async () => {
-      const initialModel = 'qwen3-coder-plus';
+      const initialModel = 'fora3-coder-plus';
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
+        AuthType.FORA_OAUTH,
         initialModel,
         ApprovalMode.YOLO,
       );
@@ -497,8 +497,8 @@ describe('useVisionAutoSwitch hook', () => {
 
     it('does not switch in YOLO mode when no images are present', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         ApprovalMode.YOLO,
       );
       const onVisionSwitchRequired = vi.fn();
@@ -525,7 +525,7 @@ describe('useVisionAutoSwitch hook', () => {
 
     it('does not switch in YOLO mode when already using vision model', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
+        AuthType.FORA_OAUTH,
         'vision-model',
         ApprovalMode.YOLO,
       );
@@ -554,9 +554,9 @@ describe('useVisionAutoSwitch hook', () => {
     });
 
     it('restores original model after YOLO mode auto-switch', async () => {
-      const initialModel = 'qwen3-coder-plus';
+      const initialModel = 'fora3-coder-plus';
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
+        AuthType.FORA_OAUTH,
         initialModel,
         ApprovalMode.YOLO,
       );
@@ -597,10 +597,10 @@ describe('useVisionAutoSwitch hook', () => {
       });
     });
 
-    it('does not switch in YOLO mode when authType is not QWEN_OAUTH', async () => {
+    it('does not switch in YOLO mode when authType is not FORA_OAUTH', async () => {
       const config = createMockConfig(
         AuthType.USE_GEMINI,
-        'qwen3-coder-plus',
+        'fora3-coder-plus',
         ApprovalMode.YOLO,
       );
       const onVisionSwitchRequired = vi.fn();
@@ -629,8 +629,8 @@ describe('useVisionAutoSwitch hook', () => {
 
     it('does not switch in YOLO mode when visionModelPreviewEnabled is false', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         ApprovalMode.YOLO,
       );
       const onVisionSwitchRequired = vi.fn();
@@ -658,9 +658,9 @@ describe('useVisionAutoSwitch hook', () => {
     });
 
     it('handles multiple image formats in YOLO mode', async () => {
-      const initialModel = 'qwen3-coder-plus';
+      const initialModel = 'fora3-coder-plus';
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
+        AuthType.FORA_OAUTH,
         initialModel,
         ApprovalMode.YOLO,
       );
@@ -701,8 +701,8 @@ describe('useVisionAutoSwitch hook', () => {
   describe('VLM switch mode default behavior', () => {
     it('should automatically switch once when vlmSwitchMode is "once"', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         ApprovalMode.DEFAULT,
         'once',
       );
@@ -727,7 +727,7 @@ describe('useVisionAutoSwitch hook', () => {
       );
 
       expect(switchResult.shouldProceed).toBe(true);
-      expect(switchResult.originalModel).toBe('qwen3-coder-plus');
+      expect(switchResult.originalModel).toBe('fora3-coder-plus');
       expect(config.setModel).toHaveBeenCalledWith('vision-model', {
         reason: 'vision_auto_switch',
         context: 'Default VLM switch mode: once (one-time override)',
@@ -737,8 +737,8 @@ describe('useVisionAutoSwitch hook', () => {
 
     it('should switch session when vlmSwitchMode is "session"', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         ApprovalMode.DEFAULT,
         'session',
       );
@@ -773,8 +773,8 @@ describe('useVisionAutoSwitch hook', () => {
 
     it('should continue with current model when vlmSwitchMode is "persist"', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         ApprovalMode.DEFAULT,
         'persist',
       );
@@ -806,8 +806,8 @@ describe('useVisionAutoSwitch hook', () => {
 
     it('should fall back to user prompt when vlmSwitchMode is not set', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         ApprovalMode.DEFAULT,
         undefined, // No default mode
       );
@@ -839,8 +839,8 @@ describe('useVisionAutoSwitch hook', () => {
 
     it('should fall back to persist behavior when vlmSwitchMode has invalid value', async () => {
       const config = createMockConfig(
-        AuthType.QWEN_OAUTH,
-        'qwen3-coder-plus',
+        AuthType.FORA_OAUTH,
+        'fora3-coder-plus',
         ApprovalMode.DEFAULT,
         'invalid-value',
       );

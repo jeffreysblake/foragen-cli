@@ -61,7 +61,7 @@ export function isLocalModel(baseUrl?: string, model?: string): boolean {
     'ollama',
     'llama',
     'mistral',
-    'qwen',
+    'fora',
     'codellama',
     'vicuna',
     'alpaca',
@@ -92,25 +92,25 @@ export function getLocalModelTokenLimit(model: string): number {
   // Model-specific limits based on common local deployments
   const modelLower = model.toLowerCase();
 
-  if (modelLower.includes('qwen2.5-72b') || modelLower.includes('llama-70b')) {
+  if (modelLower.includes('fora2.5-72b') || modelLower.includes('llama-70b')) {
     return 80000; // Large models can handle more context
   }
 
-  if (modelLower.includes('qwen2.5-32b') || modelLower.includes('llama-30b')) {
+  if (modelLower.includes('fora2.5-32b') || modelLower.includes('llama-30b')) {
     return 80000;
   }
 
-  if (modelLower.includes('qwen2.5-14b') || modelLower.includes('llama-13b')) {
+  if (modelLower.includes('fora2.5-14b') || modelLower.includes('llama-13b')) {
     return 80000;
   }
 
-  if (modelLower.includes('qwen2.5-7b') || modelLower.includes('llama-7b')) {
+  if (modelLower.includes('fora2.5-7b') || modelLower.includes('llama-7b')) {
     return 80000;
   }
 
   if (
-    modelLower.includes('qwen2.5-3b') ||
-    modelLower.includes('qwen2.5-1.5b')
+    modelLower.includes('fora2.5-3b') ||
+    modelLower.includes('fora2.5-1.5b')
   ) {
     return 80000; // Smaller models need conservative limits
   }

@@ -16,8 +16,8 @@ import {
   SETTINGS_DIRECTORY_NAME,
 } from '../config/settings.js';
 import { promisify } from 'node:util';
-import type { Config, SandboxConfig } from '@qwen-code/qwen-code-core';
-import { FatalSandboxError } from '@qwen-code/qwen-code-core';
+import type { Config, SandboxConfig } from '@jeffreysblake/foragen-cli-core';
+import { FatalSandboxError } from '@jeffreysblake/foragen-cli-core';
 import { ConsolePatcher } from '../ui/utils/ConsolePatcher.js';
 import { randomBytes } from 'node:crypto';
 
@@ -36,9 +36,9 @@ function getContainerPath(hostPath: string): string {
   return hostPath;
 }
 
-const LOCAL_DEV_SANDBOX_IMAGE_NAME = 'qwen-code-sandbox';
-const SANDBOX_NETWORK_NAME = 'qwen-code-sandbox';
-const SANDBOX_PROXY_NAME = 'qwen-code-sandbox-proxy';
+const LOCAL_DEV_SANDBOX_IMAGE_NAME = 'foragen-cli-sandbox';
+const SANDBOX_NETWORK_NAME = 'foragen-cli-sandbox';
+const SANDBOX_PROXY_NAME = 'foragen-cli-sandbox-proxy';
 const BUILTIN_SEATBELT_PROFILES = [
   'permissive-open',
   'permissive-closed',
@@ -177,8 +177,8 @@ function entrypoint(workdir: string, cliArgs: string[]): string[] {
         ? 'npm run debug --'
         : 'npm rebuild && npm run start --'
       : process.env['DEBUG']
-        ? `node --inspect-brk=0.0.0.0:${process.env['DEBUG_PORT'] || '9229'} $(which qwen)`
-        : 'qwen';
+        ? `node --inspect-brk=0.0.0.0:${process.env['DEBUG_PORT'] || '9229'} $(which fora)`
+        : 'fora';
 
   const args = [...shellCmds, cliCmd, ...quotedCliArgs];
   return ['bash', '-c', args.join(' ')];
@@ -600,7 +600,7 @@ export async function start_sandbox(
       args.push('--env', `GOOGLE_API_KEY=${process.env['GOOGLE_API_KEY']}`);
     }
 
-    // copy OPENAI_API_KEY and related env vars for Qwen
+    // copy OPENAI_API_KEY and related env vars for Fora
     if (process.env['OPENAI_API_KEY']) {
       args.push('--env', `OPENAI_API_KEY=${process.env['OPENAI_API_KEY']}`);
     }
@@ -662,8 +662,8 @@ export async function start_sandbox(
 
     // Pass through IDE mode environment variables
     for (const envVar of [
-      'QWEN_CODE_IDE_SERVER_PORT',
-      'QWEN_CODE_IDE_WORKSPACE_PATH',
+      'FORAGEN_CLI_IDE_SERVER_PORT',
+      'FORAGEN_CLI_IDE_WORKSPACE_PATH',
       'TERM_PROGRAM',
     ]) {
       if (process.env[envVar]) {

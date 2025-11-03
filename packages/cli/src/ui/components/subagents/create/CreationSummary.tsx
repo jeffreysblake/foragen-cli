@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,7 +10,7 @@ import type { WizardStepProps } from '../types.js';
 import type {
   SubagentManager,
   SubagentConfig,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import { theme } from '../../../semantic-colors.js';
 import { shouldShowColor, getColorForDisplay } from '../utils.js';
 import { useLaunchEditor } from '../../../hooks/useLaunchEditor.js';
@@ -242,8 +242,8 @@ export function CreationSummary({
           <Text color={theme.text.primary}>Location: </Text>
           <Text>
             {state.location === 'project'
-              ? 'Project Level (.qwen/agents/)'
-              : 'User Level (~/.qwen/agents/)'}
+              ? 'Project Level (.fora/agents/)'
+              : 'User Level (~/.fora/agents/)'}
           </Text>
         </Box>
 

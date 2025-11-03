@@ -57,9 +57,9 @@ async function handleIntegration(options: IntegrateOptions) {
       console.log('');
     }
 
-    console.log('💡 Use "qwen mcp integrate <name>" to install an integration');
+    console.log('💡 Use "fora mcp integrate <name>" to install an integration');
     console.log(
-      '💡 Use "qwen mcp integrate <name> --info" for detailed information',
+      '💡 Use "fora mcp integrate <name> --info" for detailed information',
     );
     return;
   }
@@ -129,7 +129,7 @@ async function handleIntegration(options: IntegrateOptions) {
     if (!integration) {
       console.error(`❌ Unknown integration: ${name}`);
       console.log(
-        '\n💡 Use "qwen mcp integrate --list" to see available integrations',
+        '\n💡 Use "fora mcp integrate --list" to see available integrations',
       );
       process.exit(1);
     }
@@ -152,7 +152,7 @@ async function handleIntegration(options: IntegrateOptions) {
     }
 
     console.log(`\n✅ Successfully installed ${name} MCP integration!`);
-    console.log('💡 Use "qwen mcp list" to see all configured MCP servers');
+    console.log('💡 Use "fora mcp list" to see all configured MCP servers');
   } catch (error) {
     console.error(`❌ Failed to install ${name}:`, error);
     process.exit(1);

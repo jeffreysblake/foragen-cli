@@ -6,7 +6,7 @@
 
 import type { Message } from '../types.js';
 import { MessageType } from '../types.js';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from '@jeffreysblake/foragen-cli-core';
 import type { LoadedSettings } from '../../config/settings.js';
 
 export function createShowMemoryAction(
@@ -67,8 +67,8 @@ export function createShowMemoryAction(
         type: MessageType.INFO,
         content:
           fileCount > 0
-            ? 'Hierarchical memory (QWEN.md or other context files) is loaded but content is empty.'
-            : 'No hierarchical memory (QWEN.md or other context files) is currently loaded.',
+            ? 'Hierarchical memory (FORA.md or other context files) is loaded but content is empty.'
+            : 'No hierarchical memory (FORA.md or other context files) is currently loaded.',
         timestamp: new Date(),
       });
     }

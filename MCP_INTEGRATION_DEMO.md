@@ -2,13 +2,13 @@
 
 ## What I've Built
 
-I have successfully implemented a comprehensive MCP (Model Context Protocol) integration system for the Qwen Code CLI with the following components:
+I have successfully implemented a comprehensive MCP (Model Context Protocol) integration system for the Fora Code CLI with the following components:
 
 ### ✅ **Core Integration Framework**
 
 - **Base Integration Class**: Abstract foundation for all MCP integrations with dependency checking, installation management, and configuration validation
 - **Integration Registry**: Central management system for discovering and managing all available integrations
-- **Command Interface**: New `qwen mcp integrate` command with rich CLI options and interactive help
+- **Command Interface**: New `fora mcp integrate` command with rich CLI options and interactive help
 
 ### ✅ **Playwright MCP Integration**
 
@@ -55,26 +55,26 @@ Secure file operations with advanced monitoring:
 
 ```bash
 # List all available integrations
-qwen mcp integrate --list
+fora mcp integrate --list
 
 # Get detailed info about an integration
-qwen mcp integrate playwright --info
+fora mcp integrate playwright --info
 
 # Install with presets
-qwen mcp integrate playwright --preset=development
-qwen mcp integrate git-advanced --read-only
-qwen mcp integrate database-sqlite --type=sqlite
-qwen mcp integrate filesystem --directories=./src,./docs
+fora mcp integrate playwright --preset=development
+fora mcp integrate git-advanced --read-only
+fora mcp integrate database-sqlite --type=sqlite
+fora mcp integrate filesystem --directories=./src,./docs
 
 # Install database with connection details
-qwen mcp integrate database-postgresql \
+fora mcp integrate database-postgresql \
   --type=postgresql \
   --host=localhost \
   --database=myapp \
   --username=user
 
 # Uninstall an integration
-qwen mcp integrate playwright --uninstall
+fora mcp integrate playwright --uninstall
 ```
 
 ## 🛡️ **Security Features**
@@ -161,7 +161,7 @@ Each integration generates appropriate MCP server configurations:
 
 ### **Developer Experience**
 
-- **One-Command Setup**: `qwen mcp integrate <name>` installs and configures everything
+- **One-Command Setup**: `fora mcp integrate <name>` installs and configures everything
 - **Preset Configurations**: Optimized settings for common use cases
 - **Rich Documentation**: Built-in help, examples, and security recommendations
 - **Error Recovery**: Comprehensive error handling and user guidance
@@ -209,6 +209,6 @@ The integrations are implemented but need build system fixes to resolve TypeScri
 - **Multi-modal operations** (text, files, web, data)
 - **Real-time capabilities** (file watching, browser interaction)
 
-This MCP integration system transforms the Qwen Code CLI into a powerful automation platform that can interact with browsers, manage Git repositories, query databases, and manipulate files - all through natural language interactions with local models.
+This MCP integration system transforms the Fora Code CLI into a powerful automation platform that can interact with browsers, manage Git repositories, query databases, and manipulate files - all through natural language interactions with local models.
 
 The implementation follows enterprise security standards while maintaining ease of use, making it suitable for both development and production environments.

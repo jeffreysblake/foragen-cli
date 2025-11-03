@@ -12,7 +12,7 @@ import type {
   GeminiChat,
   ToolCallConfirmationDetails,
   ToolResult,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import {
   AuthType,
   clearCachedCredentialFile,
@@ -28,7 +28,7 @@ import {
   getErrorStatus,
   isWithinRoot,
   isNodeError,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import * as acp from './acp.js';
 import { AcpFileSystemService } from './fileSystemService.js';
 import { Readable, Writable } from 'node:stream';
@@ -104,10 +104,10 @@ class GeminiAgent {
           'Requires setting the `OPENAI_API_KEY` environment variable',
       },
       {
-        id: AuthType.QWEN_OAUTH,
-        name: 'Qwen OAuth',
+        id: AuthType.FORA_OAUTH,
+        name: 'Fora OAuth',
         description:
-          'OAuth authentication for Qwen models with 2000 daily requests',
+          'OAuth authentication for Fora models with 2000 daily requests',
       },
     ];
 

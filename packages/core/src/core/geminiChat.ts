@@ -569,7 +569,7 @@ export class GeminiChat {
     if (responseText) {
       this.chatRecordingService.recordMessage({
         model,
-        type: 'qwen',
+        type: 'fora',
         content: responseText,
       });
     }

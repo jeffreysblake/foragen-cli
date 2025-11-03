@@ -11,7 +11,7 @@ import {
   Logger,
   uiTelemetryService,
   type Config,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import { CommandService } from './services/CommandService.js';
 import { FileCommandLoader } from './services/FileCommandLoader.js';
 import type { CommandContext } from './ui/commands/types.js';

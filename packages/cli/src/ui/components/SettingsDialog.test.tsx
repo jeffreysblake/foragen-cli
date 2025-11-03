@@ -865,7 +865,7 @@ describe('SettingsDialog', () => {
 
       // Should not show restart prompt initially
       expect(lastFrame()).not.toContain(
-        'To see changes, Qwen Code must be restarted',
+        'To see changes, Fora Code must be restarted',
       );
 
       unmount();
@@ -1288,7 +1288,7 @@ describe('SettingsDialog', () => {
           loadMemoryFromIncludeDirectories: true,
           fileFiltering: {
             respectGitIgnore: true,
-            respectQwenIgnore: true,
+            respectForaIgnore: true,
             enableRecursiveFileSearch: true,
             disableFuzzySearch: false,
           },

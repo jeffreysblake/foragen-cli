@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { IdeInfo } from '@qwen-code/qwen-code-core';
+import type { IdeInfo } from '@jeffreysblake/foragen-cli-core';
 import { Box, Text } from 'ink';
 import type { RadioSelectItem } from './components/shared/RadioButtonSelect.js';
 import { RadioButtonSelect } from './components/shared/RadioButtonSelect.js';
@@ -40,8 +40,8 @@ export function IdeIntegrationNudge({
   const { displayName: ideName } = ide;
   // Assume extension is already installed if the env variables are set.
   const isExtensionPreInstalled =
-    !!process.env['QWEN_CODE_IDE_SERVER_PORT'] &&
-    !!process.env['QWEN_CODE_IDE_WORKSPACE_PATH'];
+    !!process.env['FORAGEN_CLI_IDE_SERVER_PORT'] &&
+    !!process.env['FORAGEN_CLI_IDE_WORKSPACE_PATH'];
 
   const OPTIONS: Array<RadioSelectItem<IdeIntegrationNudgeResult>> = [
     {
@@ -90,7 +90,7 @@ export function IdeIntegrationNudge({
       <Box marginBottom={1} flexDirection="column">
         <Text>
           <Text color={theme.status.warning}>{'> '}</Text>
-          {`Do you want to connect ${ideName ?? 'your editor'} to Qwen Code?`}
+          {`Do you want to connect ${ideName ?? 'your editor'} to Fora Code?`}
         </Text>
         <Text color={theme.text.secondary}>{installText}</Text>
       </Box>

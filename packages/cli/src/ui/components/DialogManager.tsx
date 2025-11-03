@@ -13,7 +13,7 @@ import { ConsentPrompt } from './ConsentPrompt.js';
 import { ThemeDialog } from './ThemeDialog.js';
 import { SettingsDialog } from './SettingsDialog.js';
 import { AuthInProgress } from '../auth/AuthInProgress.js';
-import { QwenOAuthProgress } from './QwenOAuthProgress.js';
+import { ForaOAuthProgress } from './ForaOAuthProgress.js';
 import { AuthDialog } from '../auth/AuthDialog.js';
 import { EditorSettingsDialog } from './EditorSettingsDialog.js';
 import { WorkspaceMigrationDialog } from './WorkspaceMigrationDialog.js';
@@ -191,15 +191,15 @@ export const DialogManager = ({
     return <ModelSwitchDialog onSelect={uiActions.handleVisionSwitchSelect} />;
   }
   if (uiState.isAuthenticating) {
-    // Show Qwen OAuth progress if it's Qwen auth and OAuth is active
-    if (uiState.isQwenAuth && uiState.isQwenAuthenticating) {
+    // Show Fora OAuth progress if it's Fora auth and OAuth is active
+    if (uiState.isForaAuth && uiState.isForaAuthenticating) {
       return (
-        <QwenOAuthProgress
+        <ForaOAuthProgress
           deviceAuth={uiState.deviceAuth || undefined}
           authStatus={uiState.authStatus}
           authMessage={uiState.authMessage}
-          onTimeout={uiActions.handleQwenAuthTimeout}
-          onCancel={uiActions.handleQwenAuthCancel}
+          onTimeout={uiActions.handleForaAuthTimeout}
+          onCancel={uiActions.handleForaAuthCancel}
         />
       );
     }

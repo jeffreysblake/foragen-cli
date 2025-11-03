@@ -16,8 +16,8 @@ export async function handleFallback(
   error?: unknown,
 ): Promise<string | boolean | null> {
   // Handle different auth types
-  if (authType === AuthType.QWEN_OAUTH) {
-    return handleQwenOAuthError(error);
+  if (authType === AuthType.FORA_OAUTH) {
+    return handleForaOAuthError(error);
   }
 
   // Applicability Checks
@@ -65,9 +65,9 @@ export async function handleFallback(
 }
 
 /**
- * Handles Qwen OAuth authentication errors and rate limiting
+ * Handles Fora OAuth authentication errors and rate limiting
  */
-async function handleQwenOAuthError(error?: unknown): Promise<string | null> {
+async function handleForaOAuthError(error?: unknown): Promise<string | null> {
   if (!error) {
     return null;
   }
@@ -99,17 +99,17 @@ async function handleQwenOAuthError(error?: unknown): Promise<string | null> {
     errorMessage.includes('too many requests');
 
   if (isAuthError) {
-    console.warn('Qwen OAuth authentication error detected:', errorMessage);
-    // The QwenContentGenerator should automatically handle token refresh
+    console.warn('Fora OAuth authentication error detected:', errorMessage);
+    // The ForaContentGenerator should automatically handle token refresh
     // If it still fails, it likely means the refresh token is also expired
     console.log(
-      'Note: If this persists, you may need to re-authenticate with Qwen OAuth',
+      'Note: If this persists, you may need to re-authenticate with Fora OAuth',
     );
     return null;
   }
 
   if (isRateLimitError) {
-    console.warn('Qwen API rate limit encountered:', errorMessage);
+    console.warn('Fora API rate limit encountered:', errorMessage);
     // For rate limiting, we don't need to do anything special
     // The retry mechanism will handle the backoff
     return null;

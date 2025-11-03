@@ -69,11 +69,11 @@ export interface ReadManyFilesParams {
   useDefaultExcludes?: boolean;
 
   /**
-   * Whether to respect .gitignore and .qwenignore patterns (optional, defaults to true)
+   * Whether to respect .gitignore and .foraignore patterns (optional, defaults to true)
    */
   file_filtering_options?: {
     respect_git_ignore?: boolean;
-    respect_qwen_ignore?: boolean;
+    respect_fora_ignore?: boolean;
   };
 }
 
@@ -98,7 +98,7 @@ type FileProcessingResult =
 
 /**
  * Creates the default exclusion patterns including dynamic patterns.
- * This combines the shared patterns with dynamic patterns like QWEN.md.
+ * This combines the shared patterns with dynamic patterns like FORA.md.
  * TODO(adh): Consider making this configurable or extendable through a command line argument.
  */
 function getDefaultExcludes(config?: Config): string[] {
@@ -130,17 +130,17 @@ ${this.config.getTargetDir()}
     // Determine the final list of exclusion patterns exactly as in execute method
     const paramExcludes = this.params.exclude || [];
     const paramUseDefaultExcludes = this.params.useDefaultExcludes !== false;
-    const qwenIgnorePatterns = this.config
+    const foraIgnorePatterns = this.config
       .getFileService()
-      .getQwenIgnorePatterns();
+      .getForaIgnorePatterns();
     const finalExclusionPatternsForDescription: string[] =
       paramUseDefaultExcludes
         ? [
             ...getDefaultExcludes(this.config),
             ...paramExcludes,
-            ...qwenIgnorePatterns,
+            ...foraIgnorePatterns,
           ]
-        : [...paramExcludes, ...qwenIgnorePatterns];
+        : [...paramExcludes, ...foraIgnorePatterns];
 
     let excludeDesc = `Excluding: ${
       finalExclusionPatternsForDescription.length > 0
@@ -153,13 +153,13 @@ ${finalExclusionPatternsForDescription
         : 'none specified'
     }`;
 
-    // Add a note if .qwenignore patterns contributed to the final list of exclusions
-    if (qwenIgnorePatterns.length > 0) {
-      const geminiPatternsInEffect = qwenIgnorePatterns.filter((p) =>
+    // Add a note if .foraignore patterns contributed to the final list of exclusions
+    if (foraIgnorePatterns.length > 0) {
+      const geminiPatternsInEffect = foraIgnorePatterns.filter((p) =>
         finalExclusionPatternsForDescription.includes(p),
       ).length;
       if (geminiPatternsInEffect > 0) {
-        excludeDesc += ` (includes ${geminiPatternsInEffect} from .qwenignore)`;
+        excludeDesc += ` (includes ${geminiPatternsInEffect} from .foraignore)`;
       }
     }
 
@@ -222,16 +222,16 @@ ${finalExclusionPatternsForDescription
       );
 
       const fileDiscovery = this.config.getFileService();
-      const { filteredPaths, gitIgnoredCount, qwenIgnoredCount } =
+      const { filteredPaths, gitIgnoredCount, foraIgnoredCount } =
         fileDiscovery.filterFilesWithReport(relativeEntries, {
           respectGitIgnore:
             this.params.file_filtering_options?.respect_git_ignore ??
             this.config.getFileFilteringOptions().respectGitIgnore ??
             DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
-          respectQwenIgnore:
-            this.params.file_filtering_options?.respect_qwen_ignore ??
-            this.config.getFileFilteringOptions().respectQwenIgnore ??
-            DEFAULT_FILE_FILTERING_OPTIONS.respectQwenIgnore,
+          respectForaIgnore:
+            this.params.file_filtering_options?.respect_fora_ignore ??
+            this.config.getFileFilteringOptions().respectForaIgnore ??
+            DEFAULT_FILE_FILTERING_OPTIONS.respectForaIgnore,
         });
 
       for (const relativePath of filteredPaths) {
@@ -258,11 +258,11 @@ ${finalExclusionPatternsForDescription
         });
       }
 
-      // Add info about qwen-ignored files if any were filtered
-      if (qwenIgnoredCount > 0) {
+      // Add info about fora-ignored files if any were filtered
+      if (foraIgnoredCount > 0) {
         skippedFiles.push({
-          path: `${qwenIgnoredCount} file(s)`,
-          reason: 'qwen ignored',
+          path: `${foraIgnoredCount} file(s)`,
+          reason: 'fora ignored',
         });
       }
     } catch (error) {
@@ -530,7 +530,7 @@ export class ReadManyFilesTool extends BaseDeclarativeTool<
         },
         file_filtering_options: {
           description:
-            'Whether to respect ignore patterns from .gitignore or .qwenignore',
+            'Whether to respect ignore patterns from .gitignore or .foraignore',
           type: 'object',
           properties: {
             respect_git_ignore: {
@@ -538,9 +538,9 @@ export class ReadManyFilesTool extends BaseDeclarativeTool<
                 'Optional: Whether to respect .gitignore patterns when listing files. Only available in git repositories. Defaults to true.',
               type: 'boolean',
             },
-            respect_qwen_ignore: {
+            respect_fora_ignore: {
               description:
-                'Optional: Whether to respect .qwenignore patterns when listing files. Defaults to true.',
+                'Optional: Whether to respect .foraignore patterns when listing files. Defaults to true.',
               type: 'boolean',
             },
           },

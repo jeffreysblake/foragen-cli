@@ -15,7 +15,7 @@ import { MessageType } from '../types.js';
 import { GIT_COMMIT_INFO } from '../../generated/git-commit.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
 import { getCliVersion } from '../../utils/version.js';
-import { IdeClient, AuthType } from '@qwen-code/qwen-code-core';
+import { IdeClient, AuthType } from '@jeffreysblake/foragen-cli-core';
 
 export const bugCommand: SlashCommand = {
   name: 'bug',
@@ -28,7 +28,7 @@ export const bugCommand: SlashCommand = {
     const osVersion = `${process.platform} ${process.version}`;
     let sandboxEnv = 'no sandbox';
     if (process.env['SANDBOX'] && process.env['SANDBOX'] !== 'sandbox-exec') {
-      sandboxEnv = process.env['SANDBOX'].replace(/^qwen-(?:code-)?/, '');
+      sandboxEnv = process.env['SANDBOX'].replace(/^fora-(?:code-)?/, '');
     } else if (process.env['SANDBOX'] === 'sandbox-exec') {
       sandboxEnv = `sandbox-exec (${
         process.env['SEATBELT_PROFILE'] || 'unknown'
@@ -64,7 +64,7 @@ export const bugCommand: SlashCommand = {
     }
 
     let bugReportUrl =
-      'https://github.com/QwenLM/qwen-code/issues/new?template=bug_report.yml&title={title}&info={info}';
+      'https://github.com/jeffreysblake/foragen-cli/issues/new?template=bug_report.yml&title={title}&info={info}';
 
     const bugCommandSettings = config?.getBugCommand();
     if (bugCommandSettings?.urlTemplate) {

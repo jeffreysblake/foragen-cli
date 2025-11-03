@@ -25,12 +25,12 @@ import {
   type Extension,
 } from './extension.js';
 import {
-  QWEN_DIR,
+  FORA_DIR,
   type GeminiCLIExtension,
   ExtensionUninstallEvent,
   ExtensionDisableEvent,
   ExtensionEnableEvent,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import { execSync } from 'node:child_process';
 import { SettingScope } from './settings.js';
 import { isWorkspaceTrusted } from './trustedFolders.js';
@@ -76,9 +76,9 @@ const mockLogExtensionEnable = vi.hoisted(() => vi.fn());
 const mockLogExtensionInstallEvent = vi.hoisted(() => vi.fn());
 const mockLogExtensionUninstall = vi.hoisted(() => vi.fn());
 const mockLogExtensionDisable = vi.hoisted(() => vi.fn());
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('@jeffreysblake/foragen-cli-core', async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('@jeffreysblake/foragen-cli-core')>();
   return {
     ...actual,
     logExtensionEnable: mockLogExtensionEnable,
@@ -109,7 +109,7 @@ vi.mock('node:readline', () => ({
   })),
 }));
 
-const EXTENSIONS_DIRECTORY_NAME = path.join(QWEN_DIR, 'extensions');
+const EXTENSIONS_DIRECTORY_NAME = path.join(FORA_DIR, 'extensions');
 
 describe('extension tests', () => {
   let tempHomeDir: string;
@@ -118,10 +118,10 @@ describe('extension tests', () => {
 
   beforeEach(() => {
     tempHomeDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'qwen-code-test-home-'),
+      path.join(os.tmpdir(), 'foragen-cli-test-home-'),
     );
     tempWorkspaceDir = fs.mkdtempSync(
-      path.join(tempHomeDir, 'qwen-code-test-workspace-'),
+      path.join(tempHomeDir, 'foragen-cli-test-workspace-'),
     );
     userExtensionsDir = path.join(tempHomeDir, EXTENSIONS_DIRECTORY_NAME);
     fs.mkdirSync(userExtensionsDir, { recursive: true });
@@ -161,7 +161,7 @@ describe('extension tests', () => {
       expect(extensions[0].config.name).toBe('test-extension');
     });
 
-    it('should load context file path when QWEN.md is present', () => {
+    it('should load context file path when FORA.md is present', () => {
       createExtension({
         extensionsDir: userExtensionsDir,
         name: 'ext1',
@@ -182,7 +182,7 @@ describe('extension tests', () => {
       const ext1 = extensions.find((e) => e.config.name === 'ext1');
       const ext2 = extensions.find((e) => e.config.name === 'ext2');
       expect(ext1?.contextFiles).toEqual([
-        path.join(userExtensionsDir, 'ext1', 'QWEN.md'),
+        path.join(userExtensionsDir, 'ext1', 'FORA.md'),
       ]);
       expect(ext2?.contextFiles).toEqual([]);
     });
@@ -735,7 +735,7 @@ describe('extension tests', () => {
       );
     });
 
-    it('should throw an error and cleanup if qwen-extension.json is missing', async () => {
+    it('should throw an error and cleanup if fora-extension.json is missing', async () => {
       const sourceExtDir = path.join(tempHomeDir, 'bad-extension');
       fs.mkdirSync(sourceExtDir, { recursive: true });
       const configPath = path.join(sourceExtDir, EXTENSIONS_CONFIG_FILENAME);
@@ -751,7 +751,7 @@ describe('extension tests', () => {
       expect(fs.existsSync(targetExtDir)).toBe(false);
     });
 
-    it('should throw an error for invalid JSON in qwen-extension.json', async () => {
+    it('should throw an error for invalid JSON in fora-extension.json', async () => {
       const sourceExtDir = path.join(tempHomeDir, 'bad-json-ext');
       fs.mkdirSync(sourceExtDir, { recursive: true });
       const configPath = path.join(sourceExtDir, EXTENSIONS_CONFIG_FILENAME);
@@ -772,7 +772,7 @@ describe('extension tests', () => {
       );
     });
 
-    it('should throw an error for missing name in qwen-extension.json', async () => {
+    it('should throw an error for missing name in fora-extension.json', async () => {
       const sourceExtDir = createExtension({
         extensionsDir: tempHomeDir,
         name: 'missing-name-ext',
@@ -794,7 +794,7 @@ describe('extension tests', () => {
 
     it('should install an extension from a git URL', async () => {
       const gitUrl = 'https://github.com/google/gemini-extensions.git';
-      const extensionName = 'qwen-extensions';
+      const extensionName = 'fora-extensions';
       const targetExtDir = path.join(userExtensionsDir, extensionName);
       const metadataPath = path.join(targetExtDir, INSTALL_METADATA_FILENAME);
 
@@ -1183,7 +1183,7 @@ This extension will run the following MCP servers:
 
         const userExtensionsDir = path.join(
           tempHomeDir,
-          QWEN_DIR,
+          FORA_DIR,
           'extensions',
         );
         expect(fs.readdirSync(userExtensionsDir).length).toBe(0);
@@ -1244,7 +1244,7 @@ This extension will run the following MCP servers:
 
       expect(failed).toEqual([]);
 
-      const userExtensionsDir = path.join(tempHomeDir, QWEN_DIR, 'extensions');
+      const userExtensionsDir = path.join(tempHomeDir, FORA_DIR, 'extensions');
       const userExt1Path = path.join(userExtensionsDir, 'ext1');
       const extensions = loadExtensions(
         new ExtensionEnablementManager(ExtensionStorage.getUserExtensionsDir()),

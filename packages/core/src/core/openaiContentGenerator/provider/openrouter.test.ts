@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -95,7 +95,7 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
 
       // Should include User-Agent from parent
       expect(headers['User-Agent']).toBe(
-        `QwenCode/1.0.0 (${process.platform}; ${process.arch})`,
+        `ForagenCli/1.0.0 (${process.platform}; ${process.arch})`,
       );
     });
 
@@ -103,9 +103,9 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       const headers = provider.buildHeaders();
 
       expect(headers).toEqual({
-        'User-Agent': `QwenCode/1.0.0 (${process.platform}; ${process.arch})`,
-        'HTTP-Referer': 'https://github.com/QwenLM/qwen-code.git',
-        'X-Title': 'Qwen Code',
+        'User-Agent': `ForagenCli/1.0.0 (${process.platform}; ${process.arch})`,
+        'HTTP-Referer': 'https://github.com/jeffreysblake/foragen-cli.git',
+        'X-Title': 'Fora Code',
       });
     });
 
@@ -124,8 +124,8 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
 
       expect(headers).toEqual({
         'User-Agent': 'ParentAgent/1.0.0',
-        'HTTP-Referer': 'https://github.com/QwenLM/qwen-code.git', // OpenRouter-specific value should override
-        'X-Title': 'Qwen Code',
+        'HTTP-Referer': 'https://github.com/jeffreysblake/foragen-cli.git', // OpenRouter-specific value should override
+        'X-Title': 'Fora Code',
       });
 
       parentBuildHeaders.mockRestore();
@@ -137,12 +137,12 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       const headers = provider.buildHeaders();
 
       expect(headers['User-Agent']).toBe(
-        `QwenCode/unknown (${process.platform}; ${process.arch})`,
+        `ForagenCli/unknown (${process.platform}; ${process.arch})`,
       );
       expect(headers['HTTP-Referer']).toBe(
-        'https://github.com/QwenLM/qwen-code.git',
+        'https://github.com/jeffreysblake/foragen-cli.git',
       );
-      expect(headers['X-Title']).toBe('Qwen Code');
+      expect(headers['X-Title']).toBe('Fora Code');
     });
   });
 
@@ -213,9 +213,9 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       // Should have both parent and OpenRouter-specific headers
       expect(headers['User-Agent']).toBeDefined(); // From parent
       expect(headers['HTTP-Referer']).toBe(
-        'https://github.com/QwenLM/qwen-code.git',
+        'https://github.com/jeffreysblake/foragen-cli.git',
       ); // OpenRouter-specific
-      expect(headers['X-Title']).toBe('Qwen Code'); // OpenRouter-specific
+      expect(headers['X-Title']).toBe('Fora Code'); // OpenRouter-specific
     });
   });
 });

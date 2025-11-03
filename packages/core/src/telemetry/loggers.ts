@@ -51,7 +51,7 @@ import {
   recordTokenUsageMetrics,
   recordToolCallMetrics,
 } from './metrics.js';
-import { QwenLogger } from './qwen-logger/qwen-logger.js';
+import { ForaLogger } from './fora-logger/fora-logger.js';
 import { isTelemetrySdkInitialized } from './sdk.js';
 import type {
   ApiErrorEvent,
@@ -103,7 +103,7 @@ export function logCliConfiguration(
   config: Config,
   event: StartSessionEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logStartSessionEvent(event);
+  ForaLogger.getInstance(config)?.logStartSessionEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -136,7 +136,7 @@ export function logCliConfiguration(
 }
 
 export function logUserPrompt(config: Config, event: UserPromptEvent): void {
-  QwenLogger.getInstance(config)?.logNewPromptEvent(event);
+  ForaLogger.getInstance(config)?.logNewPromptEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -170,7 +170,7 @@ export function logToolCall(config: Config, event: ToolCallEvent): void {
     'event.timestamp': new Date().toISOString(),
   } as UiEvent;
   uiTelemetryService.addEvent(uiEvent);
-  QwenLogger.getInstance(config)?.logToolCallEvent(event);
+  ForaLogger.getInstance(config)?.logToolCallEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -205,7 +205,7 @@ export function logToolOutputTruncated(
   config: Config,
   event: ToolOutputTruncatedEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logToolOutputTruncatedEvent(event);
+  ForaLogger.getInstance(config)?.logToolOutputTruncatedEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -227,7 +227,7 @@ export function logFileOperation(
   config: Config,
   event: FileOperationEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logFileOperationEvent(event);
+  ForaLogger.getInstance(config)?.logFileOperationEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -268,7 +268,7 @@ export function logFileOperation(
 }
 
 export function logApiRequest(config: Config, event: ApiRequestEvent): void {
-  // QwenLogger.getInstance(config)?.logApiRequestEvent(event);
+  // ForaLogger.getInstance(config)?.logApiRequestEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -290,7 +290,7 @@ export function logFlashFallback(
   config: Config,
   event: FlashFallbackEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logFlashFallbackEvent(event);
+  ForaLogger.getInstance(config)?.logFlashFallbackEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -312,7 +312,7 @@ export function logRipgrepFallback(
   config: Config,
   event: RipgrepFallbackEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logRipgrepFallbackEvent();
+  ForaLogger.getInstance(config)?.logRipgrepFallbackEvent();
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -337,7 +337,7 @@ export function logApiError(config: Config, event: ApiErrorEvent): void {
     'event.timestamp': new Date().toISOString(),
   } as UiEvent;
   uiTelemetryService.addEvent(uiEvent);
-  QwenLogger.getInstance(config)?.logApiErrorEvent(event);
+  ForaLogger.getInstance(config)?.logApiErrorEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -377,7 +377,7 @@ export function logApiCancel(config: Config, event: ApiCancelEvent): void {
     'event.timestamp': new Date().toISOString(),
   } as UiEvent;
   uiTelemetryService.addEvent(uiEvent);
-  QwenLogger.getInstance(config)?.logApiCancelEvent(event);
+  ForaLogger.getInstance(config)?.logApiCancelEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -403,7 +403,7 @@ export function logApiResponse(config: Config, event: ApiResponseEvent): void {
     'event.timestamp': new Date().toISOString(),
   } as UiEvent;
   uiTelemetryService.addEvent(uiEvent);
-  QwenLogger.getInstance(config)?.logApiResponseEvent(event);
+  ForaLogger.getInstance(config)?.logApiResponseEvent(event);
   if (!isTelemetrySdkInitialized()) return;
   const attributes: LogAttributes = {
     ...getCommonAttributes(config),
@@ -456,7 +456,7 @@ export function logLoopDetected(
   config: Config,
   event: LoopDetectedEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logLoopDetectedEvent(event);
+  ForaLogger.getInstance(config)?.logLoopDetectedEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -476,14 +476,14 @@ export function logLoopDetectionDisabled(
   config: Config,
   _event: LoopDetectionDisabledEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logLoopDetectionDisabledEvent();
+  ForaLogger.getInstance(config)?.logLoopDetectionDisabledEvent();
 }
 
 export function logNextSpeakerCheck(
   config: Config,
   event: NextSpeakerCheckEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logNextSpeakerCheck(event);
+  ForaLogger.getInstance(config)?.logNextSpeakerCheck(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -504,7 +504,7 @@ export function logSlashCommand(
   config: Config,
   event: SlashCommandEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logSlashCommandEvent(event);
+  ForaLogger.getInstance(config)?.logSlashCommandEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -525,7 +525,7 @@ export function logIdeConnection(
   config: Config,
   event: IdeConnectionEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logIdeConnectionEvent(event);
+  ForaLogger.getInstance(config)?.logIdeConnectionEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -546,7 +546,7 @@ export function logConversationFinishedEvent(
   config: Config,
   event: ConversationFinishedEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logConversationFinishedEvent(event);
+  ForaLogger.getInstance(config)?.logConversationFinishedEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -567,7 +567,7 @@ export function logChatCompression(
   config: Config,
   event: ChatCompressionEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logChatCompressionEvent(event);
+  ForaLogger.getInstance(config)?.logChatCompressionEvent(event);
 
   const attributes: LogAttributes = {
     ...getCommonAttributes(config),
@@ -592,7 +592,7 @@ export function logKittySequenceOverflow(
   config: Config,
   event: KittySequenceOverflowEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logKittySequenceOverflowEvent(event);
+  ForaLogger.getInstance(config)?.logKittySequenceOverflowEvent(event);
   if (!isTelemetrySdkInitialized()) return;
   const attributes: LogAttributes = {
     ...getCommonAttributes(config),
@@ -610,7 +610,7 @@ export function logMalformedJsonResponse(
   config: Config,
   event: MalformedJsonResponseEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logMalformedJsonResponseEvent(event);
+  ForaLogger.getInstance(config)?.logMalformedJsonResponseEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -631,7 +631,7 @@ export function logInvalidChunk(
   config: Config,
   event: InvalidChunkEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logInvalidChunkEvent(event);
+  ForaLogger.getInstance(config)?.logInvalidChunkEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -657,7 +657,7 @@ export function logContentRetry(
   config: Config,
   event: ContentRetryEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logContentRetryEvent(event);
+  ForaLogger.getInstance(config)?.logContentRetryEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -679,7 +679,7 @@ export function logContentRetryFailure(
   config: Config,
   event: ContentRetryFailureEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logContentRetryFailureEvent(event);
+  ForaLogger.getInstance(config)?.logContentRetryFailureEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -701,7 +701,7 @@ export function logSubagentExecution(
   config: Config,
   event: SubagentExecutionEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logSubagentExecutionEvent(event);
+  ForaLogger.getInstance(config)?.logSubagentExecutionEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -729,7 +729,7 @@ export function logModelSlashCommand(
   config: Config,
   event: ModelSlashCommandEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logModelSlashCommandEvent(event);
+  ForaLogger.getInstance(config)?.logModelSlashCommandEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -751,7 +751,7 @@ export function logExtensionInstallEvent(
   config: Config,
   event: ExtensionInstallEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logExtensionInstallEvent(event);
+  ForaLogger.getInstance(config)?.logExtensionInstallEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -777,7 +777,7 @@ export function logExtensionUninstall(
   config: Config,
   event: ExtensionUninstallEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logExtensionUninstallEvent(event);
+  ForaLogger.getInstance(config)?.logExtensionUninstallEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -799,7 +799,7 @@ export function logExtensionEnable(
   config: Config,
   event: ExtensionEnableEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logExtensionEnableEvent(event);
+  ForaLogger.getInstance(config)?.logExtensionEnableEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {
@@ -821,7 +821,7 @@ export function logExtensionDisable(
   config: Config,
   event: ExtensionDisableEvent,
 ): void {
-  QwenLogger.getInstance(config)?.logExtensionDisableEvent(event);
+  ForaLogger.getInstance(config)?.logExtensionDisableEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
   const attributes: LogAttributes = {

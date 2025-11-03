@@ -6,7 +6,7 @@
 
 import type React from 'react';
 import { useState } from 'react';
-import { AuthType } from '@qwen-code/qwen-code-core';
+import { AuthType } from '@jeffreysblake/foragen-cli-core';
 import { Box, Text } from 'ink';
 import { validateAuthMethod } from '../../config/auth.js';
 import { type LoadedSettings, SettingScope } from '../../config/settings.js';
@@ -52,9 +52,9 @@ export function AuthDialog({
   const [showOpenAIKeyPrompt, setShowOpenAIKeyPrompt] = useState(false);
   const items = [
     {
-      key: AuthType.QWEN_OAUTH,
-      label: 'Qwen OAuth',
-      value: AuthType.QWEN_OAUTH,
+      key: AuthType.FORA_OAUTH,
+      label: 'Fora OAuth',
+      value: AuthType.FORA_OAUTH,
     },
     { key: AuthType.USE_OPENAI, label: 'OpenAI', value: AuthType.USE_OPENAI },
   ];
@@ -67,13 +67,13 @@ export function AuthDialog({
       }
 
       const defaultAuthType = parseDefaultAuthType(
-        process.env['QWEN_DEFAULT_AUTH_TYPE'],
+        process.env['FORA_DEFAULT_AUTH_TYPE'],
       );
       if (defaultAuthType) {
         return item.value === defaultAuthType;
       }
 
-      return item.value === AuthType.QWEN_OAUTH;
+      return item.value === AuthType.FORA_OAUTH;
     }),
   );
 
@@ -175,11 +175,11 @@ export function AuthDialog({
         <Text color={Colors.AccentPurple}>(Use Enter to Set Auth)</Text>
       </Box>
       <Box marginTop={1}>
-        <Text>Terms of Services and Privacy Notice for Qwen Code</Text>
+        <Text>Terms of Services and Privacy Notice for Fora Code</Text>
       </Box>
       <Box marginTop={1}>
         <Text color={Colors.AccentBlue}>
-          {'https://github.com/QwenLM/Qwen3-Coder/blob/main/README.md'}
+          {'https://github.com/ForaLM/Fora3-Coder/blob/main/README.md'}
         </Text>
       </Box>
     </Box>

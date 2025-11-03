@@ -1,28 +1,28 @@
 # Authentication Setup
 
-Qwen Code supports two main authentication methods to access AI models. Choose the method that best fits your use case:
+Fora Code supports two main authentication methods to access AI models. Choose the method that best fits your use case:
 
-1.  **Qwen OAuth (Recommended):**
-    - Use this option to log in with your qwen.ai account.
-    - During initial startup, Qwen Code will direct you to the qwen.ai authentication page. Once authenticated, your credentials will be cached locally so the web login can be skipped on subsequent runs.
+1.  **Fora OAuth (Recommended):**
+    - Use this option to log in with your fora.ai account.
+    - During initial startup, Fora Code will direct you to the fora.ai authentication page. Once authenticated, your credentials will be cached locally so the web login can be skipped on subsequent runs.
     - **Requirements:**
-      - Valid qwen.ai account
+      - Valid fora.ai account
       - Internet connection for initial authentication
     - **Benefits:**
-      - Seamless access to Qwen models
+      - Seamless access to Fora models
       - Automatic credential refresh
       - No manual API key management required
 
     **Getting Started:**
 
     ```bash
-    # Start Qwen Code and follow the OAuth flow
-    qwen
+    # Start Fora Code and follow the OAuth flow
+    fora
     ```
 
     The CLI will automatically open your browser and guide you through the authentication process.
 
-    **For users who authenticate using their qwen.ai account:**
+    **For users who authenticate using their fora.ai account:**
 
     **Quota:**
     - 60 requests per minute
@@ -77,17 +77,17 @@ This will allow you to reconfigure your authentication method without restarting
 
 ### Persisting Environment Variables with `.env` Files
 
-You can create a **`.qwen/.env`** file in your project directory or in your home directory. Creating a plain **`.env`** file also works, but `.qwen/.env` is recommended to keep Qwen Code variables isolated from other tools.
+You can create a **`.fora/.env`** file in your project directory or in your home directory. Creating a plain **`.env`** file also works, but `.fora/.env` is recommended to keep Fora Code variables isolated from other tools.
 
-**Important:** Some environment variables (like `DEBUG` and `DEBUG_MODE`) are automatically excluded from project `.env` files to prevent interference with qwen-code behavior. Use `.qwen/.env` files for qwen-code specific variables.
+**Important:** Some environment variables (like `DEBUG` and `DEBUG_MODE`) are automatically excluded from project `.env` files to prevent interference with foragen-cli behavior. Use `.fora/.env` files for foragen-cli specific variables.
 
-Qwen Code automatically loads environment variables from the **first** `.env` file it finds, using the following search order:
+Fora Code automatically loads environment variables from the **first** `.env` file it finds, using the following search order:
 
 1. Starting in the **current directory** and moving upward toward `/`, for each directory it checks:
-   1. `.qwen/.env`
+   1. `.fora/.env`
    2. `.env`
 2. If no file is found, it falls back to your **home directory**:
-   - `~/.qwen/.env`
+   - `~/.fora/.env`
    - `~/.env`
 
 > **Important:** The search stops at the **first** file encountered—variables are **not merged** across multiple files.
@@ -97,28 +97,28 @@ Qwen Code automatically loads environment variables from the **first** `.env` fi
 **Project-specific overrides** (take precedence when you are inside the project):
 
 ```bash
-mkdir -p .qwen
-cat >> .qwen/.env <<'EOF'
+mkdir -p .fora
+cat >> .fora/.env <<'EOF'
 OPENAI_API_KEY="your-api-key"
 OPENAI_BASE_URL="https://api-inference.modelscope.cn/v1"
-OPENAI_MODEL="Qwen/Qwen3-Coder-480B-A35B-Instruct"
+OPENAI_MODEL="Fora/Fora3-Coder-480B-A35B-Instruct"
 EOF
 ```
 
 **User-wide settings** (available in every directory):
 
 ```bash
-mkdir -p ~/.qwen
-cat >> ~/.qwen/.env <<'EOF'
+mkdir -p ~/.fora
+cat >> ~/.fora/.env <<'EOF'
 OPENAI_API_KEY="your-api-key"
 OPENAI_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
-OPENAI_MODEL="qwen3-coder-plus"
+OPENAI_MODEL="fora3-coder-plus"
 EOF
 ```
 
 ## Non-Interactive Mode / Headless Environments
 
-When running Qwen Code in a non-interactive environment, you cannot use the OAuth login flow.
+When running Fora Code in a non-interactive environment, you cannot use the OAuth login flow.
 Instead, you must configure authentication using environment variables.
 
 The CLI will automatically detect if it is running in a non-interactive terminal and will use the
@@ -133,5 +133,5 @@ OpenAI-compatible API method if configured:
 
 If none of these environment variables are set in a non-interactive session, the CLI will exit with an error.
 
-For comprehensive guidance on using Qwen COde programmatically and in
+For comprehensive guidance on using Fora COde programmatically and in
 automation workflows, see the [Headless Mode Guide](../headless.md).

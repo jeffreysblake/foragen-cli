@@ -38,7 +38,7 @@ export const AboutBox: React.FC<AboutBoxProps> = ({
   >
     <Box marginBottom={1}>
       <Text bold color={theme.text.accent}>
-        About Qwen Code
+        About Fora Code
       </Text>
     </Box>
     <Box flexDirection="row">

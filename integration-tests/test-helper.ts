@@ -168,8 +168,8 @@ export class TestRig {
     mkdirSync(this.testDir, { recursive: true });
 
     // Create a settings file to point the CLI to the local collector
-    const qwenDir = join(this.testDir, '.qwen');
-    mkdirSync(qwenDir, { recursive: true });
+    const foraDir = join(this.testDir, '.fora');
+    mkdirSync(foraDir, { recursive: true });
     // In sandbox mode, use an absolute path for telemetry inside the container
     // The container mounts the test directory at the same path as the host
     const telemetryPath = join(this.testDir, 'telemetry.log'); // Always use test directory for telemetry
@@ -185,7 +185,7 @@ export class TestRig {
       ...options.settings, // Allow tests to override/add settings
     };
     writeFileSync(
-      join(qwenDir, 'settings.json'),
+      join(foraDir, 'settings.json'),
       JSON.stringify(settings, null, 2),
     );
   }
@@ -206,9 +206,9 @@ export class TestRig {
   }
 
   /**
-   * The command and args to use to invoke Qwen Code CLI. Allows us to switch
+   * The command and args to use to invoke Fora Code CLI. Allows us to switch
    * between using the bundled gemini.js (the default) and using the installed
-   * 'qwen' (used to verify npm bundles).
+   * 'fora' (used to verify npm bundles).
    */
   private _getCommandAndArgs(extraInitialArgs: string[] = []): {
     command: string;
@@ -216,7 +216,7 @@ export class TestRig {
   } {
     const isNpmReleaseTest =
       process.env.INTEGRATION_TEST_USE_INSTALLED_GEMINI === 'true';
-    const command = isNpmReleaseTest ? 'qwen' : 'node';
+    const command = isNpmReleaseTest ? 'fora' : 'node';
     const initialArgs = isNpmReleaseTest
       ? extraInitialArgs
       : [this.bundlePath, ...extraInitialArgs];
@@ -470,7 +470,7 @@ export class TestRig {
         return logs.some(
           (logData) =>
             logData.attributes &&
-            logData.attributes['event.name'] === `qwen-code.${eventName}`,
+            logData.attributes['event.name'] === `foragen-cli.${eventName}`,
         );
       },
       timeout,
@@ -644,7 +644,7 @@ export class TestRig {
                 }
               } else if (
                 obj.attributes &&
-                obj.attributes['event.name'] === 'qwen-code.tool_call'
+                obj.attributes['event.name'] === 'foragen-cli.tool_call'
               ) {
                 logs.push({
                   timestamp: obj.attributes['event.timestamp'],
@@ -750,7 +750,7 @@ export class TestRig {
       // Look for tool call logs
       if (
         logData.attributes &&
-        logData.attributes['event.name'] === 'qwen-code.tool_call'
+        logData.attributes['event.name'] === 'foragen-cli.tool_call'
       ) {
         const toolName = logData.attributes.function_name;
         logs.push({
@@ -772,7 +772,7 @@ export class TestRig {
     const apiRequests = logs.filter(
       (logData) =>
         logData.attributes &&
-        logData.attributes['event.name'] === 'qwen-code.api_request',
+        logData.attributes['event.name'] === 'foragen-cli.api_request',
     );
     return apiRequests.pop() || null;
   }
@@ -783,7 +783,7 @@ export class TestRig {
       if (logData.scopeMetrics) {
         for (const scopeMetric of logData.scopeMetrics) {
           for (const metric of scopeMetric.metrics) {
-            if (metric.descriptor.name === `qwen-code.${metricName}`) {
+            if (metric.descriptor.name === `foragen-cli.${metricName}`) {
               return metric;
             }
           }

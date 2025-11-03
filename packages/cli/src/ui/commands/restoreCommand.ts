@@ -12,7 +12,7 @@ import {
   type SlashCommandActionReturn,
   CommandKind,
 } from './types.js';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from '@jeffreysblake/foragen-cli-core';
 
 async function restoreAction(
   context: CommandContext,

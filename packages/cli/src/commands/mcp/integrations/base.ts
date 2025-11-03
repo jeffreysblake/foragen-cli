@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MCPServerConfig } from '@qwen-code/qwen-code-core';
+import { MCPServerConfig } from '@jeffreysblake/foragen-cli-core';
 import { loadSettings, SettingScope } from '../../../config/settings.js';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
@@ -74,7 +74,7 @@ export abstract class BaseMCPIntegration {
     settings.setValue(settingsScope, 'mcpServers', mcpServers);
 
     console.log(`✅ ${this.name} MCP integration installed successfully!`);
-    console.log(`   Use 'qwen mcp list' to see available servers.`);
+    console.log(`   Use 'fora mcp list' to see available servers.`);
   }
 
   /**

@@ -116,7 +116,7 @@ describe('ide-installer', () => {
           'code',
           [
             '--install-extension',
-            'qwenlm.qwen-code-vscode-ide-companion',
+            'jeffreysblake.foragen-cli-vscode-companion',
             '--force',
           ],
           { stdio: 'pipe' },

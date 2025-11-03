@@ -8,7 +8,7 @@ import path from 'node:path';
 import os from 'node:os';
 import * as crypto from 'node:crypto';
 
-export const QWEN_DIR = '.qwen';
+export const FORA_DIR = '.fora';
 export const GOOGLE_ACCOUNTS_FILENAME = 'google_accounts.json';
 
 /**

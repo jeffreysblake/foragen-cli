@@ -23,7 +23,7 @@ export class DefaultOpenAICompatibleProvider
 
   buildHeaders(): Record<string, string | undefined> {
     const version = this.cliConfig.getCliVersion() || 'unknown';
-    const userAgent = `QwenCode/${version} (${process.platform}; ${process.arch})`;
+    const userAgent = `ForagenCli/${version} (${process.platform}; ${process.arch})`;
     return {
       'User-Agent': userAgent,
     };

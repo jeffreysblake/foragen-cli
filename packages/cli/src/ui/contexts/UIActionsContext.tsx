@@ -8,7 +8,7 @@ import { createContext, useContext } from 'react';
 import { type Key } from '../hooks/useKeypress.js';
 import { type IdeIntegrationNudgeResult } from '../IdeIntegrationNudge.js';
 import { type FolderTrustChoice } from '../components/FolderTrustDialog.js';
-import { type AuthType, type EditorType } from '@qwen-code/qwen-code-core';
+import { type AuthType, type EditorType } from '@jeffreysblake/foragen-cli-core';
 import { type SettingScope } from '../../config/settings.js';
 import type { AuthState } from '../types.js';
 import { type VisionSwitchOutcome } from '../components/ModelSwitchDialog.js';
@@ -25,9 +25,9 @@ export interface UIActions {
   ) => void;
   setAuthState: (state: AuthState) => void;
   onAuthError: (error: string) => void;
-  // Qwen OAuth handlers
-  handleQwenAuthTimeout: () => void;
-  handleQwenAuthCancel: () => void;
+  // Fora OAuth handlers
+  handleForaAuthTimeout: () => void;
+  handleForaAuthCancel: () => void;
   handleEditorSelect: (
     editorType: EditorType | undefined,
     scope: SettingScope,

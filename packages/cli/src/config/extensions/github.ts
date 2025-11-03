@@ -9,7 +9,7 @@ import { getErrorMessage } from '../../utils/errors.js';
 import type {
   ExtensionInstallMetadata,
   GeminiCLIExtension,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import { ExtensionUpdateState } from '../../ui/state/extensions.js';
 import * as os from 'node:os';
 import * as https from 'node:https';
@@ -276,7 +276,7 @@ export async function downloadFromGitHubRelease(
     // For regular github releases, the repository is put inside of a top level
     // directory. In this case we should see exactly two file in the destination
     // dir, the archive and the directory. If we see that, validate that the
-    // dir has a qwen extension configuration file and then move all files
+    // dir has a fora extension configuration file and then move all files
     // from the directory up one level into the destination directory.
     const entries = await fs.promises.readdir(destination, {
       withFileTypes: true,

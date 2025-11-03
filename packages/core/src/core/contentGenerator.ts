@@ -14,7 +14,7 @@ import type {
 } from '@google/genai';
 import { GoogleGenAI } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
-import { DEFAULT_QWEN_MODEL } from '../config/models.js';
+import { DEFAULT_FORA_MODEL } from '../config/models.js';
 import type { Config } from '../config/config.js';
 
 import type { UserTierId } from '../code_assist/types.js';
@@ -48,7 +48,7 @@ export enum AuthType {
   USE_VERTEX_AI = 'vertex-ai',
   CLOUD_SHELL = 'cloud-shell',
   USE_OPENAI = 'openai',
-  QWEN_OAUTH = 'qwen-oauth',
+  FORA_OAUTH = 'fora-oauth',
   LOCAL = 'local',
   API_KEY = 'api-key',
 }
@@ -90,13 +90,13 @@ export function createContentGeneratorConfig(
     proxy: config?.getProxy(),
   };
 
-  if (authType === AuthType.QWEN_OAUTH) {
-    // For Qwen OAuth, we'll handle the API key dynamically in createContentGenerator
-    // Set a special marker to indicate this is Qwen OAuth
+  if (authType === AuthType.FORA_OAUTH) {
+    // For Fora OAuth, we'll handle the API key dynamically in createContentGenerator
+    // Set a special marker to indicate this is Fora OAuth
     return {
       ...newContentGeneratorConfig,
-      model: DEFAULT_QWEN_MODEL,
-      apiKey: 'QWEN_OAUTH_DYNAMIC_TOKEN',
+      model: DEFAULT_FORA_MODEL,
+      apiKey: 'FORA_OAUTH_DYNAMIC_TOKEN',
     } as ContentGeneratorConfig;
   }
 
@@ -108,7 +108,7 @@ export function createContentGeneratorConfig(
 
     return {
       ...newContentGeneratorConfig,
-      model: newContentGeneratorConfig?.model || DEFAULT_QWEN_MODEL,
+      model: newContentGeneratorConfig?.model || DEFAULT_FORA_MODEL,
     } as ContentGeneratorConfig;
   }
 
@@ -120,13 +120,13 @@ export function createContentGeneratorConfig(
 
     return {
       ...newContentGeneratorConfig,
-      model: newContentGeneratorConfig?.model || 'qwen3-coder-plus',
+      model: newContentGeneratorConfig?.model || 'fora3-coder-plus',
     } as ContentGeneratorConfig;
   }
 
   return {
     ...newContentGeneratorConfig,
-    model: newContentGeneratorConfig?.model || DEFAULT_QWEN_MODEL,
+    model: newContentGeneratorConfig?.model || DEFAULT_FORA_MODEL,
   } as ContentGeneratorConfig;
 }
 
@@ -136,7 +136,7 @@ export async function createContentGenerator(
   sessionId?: string,
 ): Promise<ContentGenerator> {
   const version = process.env['CLI_VERSION'] || process.version;
-  const userAgent = `QwenCode/${version} (${process.platform}; ${process.arch})`;
+  const userAgent = `ForagenCli/${version} (${process.platform}; ${process.arch})`;
   const baseHeaders: Record<string, string> = {
     'User-Agent': userAgent,
   };
@@ -197,24 +197,24 @@ export async function createContentGenerator(
     return createOpenAIContentGenerator(config, gcConfig);
   }
 
-  if (config.authType === AuthType.QWEN_OAUTH) {
+  if (config.authType === AuthType.FORA_OAUTH) {
     // Import required classes dynamically
-    const { getQwenOAuthClient: getQwenOauthClient } = await import(
-      '../qwen/qwenOAuth2.js'
+    const { getForaOAuthClient: getForaOauthClient } = await import(
+      '../fora/foraOAuth2.js'
     );
-    const { QwenContentGenerator } = await import(
-      '../qwen/qwenContentGenerator.js'
+    const { ForaContentGenerator } = await import(
+      '../fora/foraContentGenerator.js'
     );
 
     try {
-      // Get the Qwen OAuth client (now includes integrated token management)
-      const qwenClient = await getQwenOauthClient(gcConfig);
+      // Get the Fora OAuth client (now includes integrated token management)
+      const foraClient = await getForaOauthClient(gcConfig);
 
       // Create the content generator with dynamic token management
-      return new QwenContentGenerator(qwenClient, config, gcConfig);
+      return new ForaContentGenerator(foraClient, config, gcConfig);
     } catch (error) {
       throw new Error(
-        `Failed to initialize Qwen: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to initialize Fora: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

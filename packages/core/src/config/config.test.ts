@@ -13,7 +13,7 @@ import { setGeminiMdFilename as mockSetGeminiMdFilename } from '../tools/memoryT
 import {
   DEFAULT_TELEMETRY_TARGET,
   DEFAULT_OTLP_ENDPOINT,
-  QwenLogger,
+  ForaLogger,
 } from '../telemetry/index.js';
 import type { ContentGeneratorConfig } from '../core/contentGenerator.js';
 import { DEFAULT_DASHSCOPE_BASE_URL } from '../core/openaiContentGenerator/constants.js';
@@ -91,9 +91,9 @@ vi.mock('../tools/read-many-files');
 vi.mock('../tools/memoryTool', () => ({
   MemoryTool: vi.fn(),
   setGeminiMdFilename: vi.fn(),
-  getCurrentGeminiMdFilename: vi.fn(() => 'QWEN.md'), // Mock the original filename
-  DEFAULT_CONTEXT_FILENAME: 'QWEN.md',
-  QWEN_CONFIG_DIR: '.qwen',
+  getCurrentGeminiMdFilename: vi.fn(() => 'FORA.md'), // Mock the original filename
+  DEFAULT_CONTEXT_FILENAME: 'FORA.md',
+  FORA_CONFIG_DIR: '.fora',
 }));
 
 vi.mock('../core/contentGenerator.js');
@@ -153,7 +153,7 @@ vi.mock('../core/tokenLimits.js', () => ({
 }));
 
 describe('Server Config (config.ts)', () => {
-  const MODEL = 'qwen3-coder-plus';
+  const MODEL = 'fora3-coder-plus';
 
   // Default mock for canUseRipgrep to return true (tests that care about ripgrep will override this)
   beforeEach(() => {
@@ -161,7 +161,7 @@ describe('Server Config (config.ts)', () => {
   });
   const SANDBOX: SandboxConfig = {
     command: 'docker',
-    image: 'qwen-code-sandbox',
+    image: 'foragen-cli-sandbox',
   };
   const TARGET_DIR = '/path/to/target';
   const DEBUG_MODE = false;
@@ -189,7 +189,7 @@ describe('Server Config (config.ts)', () => {
   beforeEach(() => {
     // Reset mocks if necessary
     vi.clearAllMocks();
-    vi.spyOn(QwenLogger.prototype, 'logStartSessionEvent').mockImplementation(
+    vi.spyOn(ForaLogger.prototype, 'logStartSessionEvent').mockImplementation(
       () => undefined,
     );
   });
@@ -238,7 +238,7 @@ describe('Server Config (config.ts)', () => {
       const authType = AuthType.USE_GEMINI;
       const mockContentConfig = {
         apiKey: 'test-key',
-        model: 'qwen3-coder-plus',
+        model: 'fora3-coder-plus',
       };
 
       vi.mocked(createContentGeneratorConfig).mockReturnValue(
@@ -451,7 +451,7 @@ describe('Server Config (config.ts)', () => {
       });
       await config.refreshAuth(AuthType.USE_GEMINI);
 
-      expect(QwenLogger.prototype.logStartSessionEvent).toHaveBeenCalledOnce();
+      expect(ForaLogger.prototype.logStartSessionEvent).toHaveBeenCalledOnce();
     });
   });
 

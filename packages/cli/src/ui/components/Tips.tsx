@@ -7,7 +7,7 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
 import { theme } from '../semantic-colors.js';
-import { type Config } from '@qwen-code/qwen-code-core';
+import { type Config } from '@jeffreysblake/foragen-cli-core';
 
 interface TipsProps {
   config: Config;
@@ -28,9 +28,9 @@ export const Tips: React.FC<TipsProps> = ({ config }) => {
         <Text color={theme.text.primary}>
           3. Create{' '}
           <Text bold color={theme.text.accent}>
-            QWEN.md
+            FORA.md
           </Text>{' '}
-          files to customize your interactions with Qwen Code.
+          files to customize your interactions with Fora Code.
         </Text>
       )}
       <Text color={theme.text.primary}>

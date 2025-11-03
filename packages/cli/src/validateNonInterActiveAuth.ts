@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Config } from '@qwen-code/qwen-code-core';
-import { AuthType, OutputFormat } from '@qwen-code/qwen-code-core';
+import type { Config } from '@jeffreysblake/foragen-cli-core';
+import { AuthType, OutputFormat } from '@jeffreysblake/foragen-cli-core';
 import { USER_SETTINGS_PATH } from './config/settings.js';
 import { validateAuthMethod } from './config/auth.js';
 import { type LoadedSettings } from './config/settings.js';
@@ -15,8 +15,8 @@ function getAuthTypeFromEnv(): AuthType | undefined {
   if (process.env['OPENAI_API_KEY']) {
     return AuthType.USE_OPENAI;
   }
-  if (process.env['QWEN_OAUTH']) {
-    return AuthType.QWEN_OAUTH;
+  if (process.env['FORA_OAUTH']) {
+    return AuthType.FORA_OAUTH;
   }
 
   return undefined;
@@ -42,7 +42,7 @@ export async function validateNonInteractiveAuth(
       enforcedType || getAuthTypeFromEnv() || configuredAuthType;
 
     if (!effectiveAuthType) {
-      const message = `Please set an Auth method in your ${USER_SETTINGS_PATH} or specify one of the following environment variables before running: QWEN_OAUTH, OPENAI_API_KEY`;
+      const message = `Please set an Auth method in your ${USER_SETTINGS_PATH} or specify one of the following environment variables before running: FORA_OAUTH, OPENAI_API_KEY`;
       throw new Error(message);
     }
 

@@ -39,7 +39,7 @@ describe('JSON output', () => {
     process.env['OPENAI_API_KEY'] = 'test-key';
     await rig.setup('json-output-auth-mismatch', {
       settings: {
-        security: { auth: { enforcedType: 'qwen-oauth' } },
+        security: { auth: { enforcedType: 'fora-oauth' } },
       },
     });
 
@@ -80,7 +80,7 @@ describe('JSON output', () => {
     expect(payload.error.type).toBe('Error');
     expect(payload.error.code).toBe(1);
     expect(payload.error.message).toContain(
-      'configured auth type is qwen-oauth',
+      'configured auth type is fora-oauth',
     );
     expect(payload.error.message).toContain('current auth type is openai');
   });

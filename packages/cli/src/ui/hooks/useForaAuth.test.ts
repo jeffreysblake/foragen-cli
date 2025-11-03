@@ -1,23 +1,23 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import type { DeviceAuthorizationInfo } from './useQwenAuth.js';
-import { useQwenAuth } from './useQwenAuth.js';
+import type { DeviceAuthorizationInfo } from './useForaAuth.js';
+import { useForaAuth } from './useForaAuth.js';
 import {
   AuthType,
-  qwenOAuth2Events,
-  QwenOAuth2Event,
-} from '@qwen-code/qwen-code-core';
+  foraOAuth2Events,
+  ForaOAuth2Event,
+} from '@jeffreysblake/foragen-cli-core';
 import type { LoadedSettings } from '../../config/settings.js';
 
-// Mock the qwenOAuth2Events
-vi.mock('@qwen-code/qwen-code-core', async () => {
-  const actual = await vi.importActual('@qwen-code/qwen-code-core');
+// Mock the foraOAuth2Events
+vi.mock('@jeffreysblake/foragen-cli-core', async () => {
+  const actual = await vi.importActual('@jeffreysblake/foragen-cli-core');
   const mockEmitter = {
     on: vi.fn().mockReturnThis(),
     off: vi.fn().mockReturnThis(),
@@ -25,20 +25,20 @@ vi.mock('@qwen-code/qwen-code-core', async () => {
   };
   return {
     ...actual,
-    qwenOAuth2Events: mockEmitter,
-    QwenOAuth2Event: {
+    foraOAuth2Events: mockEmitter,
+    ForaOAuth2Event: {
       AuthUri: 'authUri',
       AuthProgress: 'authProgress',
     },
   };
 });
 
-const mockQwenOAuth2Events = vi.mocked(qwenOAuth2Events);
+const mockForaOAuth2Events = vi.mocked(foraOAuth2Events);
 
-describe('useQwenAuth', () => {
+describe('useForaAuth', () => {
   const mockDeviceAuth: DeviceAuthorizationInfo = {
-    verification_uri: 'https://oauth.qwen.com/device',
-    verification_uri_complete: 'https://oauth.qwen.com/device?user_code=ABC123',
+    verification_uri: 'https://oauth.fora.com/device',
+    verification_uri_complete: 'https://oauth.fora.com/device?user_code=ABC123',
     user_code: 'ABC123',
     expires_in: 1800,
   };
@@ -62,60 +62,60 @@ describe('useQwenAuth', () => {
     vi.clearAllMocks();
   });
 
-  it('should initialize with default state when not Qwen auth', () => {
+  it('should initialize with default state when not Fora auth', () => {
     const settings = createMockSettings(AuthType.USE_GEMINI);
-    const { result } = renderHook(() => useQwenAuth(settings, false));
+    const { result } = renderHook(() => useForaAuth(settings, false));
 
     expect(result.current).toEqual({
-      isQwenAuthenticating: false,
+      isForaAuthenticating: false,
       deviceAuth: null,
       authStatus: 'idle',
       authMessage: null,
-      isQwenAuth: false,
-      cancelQwenAuth: expect.any(Function),
+      isForaAuth: false,
+      cancelForaAuth: expect.any(Function),
     });
   });
 
-  it('should initialize with default state when Qwen auth but not authenticating', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
-    const { result } = renderHook(() => useQwenAuth(settings, false));
+  it('should initialize with default state when Fora auth but not authenticating', () => {
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
+    const { result } = renderHook(() => useForaAuth(settings, false));
 
     expect(result.current).toEqual({
-      isQwenAuthenticating: false,
+      isForaAuthenticating: false,
       deviceAuth: null,
       authStatus: 'idle',
       authMessage: null,
-      isQwenAuth: true,
-      cancelQwenAuth: expect.any(Function),
+      isForaAuth: true,
+      cancelForaAuth: expect.any(Function),
     });
   });
 
-  it('should set up event listeners when Qwen auth and authenticating', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
-    renderHook(() => useQwenAuth(settings, true));
+  it('should set up event listeners when Fora auth and authenticating', () => {
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
+    renderHook(() => useForaAuth(settings, true));
 
-    expect(mockQwenOAuth2Events.on).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthUri,
+    expect(mockForaOAuth2Events.on).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthUri,
       expect.any(Function),
     );
-    expect(mockQwenOAuth2Events.on).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthProgress,
+    expect(mockForaOAuth2Events.on).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthProgress,
       expect.any(Function),
     );
   });
 
   it('should handle device auth event', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleDeviceAuth: (deviceAuth: DeviceAuthorizationInfo) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthUri) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthUri) {
         handleDeviceAuth = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
     act(() => {
       handleDeviceAuth!(mockDeviceAuth);
@@ -123,24 +123,24 @@ describe('useQwenAuth', () => {
 
     expect(result.current.deviceAuth).toEqual(mockDeviceAuth);
     expect(result.current.authStatus).toBe('polling');
-    expect(result.current.isQwenAuthenticating).toBe(true);
+    expect(result.current.isForaAuthenticating).toBe(true);
   });
 
   it('should handle auth progress event - success', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleAuthProgress: (
       status: 'success' | 'error' | 'polling' | 'timeout' | 'rate_limit',
       message?: string,
     ) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthProgress) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthProgress) {
         handleAuthProgress = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
     act(() => {
       handleAuthProgress!('success', 'Authentication successful!');
@@ -151,20 +151,20 @@ describe('useQwenAuth', () => {
   });
 
   it('should handle auth progress event - error', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleAuthProgress: (
       status: 'success' | 'error' | 'polling' | 'timeout' | 'rate_limit',
       message?: string,
     ) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthProgress) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthProgress) {
         handleAuthProgress = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
     act(() => {
       handleAuthProgress!('error', 'Authentication failed');
@@ -175,20 +175,20 @@ describe('useQwenAuth', () => {
   });
 
   it('should handle auth progress event - polling', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleAuthProgress: (
       status: 'success' | 'error' | 'polling' | 'timeout' | 'rate_limit',
       message?: string,
     ) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthProgress) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthProgress) {
         handleAuthProgress = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
     act(() => {
       handleAuthProgress!('polling', 'Waiting for user authorization...');
@@ -201,20 +201,20 @@ describe('useQwenAuth', () => {
   });
 
   it('should handle auth progress event - rate_limit', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleAuthProgress: (
       status: 'success' | 'error' | 'polling' | 'timeout' | 'rate_limit',
       message?: string,
     ) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthProgress) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthProgress) {
         handleAuthProgress = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
     act(() => {
       handleAuthProgress!(
@@ -230,20 +230,20 @@ describe('useQwenAuth', () => {
   });
 
   it('should handle auth progress event without message', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleAuthProgress: (
       status: 'success' | 'error' | 'polling' | 'timeout' | 'rate_limit',
       message?: string,
     ) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthProgress) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthProgress) {
         handleAuthProgress = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
     act(() => {
       handleAuthProgress!('success');
@@ -254,78 +254,78 @@ describe('useQwenAuth', () => {
   });
 
   it('should clean up event listeners when auth type changes', () => {
-    const qwenSettings = createMockSettings(AuthType.QWEN_OAUTH);
+    const foraSettings = createMockSettings(AuthType.FORA_OAUTH);
     const { rerender } = renderHook(
       ({ settings, isAuthenticating }) =>
-        useQwenAuth(settings, isAuthenticating),
-      { initialProps: { settings: qwenSettings, isAuthenticating: true } },
+        useForaAuth(settings, isAuthenticating),
+      { initialProps: { settings: foraSettings, isAuthenticating: true } },
     );
 
-    // Change to non-Qwen auth
+    // Change to non-Fora auth
     const geminiSettings = createMockSettings(AuthType.USE_GEMINI);
     rerender({ settings: geminiSettings, isAuthenticating: true });
 
-    expect(mockQwenOAuth2Events.off).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthUri,
+    expect(mockForaOAuth2Events.off).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthUri,
       expect.any(Function),
     );
-    expect(mockQwenOAuth2Events.off).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthProgress,
+    expect(mockForaOAuth2Events.off).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthProgress,
       expect.any(Function),
     );
   });
 
   it('should clean up event listeners when authentication stops', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     const { rerender } = renderHook(
-      ({ isAuthenticating }) => useQwenAuth(settings, isAuthenticating),
+      ({ isAuthenticating }) => useForaAuth(settings, isAuthenticating),
       { initialProps: { isAuthenticating: true } },
     );
 
     // Stop authentication
     rerender({ isAuthenticating: false });
 
-    expect(mockQwenOAuth2Events.off).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthUri,
+    expect(mockForaOAuth2Events.off).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthUri,
       expect.any(Function),
     );
-    expect(mockQwenOAuth2Events.off).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthProgress,
+    expect(mockForaOAuth2Events.off).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthProgress,
       expect.any(Function),
     );
   });
 
   it('should clean up event listeners on unmount', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
-    const { unmount } = renderHook(() => useQwenAuth(settings, true));
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
+    const { unmount } = renderHook(() => useForaAuth(settings, true));
 
     unmount();
 
-    expect(mockQwenOAuth2Events.off).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthUri,
+    expect(mockForaOAuth2Events.off).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthUri,
       expect.any(Function),
     );
-    expect(mockQwenOAuth2Events.off).toHaveBeenCalledWith(
-      QwenOAuth2Event.AuthProgress,
+    expect(mockForaOAuth2Events.off).toHaveBeenCalledWith(
+      ForaOAuth2Event.AuthProgress,
       expect.any(Function),
     );
   });
 
-  it('should reset state when switching from Qwen auth to another auth type', () => {
-    const qwenSettings = createMockSettings(AuthType.QWEN_OAUTH);
+  it('should reset state when switching from Fora auth to another auth type', () => {
+    const foraSettings = createMockSettings(AuthType.FORA_OAUTH);
     let handleDeviceAuth: (deviceAuth: DeviceAuthorizationInfo) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthUri) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthUri) {
         handleDeviceAuth = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
     const { result, rerender } = renderHook(
       ({ settings, isAuthenticating }) =>
-        useQwenAuth(settings, isAuthenticating),
-      { initialProps: { settings: qwenSettings, isAuthenticating: true } },
+        useForaAuth(settings, isAuthenticating),
+      { initialProps: { settings: foraSettings, isAuthenticating: true } },
     );
 
     // Simulate device auth
@@ -340,25 +340,25 @@ describe('useQwenAuth', () => {
     const geminiSettings = createMockSettings(AuthType.USE_GEMINI);
     rerender({ settings: geminiSettings, isAuthenticating: true });
 
-    expect(result.current.isQwenAuthenticating).toBe(false);
+    expect(result.current.isForaAuthenticating).toBe(false);
     expect(result.current.deviceAuth).toBe(null);
     expect(result.current.authStatus).toBe('idle');
     expect(result.current.authMessage).toBe(null);
   });
 
   it('should reset state when authentication stops', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleDeviceAuth: (deviceAuth: DeviceAuthorizationInfo) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthUri) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthUri) {
         handleDeviceAuth = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
     const { result, rerender } = renderHook(
-      ({ isAuthenticating }) => useQwenAuth(settings, isAuthenticating),
+      ({ isAuthenticating }) => useForaAuth(settings, isAuthenticating),
       { initialProps: { isAuthenticating: true } },
     );
 
@@ -373,24 +373,24 @@ describe('useQwenAuth', () => {
     // Stop authentication
     rerender({ isAuthenticating: false });
 
-    expect(result.current.isQwenAuthenticating).toBe(false);
+    expect(result.current.isForaAuthenticating).toBe(false);
     expect(result.current.deviceAuth).toBe(null);
     expect(result.current.authStatus).toBe('idle');
     expect(result.current.authMessage).toBe(null);
   });
 
-  it('should handle cancelQwenAuth function', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
+  it('should handle cancelForaAuth function', () => {
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
     let handleDeviceAuth: (deviceAuth: DeviceAuthorizationInfo) => void;
 
-    mockQwenOAuth2Events.on.mockImplementation((event, handler) => {
-      if (event === QwenOAuth2Event.AuthUri) {
+    mockForaOAuth2Events.on.mockImplementation((event, handler) => {
+      if (event === ForaOAuth2Event.AuthUri) {
         handleDeviceAuth = handler;
       }
-      return mockQwenOAuth2Events;
+      return mockForaOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
     // Set up some state
     act(() => {
@@ -401,42 +401,42 @@ describe('useQwenAuth', () => {
 
     // Cancel auth
     act(() => {
-      result.current.cancelQwenAuth();
+      result.current.cancelForaAuth();
     });
 
-    expect(result.current.isQwenAuthenticating).toBe(false);
+    expect(result.current.isForaAuthenticating).toBe(false);
     expect(result.current.deviceAuth).toBe(null);
     expect(result.current.authStatus).toBe('idle');
     expect(result.current.authMessage).toBe(null);
   });
 
-  it('should maintain isQwenAuth flag correctly', () => {
-    // Test with Qwen OAuth
-    const qwenSettings = createMockSettings(AuthType.QWEN_OAUTH);
-    const { result: qwenResult } = renderHook(() =>
-      useQwenAuth(qwenSettings, false),
+  it('should maintain isForaAuth flag correctly', () => {
+    // Test with Fora OAuth
+    const foraSettings = createMockSettings(AuthType.FORA_OAUTH);
+    const { result: foraResult } = renderHook(() =>
+      useForaAuth(foraSettings, false),
     );
-    expect(qwenResult.current.isQwenAuth).toBe(true);
+    expect(foraResult.current.isForaAuth).toBe(true);
 
     // Test with other auth types
     const geminiSettings = createMockSettings(AuthType.USE_GEMINI);
     const { result: geminiResult } = renderHook(() =>
-      useQwenAuth(geminiSettings, false),
+      useForaAuth(geminiSettings, false),
     );
-    expect(geminiResult.current.isQwenAuth).toBe(false);
+    expect(geminiResult.current.isForaAuth).toBe(false);
 
     const oauthSettings = createMockSettings(AuthType.LOGIN_WITH_GOOGLE);
     const { result: oauthResult } = renderHook(() =>
-      useQwenAuth(oauthSettings, false),
+      useForaAuth(oauthSettings, false),
     );
-    expect(oauthResult.current.isQwenAuth).toBe(false);
+    expect(oauthResult.current.isForaAuth).toBe(false);
   });
 
-  it('should set isQwenAuthenticating to true when starting authentication with Qwen auth', () => {
-    const settings = createMockSettings(AuthType.QWEN_OAUTH);
-    const { result } = renderHook(() => useQwenAuth(settings, true));
+  it('should set isForaAuthenticating to true when starting authentication with Fora auth', () => {
+    const settings = createMockSettings(AuthType.FORA_OAUTH);
+    const { result } = renderHook(() => useForaAuth(settings, true));
 
-    expect(result.current.isQwenAuthenticating).toBe(true);
+    expect(result.current.isForaAuthenticating).toBe(true);
     expect(result.current.authStatus).toBe('idle');
   });
 });

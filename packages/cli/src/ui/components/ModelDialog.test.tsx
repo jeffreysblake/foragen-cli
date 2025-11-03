@@ -10,9 +10,9 @@ import { ModelDialog } from './ModelDialog.js';
 import { useKeypress } from '../hooks/useKeypress.js';
 import { DescriptiveRadioButtonSelect } from './shared/DescriptiveRadioButtonSelect.js';
 import { ConfigContext } from '../contexts/ConfigContext.js';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config } from '@jeffreysblake/foragen-cli-core';
 import {
-  AVAILABLE_MODELS_QWEN,
+  AVAILABLE_MODELS_FORA,
   MAINLINE_CODER,
   MAINLINE_VLM,
 } from '../models/availableModels.js';
@@ -41,7 +41,7 @@ const renderComponent = (
         // --- Functions used by ModelDialog ---
         getModel: vi.fn(() => MAINLINE_CODER),
         setModel: vi.fn(),
-        getAuthType: vi.fn(() => 'qwen-oauth'),
+        getAuthType: vi.fn(() => 'fora-oauth'),
 
         // --- Functions used by ClearcutLogger ---
         getUsageStatisticsEnabled: vi.fn(() => true),
@@ -90,7 +90,7 @@ describe('<ModelDialog />', () => {
     expect(mockedSelect).toHaveBeenCalledTimes(1);
 
     const props = mockedSelect.mock.calls[0][0];
-    expect(props.items).toHaveLength(AVAILABLE_MODELS_QWEN.length);
+    expect(props.items).toHaveLength(AVAILABLE_MODELS_FORA.length);
     expect(props.items[0].value).toBe(MAINLINE_CODER);
     expect(props.items[1].value).toBe(MAINLINE_VLM);
     expect(props.showNumbers).toBe(true);
@@ -192,7 +192,7 @@ describe('<ModelDialog />', () => {
 
   it('updates initialIndex when config context changes', () => {
     const mockGetModel = vi.fn(() => MAINLINE_CODER);
-    const mockGetAuthType = vi.fn(() => 'qwen-oauth');
+    const mockGetAuthType = vi.fn(() => 'fora-oauth');
     const { rerender } = render(
       <ConfigContext.Provider
         value={

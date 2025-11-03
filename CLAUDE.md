@@ -32,7 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is **Qwen Code**, a command-line AI workflow tool adapted from Google's Gemini CLI, specifically optimized for Qwen3-Coder models. It's a TypeScript monorepo using npm workspaces.
+This is **Fora Code**, a command-line AI workflow tool adapted from Google's Gemini CLI, specifically optimized for Fora3-Coder models. It's a TypeScript monorepo using npm workspaces.
 
 ### Core Structure
 
@@ -46,7 +46,7 @@ This is **Qwen Code**, a command-line AI workflow tool adapted from Google's Gem
 ### Key Architectural Patterns
 
 - **Monorepo**: Uses npm workspaces for multi-package management
-- **Bundle**: ESBuild bundles to `bundle/gemini.js` for distribution (bin: `qwen`)
+- **Bundle**: ESBuild bundles to `bundle/gemini.js` for distribution (bin: `fora`)
 - **React CLI**: Uses Ink framework for React-based terminal UI
 - **Services Architecture**: Command processing through service layer
 - **Tool System**: Extensible tool system with built-in and MCP (Model Context Protocol) tools
@@ -81,7 +81,7 @@ This is **Qwen Code**, a command-line AI workflow tool adapted from Google's Gem
 
 ### Authentication & APIs
 
-- **Primary**: Qwen OAuth with 2,000 requests/day free tier
+- **Primary**: Fora OAuth with 2,000 requests/day free tier
 - **Alternative**: OpenAI-compatible APIs (ModelScope, OpenRouter, etc.)
 - **Configuration**: Supports `.env` files and environment variables
 

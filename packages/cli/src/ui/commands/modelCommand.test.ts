@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,7 +12,7 @@ import {
   AuthType,
   type ContentGeneratorConfig,
   type Config,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import * as availableModelsModule from '../models/availableModels.js';
 
 // Mock the availableModels module
@@ -86,14 +86,14 @@ describe('modelCommand', () => {
     });
   });
 
-  it('should return dialog action for QWEN_OAUTH auth type', async () => {
+  it('should return dialog action for FORA_OAUTH auth type', async () => {
     mockGetAvailableModelsForAuthType.mockReturnValue([
-      { id: 'qwen3-coder-plus', label: 'qwen3-coder-plus' },
+      { id: 'fora3-coder-plus', label: 'fora3-coder-plus' },
     ]);
 
     const mockConfig = createMockConfig({
       model: 'test-model',
-      authType: AuthType.QWEN_OAUTH,
+      authType: AuthType.FORA_OAUTH,
     });
     mockContext.services.config = mockConfig as Config;
 

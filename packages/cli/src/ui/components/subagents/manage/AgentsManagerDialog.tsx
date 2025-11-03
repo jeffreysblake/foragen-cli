@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -16,7 +16,7 @@ import { ColorSelector } from '../create/ColorSelector.js';
 import { MANAGEMENT_STEPS } from '../types.js';
 import { theme } from '../../../semantic-colors.js';
 import { getColorForDisplay, shouldShowColor } from '../utils.js';
-import type { SubagentConfig, Config } from '@qwen-code/qwen-code-core';
+import type { SubagentConfig, Config } from '@jeffreysblake/foragen-cli-core';
 import { useKeypress } from '../../../hooks/useKeypress.js';
 
 interface AgentsManagerDialogProps {

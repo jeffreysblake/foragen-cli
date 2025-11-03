@@ -130,15 +130,15 @@ describe('bfsFileSearch', () => {
         fileService,
         fileFilteringOptions: {
           respectGitIgnore: true,
-          respectQwenIgnore: true,
+          respectForaIgnore: true,
         },
       });
 
       expect(result).toEqual([targetFilePath]);
     });
 
-    it('should ignore qwenignored files', async () => {
-      await createTestFile('node_modules/', 'project', '.qwenignore');
+    it('should ignore foraignored files', async () => {
+      await createTestFile('node_modules/', 'project', '.foraignore');
       await createTestFile('content', 'project', 'node_modules', 'target.txt');
       const targetFilePath = await createTestFile(
         'content',
@@ -153,7 +153,7 @@ describe('bfsFileSearch', () => {
         fileService,
         fileFilteringOptions: {
           respectGitIgnore: false,
-          respectQwenIgnore: true,
+          respectForaIgnore: true,
         },
       });
 
@@ -182,7 +182,7 @@ describe('bfsFileSearch', () => {
         fileService,
         fileFilteringOptions: {
           respectGitIgnore: false,
-          respectQwenIgnore: false,
+          respectForaIgnore: false,
         },
       });
 
@@ -210,16 +210,16 @@ describe('bfsFileSearch', () => {
     for (let i = 0; i < numTargetDirs; i++) {
       // Add target files in some directories
       fileCreationPromises.push(
-        createTestFile('content', `dir${i}`, 'QWEN.md'),
+        createTestFile('content', `dir${i}`, 'FORA.md'),
       );
       fileCreationPromises.push(
-        createTestFile('content', `dir${i}`, 'subdir1', 'QWEN.md'),
+        createTestFile('content', `dir${i}`, 'subdir1', 'FORA.md'),
       );
     }
     const expectedFiles = await Promise.all(fileCreationPromises);
 
     const result = await bfsFileSearch(testRootDir, {
-      fileName: 'QWEN.md',
+      fileName: 'FORA.md',
       // Provide a generous maxDirs limit to ensure it doesn't prematurely stop
       // in this large test case. Total dirs created is 200.
       maxDirs: 250,

@@ -18,8 +18,8 @@ import type {
   SessionMetrics,
   ModelMetrics,
   ToolCallStats,
-} from '@qwen-code/qwen-code-core';
-import { uiTelemetryService, sessionId } from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
+import { uiTelemetryService, sessionId } from '@jeffreysblake/foragen-cli-core';
 
 export enum ToolCallDecision {
   ACCEPT = 'accept',

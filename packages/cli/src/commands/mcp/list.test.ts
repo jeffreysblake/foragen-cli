@@ -8,7 +8,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { listMcpServers } from './list.js';
 import { loadSettings } from '../../config/settings.js';
 import { ExtensionStorage, loadExtensions } from '../../config/extension.js';
-import { createTransport } from '@qwen-code/qwen-code-core';
+import { createTransport } from '@jeffreysblake/foragen-cli-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 vi.mock('../../config/settings.js', () => ({
@@ -20,7 +20,7 @@ vi.mock('../../config/extension.js', () => ({
     getUserExtensionsDir: vi.fn(),
   },
 }));
-vi.mock('@qwen-code/qwen-code-core', () => ({
+vi.mock('@jeffreysblake/foragen-cli-core', () => ({
   createTransport: vi.fn(),
   MCPServerStatus: {
     CONNECTED: 'CONNECTED',
@@ -28,11 +28,11 @@ vi.mock('@qwen-code/qwen-code-core', () => ({
     DISCONNECTED: 'DISCONNECTED',
   },
   Storage: vi.fn().mockImplementation((_cwd: string) => ({
-    getGlobalSettingsPath: () => '/tmp/qwen/settings.json',
-    getWorkspaceSettingsPath: () => '/tmp/qwen/workspace-settings.json',
-    getProjectTempDir: () => '/test/home/.qwen/tmp/mocked_hash',
+    getGlobalSettingsPath: () => '/tmp/fora/settings.json',
+    getWorkspaceSettingsPath: () => '/tmp/fora/workspace-settings.json',
+    getProjectTempDir: () => '/test/home/.fora/tmp/mocked_hash',
   })),
-  QWEN_CONFIG_DIR: '.qwen',
+  FORA_CONFIG_DIR: '.fora',
   getErrorMessage: (e: unknown) => (e instanceof Error ? e.message : String(e)),
 }));
 vi.mock('@modelcontextprotocol/sdk/client/index.js');

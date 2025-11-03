@@ -11,7 +11,7 @@ import {
   AuthType,
   ModelSlashCommandEvent,
   logModelSlashCommand,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import { useKeypress } from '../hooks/useKeypress.js';
 import { theme } from '../semantic-colors.js';
 import { DescriptiveRadioButtonSelect } from './shared/DescriptiveRadioButtonSelect.js';
@@ -28,8 +28,8 @@ interface ModelDialogProps {
 export function ModelDialog({ onClose }: ModelDialogProps): React.JSX.Element {
   const config = useContext(ConfigContext);
 
-  // Get auth type from config, default to QWEN_OAUTH if not available
-  const authType = config?.getAuthType() ?? AuthType.QWEN_OAUTH;
+  // Get auth type from config, default to FORA_OAUTH if not available
+  const authType = config?.getAuthType() ?? AuthType.FORA_OAUTH;
 
   // Get available models based on auth type
   const availableModels = useMemo(

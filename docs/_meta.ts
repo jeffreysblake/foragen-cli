@@ -1,5 +1,5 @@
 export default {
-  index: 'Welcome to Qwen Code',
+  index: 'Welcome to Fora Code',
   cli: 'CLI',
   core: 'Core',
   tools: 'Tools',

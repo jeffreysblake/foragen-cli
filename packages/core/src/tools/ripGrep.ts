@@ -208,19 +208,19 @@ class GrepToolInvocation extends BaseToolInvocation<
       pattern,
     ];
 
-    // Add file exclusions from .gitignore and .qwenignore
+    // Add file exclusions from .gitignore and .foraignore
     const filteringOptions = this.getFileFilteringOptions();
     if (!filteringOptions.respectGitIgnore) {
       rgArgs.push('--no-ignore-vcs');
     }
 
-    if (filteringOptions.respectQwenIgnore) {
-      const qwenIgnorePath = path.join(
+    if (filteringOptions.respectForaIgnore) {
+      const foraIgnorePath = path.join(
         this.config.getTargetDir(),
-        '.qwenignore',
+        '.foraignore',
       );
-      if (fs.existsSync(qwenIgnorePath)) {
-        rgArgs.push('--ignore-file', qwenIgnorePath);
+      if (fs.existsSync(foraIgnorePath)) {
+        rgArgs.push('--ignore-file', foraIgnorePath);
       }
     }
 
@@ -290,9 +290,9 @@ class GrepToolInvocation extends BaseToolInvocation<
       respectGitIgnore:
         options?.respectGitIgnore ??
         DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
-      respectQwenIgnore:
-        options?.respectQwenIgnore ??
-        DEFAULT_FILE_FILTERING_OPTIONS.respectQwenIgnore,
+      respectForaIgnore:
+        options?.respectForaIgnore ??
+        DEFAULT_FILE_FILTERING_OPTIONS.respectForaIgnore,
     };
   }
 

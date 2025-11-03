@@ -22,7 +22,7 @@ vi.mock('../contexts/VimModeContext.js', () => ({
     vimMode: 'NORMAL',
   })),
 }));
-import { ApprovalMode } from '@qwen-code/qwen-code-core';
+import { ApprovalMode } from '@jeffreysblake/foragen-cli-core';
 import { StreamingState } from '../types.js';
 
 // Mock child components

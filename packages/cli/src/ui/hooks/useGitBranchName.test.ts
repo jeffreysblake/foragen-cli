@@ -10,13 +10,13 @@ import { act } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useGitBranchName } from './useGitBranchName.js';
 import { fs, vol } from 'memfs'; // For mocking fs
-import { spawnAsync as mockSpawnAsync } from '@qwen-code/qwen-code-core';
+import { spawnAsync as mockSpawnAsync } from '@jeffreysblake/foragen-cli-core';
 
-// Mock @qwen-code/qwen-code-core
-vi.mock('@qwen-code/qwen-code-core', async () => {
+// Mock @jeffreysblake/foragen-cli-core
+vi.mock('@jeffreysblake/foragen-cli-core', async () => {
   const original = await vi.importActual<
-    typeof import('@qwen-code/qwen-code-core')
-  >('@qwen-code/qwen-code-core');
+    typeof import('@jeffreysblake/foragen-cli-core')
+  >('@jeffreysblake/foragen-cli-core');
   return {
     ...original,
     spawnAsync: vi.fn(),

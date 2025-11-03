@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,10 +11,10 @@ import Spinner from 'ink-spinner';
 import Link from 'ink-link';
 import qrcode from 'qrcode-terminal';
 import { Colors } from '../colors.js';
-import type { DeviceAuthorizationInfo } from '../hooks/useQwenAuth.js';
+import type { DeviceAuthorizationInfo } from '../hooks/useForaAuth.js';
 import { useKeypress } from '../hooks/useKeypress.js';
 
-interface QwenOAuthProgressProps {
+interface ForaOAuthProgressProps {
   onTimeout: () => void;
   onCancel: () => void;
   deviceAuth?: DeviceAuthorizationInfo;
@@ -52,7 +52,7 @@ function QrCodeDisplay({
       width="100%"
     >
       <Text bold color={Colors.AccentBlue}>
-        Qwen OAuth Authentication
+        Fora OAuth Authentication
       </Text>
 
       <Box marginTop={1}>
@@ -117,13 +117,13 @@ function StatusDisplay({
   );
 }
 
-export function QwenOAuthProgress({
+export function ForaOAuthProgress({
   onTimeout,
   onCancel,
   deviceAuth,
   authStatus,
   authMessage,
-}: QwenOAuthProgressProps): React.JSX.Element {
+}: ForaOAuthProgressProps): React.JSX.Element {
   const defaultTimeout = deviceAuth?.expires_in || 300; // Default 5 minutes
   const [timeRemaining, setTimeRemaining] = useState<number>(defaultTimeout);
   const [dots, setDots] = useState<string>('');
@@ -215,7 +215,7 @@ export function QwenOAuthProgress({
         width="100%"
       >
         <Text bold color={Colors.AccentRed}>
-          Qwen OAuth Authentication Timeout
+          Fora OAuth Authentication Timeout
         </Text>
 
         <Box marginTop={1}>
@@ -246,7 +246,7 @@ export function QwenOAuthProgress({
       >
         <Box>
           <Text>
-            <Spinner type="dots" /> Waiting for Qwen OAuth authentication...
+            <Spinner type="dots" /> Waiting for Fora OAuth authentication...
           </Text>
         </Box>
         <Box marginTop={1} justifyContent="space-between">

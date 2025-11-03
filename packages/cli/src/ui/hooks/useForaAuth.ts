@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -8,9 +8,9 @@ import { useState, useCallback, useEffect } from 'react';
 import type { LoadedSettings } from '../../config/settings.js';
 import {
   AuthType,
-  qwenOAuth2Events,
-  QwenOAuth2Event,
-} from '@qwen-code/qwen-code-core';
+  foraOAuth2Events,
+  ForaOAuth2Event,
+} from '@jeffreysblake/foragen-cli-core';
 
 export interface DeviceAuthorizationInfo {
   verification_uri: string;
@@ -19,8 +19,8 @@ export interface DeviceAuthorizationInfo {
   expires_in: number;
 }
 
-interface QwenAuthState {
-  isQwenAuthenticating: boolean;
+interface ForaAuthState {
+  isForaAuthenticating: boolean;
   deviceAuth: DeviceAuthorizationInfo | null;
   authStatus:
     | 'idle'
@@ -32,26 +32,26 @@ interface QwenAuthState {
   authMessage: string | null;
 }
 
-export const useQwenAuth = (
+export const useForaAuth = (
   settings: LoadedSettings,
   isAuthenticating: boolean,
 ) => {
-  const [qwenAuthState, setQwenAuthState] = useState<QwenAuthState>({
-    isQwenAuthenticating: false,
+  const [foraAuthState, setForaAuthState] = useState<ForaAuthState>({
+    isForaAuthenticating: false,
     deviceAuth: null,
     authStatus: 'idle',
     authMessage: null,
   });
 
-  const isQwenAuth =
-    settings.merged.security?.auth?.selectedType === AuthType.QWEN_OAUTH;
+  const isForaAuth =
+    settings.merged.security?.auth?.selectedType === AuthType.FORA_OAUTH;
 
   // Set up event listeners when authentication starts
   useEffect(() => {
-    if (!isQwenAuth || !isAuthenticating) {
-      // Reset state when not authenticating or not Qwen auth
-      setQwenAuthState({
-        isQwenAuthenticating: false,
+    if (!isForaAuth || !isAuthenticating) {
+      // Reset state when not authenticating or not Fora auth
+      setForaAuthState({
+        isForaAuthenticating: false,
         deviceAuth: null,
         authStatus: 'idle',
         authMessage: null,
@@ -59,15 +59,15 @@ export const useQwenAuth = (
       return;
     }
 
-    setQwenAuthState((prev) => ({
+    setForaAuthState((prev) => ({
       ...prev,
-      isQwenAuthenticating: true,
+      isForaAuthenticating: true,
       authStatus: 'idle',
     }));
 
     // Set up event listeners
     const handleDeviceAuth = (deviceAuth: DeviceAuthorizationInfo) => {
-      setQwenAuthState((prev) => ({
+      setForaAuthState((prev) => ({
         ...prev,
         deviceAuth: {
           verification_uri: deviceAuth.verification_uri,
@@ -83,7 +83,7 @@ export const useQwenAuth = (
       status: 'success' | 'error' | 'polling' | 'timeout' | 'rate_limit',
       message?: string,
     ) => {
-      setQwenAuthState((prev) => ({
+      setForaAuthState((prev) => ({
         ...prev,
         authStatus: status,
         authMessage: message || null,
@@ -91,22 +91,22 @@ export const useQwenAuth = (
     };
 
     // Add event listeners
-    qwenOAuth2Events.on(QwenOAuth2Event.AuthUri, handleDeviceAuth);
-    qwenOAuth2Events.on(QwenOAuth2Event.AuthProgress, handleAuthProgress);
+    foraOAuth2Events.on(ForaOAuth2Event.AuthUri, handleDeviceAuth);
+    foraOAuth2Events.on(ForaOAuth2Event.AuthProgress, handleAuthProgress);
 
     // Cleanup event listeners when component unmounts or auth finishes
     return () => {
-      qwenOAuth2Events.off(QwenOAuth2Event.AuthUri, handleDeviceAuth);
-      qwenOAuth2Events.off(QwenOAuth2Event.AuthProgress, handleAuthProgress);
+      foraOAuth2Events.off(ForaOAuth2Event.AuthUri, handleDeviceAuth);
+      foraOAuth2Events.off(ForaOAuth2Event.AuthProgress, handleAuthProgress);
     };
-  }, [isQwenAuth, isAuthenticating]);
+  }, [isForaAuth, isAuthenticating]);
 
-  const cancelQwenAuth = useCallback(() => {
+  const cancelForaAuth = useCallback(() => {
     // Emit cancel event to stop polling
-    qwenOAuth2Events.emit(QwenOAuth2Event.AuthCancel);
+    foraOAuth2Events.emit(ForaOAuth2Event.AuthCancel);
 
-    setQwenAuthState({
-      isQwenAuthenticating: false,
+    setForaAuthState({
+      isForaAuthenticating: false,
       deviceAuth: null,
       authStatus: 'idle',
       authMessage: null,
@@ -114,8 +114,8 @@ export const useQwenAuth = (
   }, []);
 
   return {
-    ...qwenAuthState,
-    isQwenAuth,
-    cancelQwenAuth,
+    ...foraAuthState,
+    isForaAuth,
+    cancelForaAuth,
   };
 };

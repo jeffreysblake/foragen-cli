@@ -24,8 +24,8 @@ export class OpenRouterOpenAICompatibleProvider extends DefaultOpenAICompatibleP
     // Add OpenRouter-specific headers
     return {
       ...baseHeaders,
-      'HTTP-Referer': 'https://github.com/QwenLM/qwen-code.git',
-      'X-Title': 'Qwen Code',
+      'HTTP-Referer': 'https://github.com/jeffreysblake/foragen-cli.git',
+      'X-Title': 'Fora Code',
     };
   }
 }

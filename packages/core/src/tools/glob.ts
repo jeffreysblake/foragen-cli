@@ -76,9 +76,9 @@ export interface GlobToolParams {
   respect_git_ignore?: boolean;
 
   /**
-   * Whether to respect .qwenignore patterns (optional, defaults to true)
+   * Whether to respect .foraignore patterns (optional, defaults to true)
    */
-  respect_qwen_ignore?: boolean;
+  respect_fora_ignore?: boolean;
 }
 
 class GlobToolInvocation extends BaseToolInvocation<
@@ -165,16 +165,16 @@ class GlobToolInvocation extends BaseToolInvocation<
         path.relative(this.config.getTargetDir(), p.fullpath()),
       );
 
-      const { filteredPaths, gitIgnoredCount, qwenIgnoredCount } =
+      const { filteredPaths, gitIgnoredCount, foraIgnoredCount } =
         fileDiscovery.filterFilesWithReport(relativePaths, {
           respectGitIgnore:
             this.params?.respect_git_ignore ??
             this.config.getFileFilteringOptions().respectGitIgnore ??
             DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
-          respectQwenIgnore:
-            this.params?.respect_qwen_ignore ??
-            this.config.getFileFilteringOptions().respectQwenIgnore ??
-            DEFAULT_FILE_FILTERING_OPTIONS.respectQwenIgnore,
+          respectForaIgnore:
+            this.params?.respect_fora_ignore ??
+            this.config.getFileFilteringOptions().respectForaIgnore ??
+            DEFAULT_FILE_FILTERING_OPTIONS.respectForaIgnore,
         });
 
       const filteredAbsolutePaths = new Set(
@@ -195,8 +195,8 @@ class GlobToolInvocation extends BaseToolInvocation<
         if (gitIgnoredCount > 0) {
           message += ` (${gitIgnoredCount} files were git-ignored)`;
         }
-        if (qwenIgnoredCount > 0) {
-          message += ` (${qwenIgnoredCount} files were qwen-ignored)`;
+        if (foraIgnoredCount > 0) {
+          message += ` (${foraIgnoredCount} files were fora-ignored)`;
         }
         return {
           llmContent: message,
@@ -230,8 +230,8 @@ class GlobToolInvocation extends BaseToolInvocation<
       if (gitIgnoredCount > 0) {
         resultMessage += ` (${gitIgnoredCount} additional files were git-ignored)`;
       }
-      if (qwenIgnoredCount > 0) {
-        resultMessage += ` (${qwenIgnoredCount} additional files were qwen-ignored)`;
+      if (foraIgnoredCount > 0) {
+        resultMessage += ` (${foraIgnoredCount} additional files were fora-ignored)`;
       }
       resultMessage += `, sorted by modification time (newest first):\n${fileListDescription}`;
 
@@ -290,9 +290,9 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
               'Optional: Whether to respect .gitignore patterns when finding files. Only available in git repositories. Defaults to true.',
             type: 'boolean',
           },
-          respect_qwen_ignore: {
+          respect_fora_ignore: {
             description:
-              'Optional: Whether to respect .qwenignore patterns when finding files. Defaults to true.',
+              'Optional: Whether to respect .foraignore patterns when finding files. Defaults to true.',
             type: 'boolean',
           },
         },

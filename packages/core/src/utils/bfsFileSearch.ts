@@ -112,7 +112,7 @@ export async function bfsFileSearch(
         if (
           fileService?.shouldIgnoreFile(fullPath, {
             respectGitIgnore: options.fileFilteringOptions?.respectGitIgnore,
-            respectQwenIgnore: options.fileFilteringOptions?.respectQwenIgnore,
+            respectForaIgnore: options.fileFilteringOptions?.respectForaIgnore,
           })
         ) {
           continue;

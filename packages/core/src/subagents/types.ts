@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -8,8 +8,8 @@ import type { Content, FunctionDeclaration } from '@google/genai';
 
 /**
  * Represents the storage level for a subagent configuration.
- * - 'project': Stored in `.qwen/agents/` within the project directory
- * - 'user': Stored in `~/.qwen/agents/` in the user's home directory
+ * - 'project': Stored in `.fora/agents/` within the project directory
+ * - 'user': Stored in `~/.fora/agents/` in the user's home directory
  * - 'builtin': Built-in agents embedded in the codebase, always available
  */
 export type SubagentLevel = 'project' | 'user' | 'builtin';
@@ -227,7 +227,7 @@ export interface ToolConfig {
  */
 export interface ModelConfig {
   /**
-   * The name or identifier of the model to be used (e.g., 'qwen3-coder-plus').
+   * The name or identifier of the model to be used (e.g., 'fora3-coder-plus').
    *
    * TODO: In the future, this needs to support 'auto' or some other string to support routing use cases.
    */

@@ -1,11 +1,11 @@
 /**
  * @license
- * Copyright 2025 Qwen
+ * Copyright 2025 Fora
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { type PartListUnion, type Part } from '@google/genai';
-import { AuthType, type Config, ApprovalMode } from '@qwen-code/qwen-code-core';
+import { AuthType, type Config, ApprovalMode } from '@jeffreysblake/foragen-cli-core';
 import { useCallback, useRef } from 'react';
 import { VisionSwitchOutcome } from '../components/ModelSwitchDialog.js';
 import {
@@ -17,7 +17,7 @@ import type { UseHistoryManagerReturn } from './useHistoryManager.js';
 import {
   isSupportedImageMimeType,
   getUnsupportedImageFormatWarning,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 
 /**
  * Checks if a PartListUnion contains image parts
@@ -123,8 +123,8 @@ export function shouldOfferVisionSwitch(
   currentModel: string,
   visionModelPreviewEnabled: boolean = true,
 ): boolean {
-  // Only trigger for qwen-oauth
-  if (authType !== AuthType.QWEN_OAUTH) {
+  // Only trigger for fora-oauth
+  if (authType !== AuthType.FORA_OAUTH) {
     return false;
   }
 
@@ -220,8 +220,8 @@ export function useVisionAutoSwitch(
 
       const contentGeneratorConfig = config.getContentGeneratorConfig();
 
-      // Only handle qwen-oauth auth type
-      if (contentGeneratorConfig?.authType !== AuthType.QWEN_OAUTH) {
+      // Only handle fora-oauth auth type
+      if (contentGeneratorConfig?.authType !== AuthType.FORA_OAUTH) {
         return { shouldProceed: true };
       }
 

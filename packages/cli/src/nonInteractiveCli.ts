@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Config, ToolCallRequestInfo } from '@qwen-code/qwen-code-core';
+import type { Config, ToolCallRequestInfo } from '@jeffreysblake/foragen-cli-core';
 import { isSlashCommand } from './ui/utils/commandUtils.js';
 import type { LoadedSettings } from './config/settings.js';
 import {
@@ -17,7 +17,7 @@ import {
   OutputFormat,
   JsonFormatter,
   uiTelemetryService,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 
 import type { Content, Part } from '@google/genai';
 

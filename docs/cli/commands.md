@@ -1,6 +1,6 @@
 # CLI Commands
 
-Qwen Code supports several built-in commands to help you manage your session, customize the interface, and control its behavior. These commands are prefixed with a forward slash (`/`), an at symbol (`@`), or an exclamation mark (`!`).
+Fora Code supports several built-in commands to help you manage your session, customize the interface, and control its behavior. These commands are prefixed with a forward slash (`/`), an at symbol (`@`), or an exclamation mark (`!`).
 
 ## Slash commands (`/`)
 
@@ -9,7 +9,7 @@ Slash commands provide meta-level control over the CLI itself.
 ### Built-in Commands
 
 - **`/bug`**
-  - **Description:** File an issue about Qwen Code. By default, the issue is filed within the GitHub repository for Qwen Code. The string you enter after `/bug` will become the headline for the bug being filed. The default `/bug` behavior can be modified using the `advanced.bugCommand` setting in your `.qwen/settings.json` files.
+  - **Description:** File an issue about Fora Code. By default, the issue is filed within the GitHub repository for Fora Code. The string you enter after `/bug` will become the headline for the bug being filed. The default `/bug` behavior can be modified using the `advanced.bugCommand` setting in your `.fora/settings.json` files.
 
 - **`/chat`**
   - **Description:** Save and resume conversation history for branching conversation state interactively, or resuming a previous state from a later session.
@@ -18,8 +18,8 @@ Slash commands provide meta-level control over the CLI itself.
       - **Description:** Saves the current conversation history. You must add a `<tag>` for identifying the conversation state.
       - **Usage:** `/chat save <tag>`
       - **Details on Checkpoint Location:** The default locations for saved chat checkpoints are:
-        - Linux/macOS: `~/.qwen/tmp/<project_hash>/`
-        - Windows: `C:\Users\<YourUsername>\.qwen\tmp\<project_hash>\`
+        - Linux/macOS: `~/.fora/tmp/<project_hash>/`
+        - Windows: `C:\Users\<YourUsername>\.fora\tmp\<project_hash>\`
         - When you run `/chat list`, the CLI only scans these specific directories to find available checkpoints.
         - **Note:** These checkpoints are for manually saving and resuming conversation states. For automatic checkpoints created before file modifications, see the [Checkpointing documentation](../checkpointing.md).
     - **`resume`**
@@ -39,12 +39,12 @@ Slash commands provide meta-level control over the CLI itself.
   - **Keyboard shortcut:** Press **Ctrl+L** at any time to perform a clear action.
 
 - **`/summary`**
-  - **Description:** Generate a comprehensive project summary from the current conversation history and save it to `.qwen/PROJECT_SUMMARY.md`. This summary includes the overall goal, key knowledge, recent actions, and current plan, making it perfect for resuming work in future sessions.
+  - **Description:** Generate a comprehensive project summary from the current conversation history and save it to `.fora/PROJECT_SUMMARY.md`. This summary includes the overall goal, key knowledge, recent actions, and current plan, making it perfect for resuming work in future sessions.
   - **Usage:** `/summary`
   - **Features:**
     - Analyzes the entire conversation history to extract important context
     - Creates a structured markdown summary with sections for goals, knowledge, actions, and plans
-    - Automatically saves to `.qwen/PROJECT_SUMMARY.md` in your project root
+    - Automatically saves to `.fora/PROJECT_SUMMARY.md` in your project root
     - Shows progress indicators during generation and saving
     - Integrates with the Welcome Back feature for seamless session resumption
   - **Note:** This command requires an active conversation with at least 2 messages to generate a meaningful summary.
@@ -53,7 +53,7 @@ Slash commands provide meta-level control over the CLI itself.
   - **Description:** Replace the entire chat context with a summary. This saves on tokens used for future tasks while retaining a high level summary of what has happened.
 
 - **`/copy`**
-  - **Description:** Copies the last output produced by Qwen Code to your clipboard, for easy sharing or reuse.
+  - **Description:** Copies the last output produced by Fora Code to your clipboard, for easy sharing or reuse.
 
 - **`/directory`** (or **`/dir`**)
   - **Description:** Manage workspace directories for multi-directory support.
@@ -70,10 +70,10 @@ Slash commands provide meta-level control over the CLI itself.
   - **Description:** Open a dialog for selecting supported editors.
 
 - **`/extensions`**
-  - **Description:** Lists all active extensions in the current Qwen Code session. See [Qwen Code Extensions](../extension.md).
+  - **Description:** Lists all active extensions in the current Fora Code session. See [Fora Code Extensions](../extension.md).
 
 - **`/help`** (or **`/?`**)
-  - **Description:** Display help information about the Qwen Code, including available commands and their usage.
+  - **Description:** Display help information about the Fora Code, including available commands and their usage.
 
 - **`/mcp`**
   - **Description:** List configured Model Context Protocol (MCP) servers, their connection status, server details, and available tools.
@@ -87,14 +87,14 @@ Slash commands provide meta-level control over the CLI itself.
   - **Keyboard Shortcut:** Press **Ctrl+T** at any time to toggle between showing and hiding tool descriptions.
 
 - **`/memory`**
-  - **Description:** Manage the AI's instructional context (hierarchical memory loaded from `QWEN.md` files by default; configurable via `contextFileName`).
+  - **Description:** Manage the AI's instructional context (hierarchical memory loaded from `FORA.md` files by default; configurable via `contextFileName`).
   - **Sub-commands:**
     - **`add`**:
       - **Description:** Adds the following text to the AI's memory. Usage: `/memory add <text to remember>`
     - **`show`**:
-      - **Description:** Display the full, concatenated content of the current hierarchical memory that has been loaded from all context files (e.g., `QWEN.md`). This lets you inspect the instructional context being provided to the model.
+      - **Description:** Display the full, concatenated content of the current hierarchical memory that has been loaded from all context files (e.g., `FORA.md`). This lets you inspect the instructional context being provided to the model.
     - **`refresh`**:
-      - **Description:** Reload the hierarchical instructional memory from all context files (default: `QWEN.md`) found in the configured locations (global, project/ancestors, and sub-directories). This updates the model with the latest context content.
+      - **Description:** Reload the hierarchical instructional memory from all context files (default: `FORA.md`) found in the configured locations (global, project/ancestors, and sub-directories). This updates the model with the latest context content.
     - **Note:** For more details on how context files contribute to hierarchical memory, see the [CLI Configuration documentation](./configuration.md#context-files-hierarchical-instructional-context).
 
 - **`/model`**
@@ -104,12 +104,12 @@ Slash commands provide meta-level control over the CLI itself.
     - Shows a dialog with all available models for your current authentication type
     - Displays model descriptions and capabilities (e.g., vision support)
     - Changes the model for the current session only
-    - Supports both Qwen models (via OAuth) and OpenAI models (via API key)
+    - Supports both Fora models (via OAuth) and OpenAI models (via API key)
   - **Available Models:**
-    - **Qwen Coder:** The latest Qwen Coder model from Alibaba Cloud ModelStudio (version: qwen3-coder-plus-2025-09-23)
-    - **Qwen Vision:** The latest Qwen Vision model from Alibaba Cloud ModelStudio (version: qwen3-vl-plus-2025-09-23) - supports image analysis
+    - **Fora Coder:** The latest Fora Coder model from Alibaba Cloud ModelStudio (version: fora3-coder-plus-2025-09-23)
+    - **Fora Vision:** The latest Fora Vision model from Alibaba Cloud ModelStudio (version: fora3-vl-plus-2025-09-23) - supports image analysis
     - **OpenAI Models:** Available when using OpenAI authentication (configured via `OPENAI_MODEL` environment variable)
-  - **Note:** Model selection is session-specific and does not persist across different Qwen Code sessions. To set a default model, use the `model.name` setting in your configuration.
+  - **Note:** Model selection is session-specific and does not persist across different Fora Code sessions. To set a default model, use the `model.name` setting in your configuration.
 
 - **`/restore`**
   - **Description:** Restores the project files to the state they were in just before a tool was executed. This is particularly useful for undoing file edits made by a tool. If run without a tool call ID, it will list available checkpoints to restore from.
@@ -117,15 +117,15 @@ Slash commands provide meta-level control over the CLI itself.
   - **Note:** Only available if the CLI is invoked with the `--checkpointing` option or configured via [settings](./configuration.md). See [Checkpointing documentation](../checkpointing.md) for more details.
 
 - **`/settings`**
-  - **Description:** Open the settings editor to view and modify Qwen Code settings.
-  - **Details:** This command provides a user-friendly interface for changing settings that control the behavior and appearance of Qwen Code. It is equivalent to manually editing the `.qwen/settings.json` file, but with validation and guidance to prevent errors.
+  - **Description:** Open the settings editor to view and modify Fora Code settings.
+  - **Details:** This command provides a user-friendly interface for changing settings that control the behavior and appearance of Fora Code. It is equivalent to manually editing the `.fora/settings.json` file, but with validation and guidance to prevent errors.
   - **Usage:** Simply run `/settings` and the editor will open. You can then browse or search for specific settings, view their current values, and modify them as desired. Changes to some settings are applied immediately, while others require a restart.
 
 - **`/stats`**
-  - **Description:** Display detailed statistics for the current Qwen Code session, including token usage, cached token savings (when available), and session duration. Note: Cached token information is only displayed when cached tokens are being used, which occurs with API key authentication but not with OAuth authentication at this time.
+  - **Description:** Display detailed statistics for the current Fora Code session, including token usage, cached token savings (when available), and session duration. Note: Cached token information is only displayed when cached tokens are being used, which occurs with API key authentication but not with OAuth authentication at this time.
 
 - [**`/theme`**](./themes.md)
-  - **Description:** Open a dialog that lets you change the visual theme of Qwen Code.
+  - **Description:** Open a dialog that lets you change the visual theme of Fora Code.
 
 - **`/auth`**
   - **Description:** Open a dialog that lets you change the authentication method.
@@ -155,12 +155,12 @@ Slash commands provide meta-level control over the CLI itself.
       - **Description:** Open an interactive management dialog to view, edit, and delete existing subagents. Shows both project-level and user-level agents.
       - **Usage:** `/agents manage`
   - **Storage Locations:**
-    - **Project-level:** `.qwen/agents/` (shared with team, takes precedence)
-    - **User-level:** `~/.qwen/agents/` (personal agents, available across projects)
+    - **Project-level:** `.fora/agents/` (shared with team, takes precedence)
+    - **User-level:** `~/.fora/agents/` (personal agents, available across projects)
   - **Note:** For detailed information on creating and managing subagents, see the [Subagents documentation](../subagents.md).
 
 - [**`/tools`**](../tools/index.md)
-  - **Description:** Display a list of tools that are currently available within Qwen Code.
+  - **Description:** Display a list of tools that are currently available within Fora Code.
   - **Usage:** `/tools [desc]`
   - **Sub-commands:**
     - **`desc`** or **`descriptions`**:
@@ -169,7 +169,7 @@ Slash commands provide meta-level control over the CLI itself.
       - **Description:** Hide tool descriptions, showing only the tool names.
 
 - **`/quit-confirm`**
-  - **Description:** Show a confirmation dialog before exiting Qwen Code, allowing you to choose how to handle your current session.
+  - **Description:** Show a confirmation dialog before exiting Fora Code, allowing you to choose how to handle your current session.
   - **Usage:** `/quit-confirm`
   - **Features:**
     - **Quit immediately:** Exit without saving anything (equivalent to `/quit`)
@@ -179,7 +179,7 @@ Slash commands provide meta-level control over the CLI itself.
   - **Note:** This command is automatically triggered when you press Ctrl+C once, providing a safety mechanism to prevent accidental exits.
 
 - **`/quit`** (or **`/exit`**)
-  - **Description:** Exit Qwen Code immediately without any confirmation dialog.
+  - **Description:** Exit Fora Code immediately without any confirmation dialog.
 
 - **`/vim`**
   - **Description:** Toggle vim mode on or off. When vim mode is enabled, the input area supports vim-style navigation and editing commands in both NORMAL and INSERT modes.
@@ -189,24 +189,24 @@ Slash commands provide meta-level control over the CLI itself.
     - **Editing commands:** Delete with `x`, change with `c`, insert with `i`, `a`, `o`, `O`; complex operations like `dd`, `cc`, `dw`, `cw`
     - **Count support:** Prefix commands with numbers (e.g., `3h`, `5w`, `10G`)
     - **Repeat last command:** Use `.` to repeat the last editing operation
-    - **Persistent setting:** Vim mode preference is saved to `~/.qwen/settings.json` and restored between sessions
+    - **Persistent setting:** Vim mode preference is saved to `~/.fora/settings.json` and restored between sessions
   - **Status indicator:** When enabled, shows `[NORMAL]` or `[INSERT]` in the footer
 
 - **`/init`**
-  - **Description:** Analyzes the current directory and creates a `QWEN.md` context file by default (or the filename specified by `contextFileName`). If a non-empty file already exists, no changes are made. The command seeds an empty file and prompts the model to populate it with project-specific instructions.
+  - **Description:** Analyzes the current directory and creates a `FORA.md` context file by default (or the filename specified by `contextFileName`). If a non-empty file already exists, no changes are made. The command seeds an empty file and prompts the model to populate it with project-specific instructions.
 
 ### Custom Commands
 
 For a quick start, see the [example](#example-a-pure-function-refactoring-command) below.
 
-Custom commands allow you to save and reuse your favorite or most frequently used prompts as personal shortcuts within Qwen Code. You can create commands that are specific to a single project or commands that are available globally across all your projects, streamlining your workflow and ensuring consistency.
+Custom commands allow you to save and reuse your favorite or most frequently used prompts as personal shortcuts within Fora Code. You can create commands that are specific to a single project or commands that are available globally across all your projects, streamlining your workflow and ensuring consistency.
 
 #### File Locations & Precedence
 
-Qwen Code discovers commands from two locations, loaded in a specific order:
+Fora Code discovers commands from two locations, loaded in a specific order:
 
-1.  **User Commands (Global):** Located in `~/.qwen/commands/`. These commands are available in any project you are working on.
-2.  **Project Commands (Local):** Located in `<your-project-root>/.qwen/commands/`. These commands are specific to the current project and can be checked into version control to be shared with your team.
+1.  **User Commands (Global):** Located in `~/.fora/commands/`. These commands are available in any project you are working on.
+2.  **Project Commands (Local):** Located in `<your-project-root>/.fora/commands/`. These commands are specific to the current project and can be checked into version control to be shared with your team.
 
 If a command in the project directory has the same name as a command in the user directory, the **project command will always be used.** This allows projects to override global commands with project-specific versions.
 
@@ -214,8 +214,8 @@ If a command in the project directory has the same name as a command in the user
 
 The name of a command is determined by its file path relative to its `commands` directory. Subdirectories are used to create namespaced commands, with the path separator (`/` or `\`) being converted to a colon (`:`).
 
-- A file at `~/.qwen/commands/test.toml` becomes the command `/test`.
-- A file at `<project>/.qwen/commands/git/commit.toml` becomes the namespaced command `/git:commit`.
+- A file at `~/.fora/commands/test.toml` becomes the command `/test`.
+- A file at `<project>/.fora/commands/git/commit.toml` becomes the namespaced command `/git:commit`.
 
 #### TOML File Format (v1)
 
@@ -291,7 +291,7 @@ If you do **not** provide any arguments (e.g., `/mycommand`), the prompt is sent
 This example shows how to create a robust command by defining a role for the model, explaining where to find the user's input, and specifying the expected format and behavior.
 
 ```toml
-# In: <project>/.qwen/commands/changelog.toml
+# In: <project>/.fora/commands/changelog.toml
 # Invoked via: /changelog 1.2.0 added "Support for default argument parsing."
 
 description = "Adds a new entry to the project's CHANGELOG.md file."
@@ -323,7 +323,7 @@ When you run `/changelog 1.2.0 added "New feature"`, the final text sent to the 
 
 You can make your commands dynamic by executing shell commands directly within your `prompt` and injecting their output. This is ideal for gathering context from your local environment, like reading file content or checking the status of Git.
 
-When a custom command attempts to execute a shell command, Qwen Code will now prompt you for confirmation before proceeding. This is a security measure to ensure that only intended commands can be run.
+When a custom command attempts to execute a shell command, Fora Code will now prompt you for confirmation before proceeding. This is a security measure to ensure that only intended commands can be run.
 
 **How It Works:**
 
@@ -338,7 +338,7 @@ When a custom command attempts to execute a shell command, Qwen Code will now pr
 This command gets the staged git diff and uses it to ask the model to write a commit message.
 
 ````toml
-# In: <project>/.qwen/commands/git/commit.toml
+# In: <project>/.fora/commands/git/commit.toml
 # Invoked via: /git:commit
 
 description = "Generates a Git commit message based on staged changes."
@@ -365,7 +365,7 @@ You can directly embed the content of a file or a directory listing into your pr
 
 - **File Injection**: `@{path/to/file.txt}` is replaced by the content of `file.txt`.
 - **Multimodal Support**: If the path points to a supported image (e.g., PNG, JPEG), PDF, audio, or video file, it will be correctly encoded and injected as multimodal input. Other binary files are handled gracefully and skipped.
-- **Directory Listing**: `@{path/to/dir}` is traversed and each file present within the directory and all subdirectories are inserted into the prompt. This respects `.gitignore` and `.qwenignore` if enabled.
+- **Directory Listing**: `@{path/to/dir}` is traversed and each file present within the directory and all subdirectories are inserted into the prompt. This respects `.gitignore` and `.foraignore` if enabled.
 - **Workspace-Aware**: The command searches for the path in the current directory and any other workspace directories. Absolute paths are allowed if they are within the workspace.
 - **Processing Order**: File content injection with `@{...}` is processed _before_ shell commands (`!{...}`) and argument substitution (`{{args}}`).
 - **Parsing**: The parser requires the content inside `@{...}` (the path) to have balanced braces (`{` and `}`).
@@ -375,7 +375,7 @@ You can directly embed the content of a file or a directory listing into your pr
 This command injects the content of a _fixed_ best practices file (`docs/best-practices.md`) and uses the user's arguments to provide context for the review.
 
 ```toml
-# In: <project>/.qwen/commands/review.toml
+# In: <project>/.fora/commands/review.toml
 # Invoked via: /review FileCommandLoader.ts
 
 description = "Reviews the provided context using a best practice guide."
@@ -403,16 +403,16 @@ Let's create a global command that asks the model to refactor a piece of code.
 First, ensure the user commands directory exists, then create a `refactor` subdirectory for organization and the final TOML file.
 
 ```bash
-mkdir -p ~/.qwen/commands/refactor
-touch ~/.qwen/commands/refactor/pure.toml
+mkdir -p ~/.fora/commands/refactor
+touch ~/.fora/commands/refactor/pure.toml
 ```
 
 **2. Add the content to the file:**
 
-Open `~/.qwen/commands/refactor/pure.toml` in your editor and add the following content. We are including the optional `description` for best practice.
+Open `~/.fora/commands/refactor/pure.toml` in your editor and add the following content. We are including the optional `description` for best practice.
 
 ```toml
-# In: ~/.qwen/commands/refactor/pure.toml
+# In: ~/.fora/commands/refactor/pure.toml
 # This command will be invoked via: /refactor:pure
 
 description = "Asks the model to refactor the current context into a pure function."
@@ -436,7 +436,7 @@ That's it! You can now run your command in the CLI. First, you might add a file 
 > /refactor:pure
 ```
 
-Qwen Code will then execute the multi-line prompt defined in your TOML file.
+Fora Code will then execute the multi-line prompt defined in your TOML file.
 
 ## Input Prompt Shortcuts
 
@@ -477,13 +477,13 @@ At commands are used to include the content of files or directories as part of y
 
 ## Shell mode & passthrough commands (`!`)
 
-The `!` prefix lets you interact with your system's shell directly from within Qwen Code.
+The `!` prefix lets you interact with your system's shell directly from within Fora Code.
 
 - **`!<shell_command>`**
   - **Description:** Execute the given `<shell_command>` using `bash` on Linux/macOS or `cmd.exe` on Windows. Any output or errors from the command are displayed in the terminal.
   - **Examples:**
-    - `!ls -la` (executes `ls -la` and returns to Qwen Code)
-    - `!git status` (executes `git status` and returns to Qwen Code)
+    - `!ls -la` (executes `ls -la` and returns to Fora Code)
+    - `!git status` (executes `git status` and returns to Fora Code)
 
 - **`!` (Toggle shell mode)**
   - **Description:** Typing `!` on its own toggles shell mode.
@@ -491,8 +491,8 @@ The `!` prefix lets you interact with your system's shell directly from within Q
       - When active, shell mode uses a different coloring and a "Shell Mode Indicator".
       - While in shell mode, text you type is interpreted directly as a shell command.
     - **Exiting shell mode:**
-      - When exited, the UI reverts to its standard appearance and normal Qwen Code behavior resumes.
+      - When exited, the UI reverts to its standard appearance and normal Fora Code behavior resumes.
 
 - **Caution for all `!` usage:** Commands you execute in shell mode have the same permissions and impact as if you ran them directly in your terminal.
 
-- **Environment Variable:** When a command is executed via `!` or in shell mode, the `QWEN_CODE=1` environment variable is set in the subprocess's environment. This allows scripts or tools to detect if they are being run from within the CLI.
+- **Environment Variable:** When a command is executed via `!` or in shell mode, the `FORAGEN_CLI=1` environment variable is set in the subprocess's environment. This allows scripts or tools to detect if they are being run from within the CLI.

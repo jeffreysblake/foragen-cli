@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AuthType } from '@qwen-code/qwen-code-core';
+import { AuthType } from '@jeffreysblake/foragen-cli-core';
 import { vi } from 'vitest';
 import { validateAuthMethod } from './auth.js';
 
@@ -36,8 +36,8 @@ describe('validateAuthMethod', () => {
     );
   });
 
-  it('should return null for QWEN_OAUTH', () => {
-    expect(validateAuthMethod(AuthType.QWEN_OAUTH)).toBeNull();
+  it('should return null for FORA_OAUTH', () => {
+    expect(validateAuthMethod(AuthType.FORA_OAUTH)).toBeNull();
   });
 
   it('should return an error message for an invalid auth method', () => {

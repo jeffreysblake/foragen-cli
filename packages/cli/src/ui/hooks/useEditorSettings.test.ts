@@ -23,10 +23,10 @@ import {
   type EditorType,
   checkHasEditorType,
   allowEditorTypeInSandbox,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 
-vi.mock('@qwen-code/qwen-code-core', async () => {
-  const actual = await vi.importActual('@qwen-code/qwen-code-core');
+vi.mock('@jeffreysblake/foragen-cli-core', async () => {
+  const actual = await vi.importActual('@jeffreysblake/foragen-cli-core');
   return {
     ...actual,
     checkHasEditorType: vi.fn(() => true),

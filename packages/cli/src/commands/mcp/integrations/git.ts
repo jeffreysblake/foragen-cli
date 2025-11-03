@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MCPServerConfig } from '@qwen-code/qwen-code-core';
+import { MCPServerConfig } from '@jeffreysblake/foragen-cli-core';
 import { BaseMCPIntegration } from './base.js';
 import { execSync } from 'child_process';
 
@@ -102,9 +102,9 @@ export class GitMCPIntegration extends BaseMCPIntegration {
         GIT_MCP_ALLOW_DANGEROUS: allowDangerousOperations.toString(),
         // Set Git configuration for better MCP integration
         GIT_CONFIG_GLOBAL_USER_NAME:
-          this.getGitConfig('user.name') || 'Qwen Code AI',
+          this.getGitConfig('user.name') || 'Fora Code AI',
         GIT_CONFIG_GLOBAL_USER_EMAIL:
-          this.getGitConfig('user.email') || 'ai@qwencode.local',
+          this.getGitConfig('user.email') || 'ai@foracode.local',
       },
       timeout,
       trust: true,

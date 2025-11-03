@@ -1,12 +1,12 @@
-# Qwen Code Companion Plugin: Interface Specification
+# Fora Code Companion Plugin: Interface Specification
 
 > Last Updated: September 15, 2025
 
-This document defines the contract for building a companion plugin to enable Qwen Code's IDE mode. For VS Code, these features (native diffing, context awareness) are provided by the official extension ([marketplace](https://marketplace.visualstudio.com/items?itemName=qwenlm.qwen-code-vscode-ide-companion)). This specification is for contributors who wish to bring similar functionality to other editors like JetBrains IDEs, Sublime Text, etc.
+This document defines the contract for building a companion plugin to enable Fora Code's IDE mode. For VS Code, these features (native diffing, context awareness) are provided by the official extension ([marketplace](https://marketplace.visualstudio.com/items?itemName=jeffreysblake.foragen-cli-vscode-companion)). This specification is for contributors who wish to bring similar functionality to other editors like JetBrains IDEs, Sublime Text, etc.
 
 ## I. The Communication Interface
 
-Qwen Code and the IDE plugin communicate through a local communication channel.
+Fora Code and the IDE plugin communicate through a local communication channel.
 
 ### 1. Transport Layer: MCP over HTTP
 
@@ -18,12 +18,12 @@ The plugin **MUST** run a local HTTP server that implements the **Model Context 
 
 ### 2. Discovery Mechanism: The Port File
 
-For Qwen Code to connect, it needs to discover which IDE instance it's running in and what port your server is using. The plugin **MUST** facilitate this by creating a "discovery file."
+For Fora Code to connect, it needs to discover which IDE instance it's running in and what port your server is using. The plugin **MUST** facilitate this by creating a "discovery file."
 
 - **How the CLI Finds the File:** The CLI determines the Process ID (PID) of the IDE it's running in by traversing the process tree. It then looks for a discovery file that contains this PID in its name.
-- **File Location:** The file must be created in a specific directory: `os.tmpdir()/qwen/ide/`. Your plugin must create this directory if it doesn't exist.
+- **File Location:** The file must be created in a specific directory: `os.tmpdir()/fora/ide/`. Your plugin must create this directory if it doesn't exist.
 - **File Naming Convention:** The filename is critical and **MUST** follow the pattern:
-  `qwen-code-ide-server-${PID}-${PORT}.json`
+  `foragen-cli-ide-server-${PID}-${PORT}.json`
   - `${PID}`: The process ID of the parent IDE process. Your plugin must determine this PID and include it in the filename.
   - `${PORT}`: The port your MCP server is listening on.
 - **File Content & Workspace Validation:** The file **MUST** contain a JSON object with the following structure:
@@ -47,7 +47,7 @@ For Qwen Code to connect, it needs to discover which IDE instance it's running i
     - `displayName` (string, required): A user-friendly name for the IDE (e.g., `VS Code`, `JetBrains IDE`).
 
 - **Authentication:** To secure the connection, the plugin **MUST** generate a unique, secret token and include it in the discovery file. The CLI will then include this token in the `Authorization` header for all requests to the MCP server (e.g., `Authorization: Bearer a-very-secret-token`). Your server **MUST** validate this token on every request and reject any that are unauthorized.
-- **Tie-Breaking with Environment Variables (Recommended):** For the most reliable experience, your plugin **SHOULD** both create the discovery file and set the `QWEN_CODE_IDE_SERVER_PORT` environment variable in the integrated terminal. The file serves as the primary discovery mechanism, but the environment variable is crucial for tie-breaking. If a user has multiple IDE windows open for the same workspace, the CLI uses the `QWEN_CODE_IDE_SERVER_PORT` variable to identify and connect to the correct window's server.
+- **Tie-Breaking with Environment Variables (Recommended):** For the most reliable experience, your plugin **SHOULD** both create the discovery file and set the `FORAGEN_CLI_IDE_SERVER_PORT` environment variable in the integrated terminal. The file serves as the primary discovery mechanism, but the environment variable is crucial for tie-breaking. If a user has multiple IDE windows open for the same workspace, the CLI uses the `FORAGEN_CLI_IDE_SERVER_PORT` variable to identify and connect to the correct window's server.
 
 ## II. The Context Interface
 

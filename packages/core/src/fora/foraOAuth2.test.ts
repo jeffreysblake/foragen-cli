@@ -16,12 +16,12 @@ import {
   isDeviceTokenPending,
   isDeviceTokenSuccess,
   isErrorResponse,
-  QwenOAuth2Client,
+  ForaOAuth2Client,
   type DeviceAuthorizationResponse,
   type DeviceTokenResponse,
   type ErrorData,
-  type QwenCredentials,
-} from './qwenOAuth2.js';
+  type ForaCredentials,
+} from './foraOAuth2.js';
 import {
   SharedTokenManager,
   TokenManagerError,
@@ -29,8 +29,8 @@ import {
 } from './sharedTokenManager.js';
 
 interface MockSharedTokenManager {
-  getValidCredentials(qwenClient: QwenOAuth2Client): Promise<QwenCredentials>;
-  getCurrentCredentials(): QwenCredentials | null;
+  getValidCredentials(foraClient: ForaOAuth2Client): Promise<ForaCredentials>;
+  getCurrentCredentials(): ForaCredentials | null;
   clearCache(): void;
 }
 
@@ -47,10 +47,10 @@ vi.mock('./sharedTokenManager.js', () => ({
     }
 
     async getValidCredentials(
-      qwenClient: QwenOAuth2Client,
-    ): Promise<QwenCredentials> {
+      foraClient: ForaOAuth2Client,
+    ): Promise<ForaCredentials> {
       // Try to get credentials from the client first
-      const clientCredentials = qwenClient.getCredentials();
+      const clientCredentials = foraClient.getCredentials();
       if (clientCredentials && clientCredentials.access_token) {
         return clientCredentials;
       }
@@ -65,7 +65,7 @@ vi.mock('./sharedTokenManager.js', () => ({
       };
     }
 
-    getCurrentCredentials(): QwenCredentials | null {
+    getCurrentCredentials(): ForaCredentials | null {
       // Return null to let the client manage its own credentials
       return null;
     }
@@ -158,8 +158,8 @@ describe('Type Guards', () => {
   describe('isDeviceAuthorizationSuccess', () => {
     it('should return true for successful authorization response', () => {
       const expectedBaseUrl = process.env['DEBUG']
-        ? 'https://pre4-chat.qwen.ai'
-        : 'https://chat.qwen.ai';
+        ? 'https://pre4-chat.fora.ai'
+        : 'https://chat.fora.ai';
 
       const successResponse: DeviceAuthorizationResponse = {
         device_code: 'test-device-code',
@@ -278,8 +278,8 @@ describe('Type Guards', () => {
       const successResponse: DeviceAuthorizationResponse = {
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       };
 
@@ -288,13 +288,13 @@ describe('Type Guards', () => {
   });
 });
 
-describe('QwenOAuth2Client', () => {
-  let client: QwenOAuth2Client;
+describe('ForaOAuth2Client', () => {
+  let client: ForaOAuth2Client;
   let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
     // Create client instance
-    client = new QwenOAuth2Client();
+    client = new ForaOAuth2Client();
 
     // Mock fetch
     originalFetch = global.fetch;
@@ -313,8 +313,8 @@ describe('QwenOAuth2Client', () => {
         json: async () => ({
           device_code: 'test-device-code',
           user_code: 'TEST123',
-          verification_uri: 'https://chat.qwen.ai/device',
-          verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+          verification_uri: 'https://chat.fora.ai/device',
+          verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
           expires_in: 1800,
         }),
       };
@@ -330,8 +330,8 @@ describe('QwenOAuth2Client', () => {
       expect(result).toEqual({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       });
     });
@@ -498,7 +498,7 @@ describe('QwenOAuth2Client', () => {
       (
         client as unknown as {
           sharedManager: {
-            getValidCredentials: () => Promise<QwenCredentials>;
+            getValidCredentials: () => Promise<ForaCredentials>;
           };
         }
       ).sharedManager = {
@@ -521,7 +521,7 @@ describe('QwenOAuth2Client', () => {
       (
         client as unknown as {
           sharedManager: {
-            getValidCredentials: () => Promise<QwenCredentials>;
+            getValidCredentials: () => Promise<ForaCredentials>;
           };
         }
       ).sharedManager = {
@@ -738,7 +738,7 @@ describe('QwenOAuth2Client', () => {
   });
 });
 
-describe('getQwenOAuthClient', () => {
+describe('getForaOAuthClient', () => {
   let mockConfig: Config;
   let originalFetch: typeof global.fetch;
 
@@ -777,8 +777,8 @@ describe('getQwenOAuthClient', () => {
     const originalGetInstance = SharedTokenManager.getInstance;
     SharedTokenManager.getInstance = vi.fn().mockReturnValue(mockTokenManager);
 
-    const client = await import('./qwenOAuth2.js').then((module) =>
-      module.getQwenOAuthClient(mockConfig),
+    const client = await import('./foraOAuth2.js').then((module) =>
+      module.getForaOAuthClient(mockConfig),
     );
 
     expect(client).toBeInstanceOf(Object);
@@ -793,7 +793,7 @@ describe('getQwenOAuthClient', () => {
       access_token: 'cached-token',
       refresh_token: 'expired-refresh',
       token_type: 'Bearer',
-      expiry_date: Date.now() + 3600000, // Valid expiry time so loadCachedQwenCredentials returns true
+      expiry_date: Date.now() + 3600000, // Valid expiry time so loadCachedForaCredentials returns true
     };
 
     vi.mocked(fs.promises.readFile).mockResolvedValue(
@@ -822,10 +822,10 @@ describe('getQwenOAuthClient', () => {
 
     // The function should handle the invalid cached credentials and throw the expected error
     await expect(
-      import('./qwenOAuth2.js').then((module) =>
-        module.getQwenOAuthClient(mockConfig),
+      import('./foraOAuth2.js').then((module) =>
+        module.getForaOAuthClient(mockConfig),
       ),
-    ).rejects.toThrow('Qwen OAuth authentication failed');
+    ).rejects.toThrow('Fora OAuth authentication failed');
 
     SharedTokenManager.getInstance = originalGetInstance;
   });
@@ -833,7 +833,7 @@ describe('getQwenOAuthClient', () => {
 
 describe('CredentialsClearRequiredError', () => {
   it('should create error with correct name and message', async () => {
-    const { CredentialsClearRequiredError } = await import('./qwenOAuth2.js');
+    const { CredentialsClearRequiredError } = await import('./foraOAuth2.js');
 
     const message = 'Test error message';
     const originalError = { status: 400, response: 'Bad Request' };
@@ -846,7 +846,7 @@ describe('CredentialsClearRequiredError', () => {
   });
 
   it('should work without originalError', async () => {
-    const { CredentialsClearRequiredError } = await import('./qwenOAuth2.js');
+    const { CredentialsClearRequiredError } = await import('./foraOAuth2.js');
 
     const message = 'Test error message';
     const error = new CredentialsClearRequiredError(message);
@@ -857,46 +857,46 @@ describe('CredentialsClearRequiredError', () => {
   });
 });
 
-describe('clearQwenCredentials', () => {
+describe('clearForaCredentials', () => {
   it('should successfully clear credentials file', async () => {
     const { promises: fs } = await import('node:fs');
-    const { clearQwenCredentials } = await import('./qwenOAuth2.js');
+    const { clearForaCredentials } = await import('./foraOAuth2.js');
 
     vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
-    await expect(clearQwenCredentials()).resolves.not.toThrow();
+    await expect(clearForaCredentials()).resolves.not.toThrow();
     expect(fs.unlink).toHaveBeenCalled();
   });
 
   it('should handle file not found error gracefully', async () => {
     const { promises: fs } = await import('node:fs');
-    const { clearQwenCredentials } = await import('./qwenOAuth2.js');
+    const { clearForaCredentials } = await import('./foraOAuth2.js');
 
     const notFoundError = new Error('File not found');
     (notFoundError as Error & { code: string }).code = 'ENOENT';
     vi.mocked(fs.unlink).mockRejectedValue(notFoundError);
 
-    await expect(clearQwenCredentials()).resolves.not.toThrow();
+    await expect(clearForaCredentials()).resolves.not.toThrow();
   });
 
   it('should handle other file system errors gracefully', async () => {
     const { promises: fs } = await import('node:fs');
-    const { clearQwenCredentials } = await import('./qwenOAuth2.js');
+    const { clearForaCredentials } = await import('./foraOAuth2.js');
 
     const permissionError = new Error('Permission denied');
     vi.mocked(fs.unlink).mockRejectedValue(permissionError);
 
     // Should not throw but may log warning
-    await expect(clearQwenCredentials()).resolves.not.toThrow();
+    await expect(clearForaCredentials()).resolves.not.toThrow();
   });
 });
 
-describe('QwenOAuth2Client - Additional Error Scenarios', () => {
-  let client: QwenOAuth2Client;
+describe('ForaOAuth2Client - Additional Error Scenarios', () => {
+  let client: ForaOAuth2Client;
   let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
-    client = new QwenOAuth2Client();
+    client = new ForaOAuth2Client();
     originalFetch = global.fetch;
     global.fetch = vi.fn();
   });
@@ -930,7 +930,7 @@ describe('QwenOAuth2Client - Additional Error Scenarios', () => {
   });
 });
 
-describe('getQwenOAuthClient - Enhanced Error Scenarios', () => {
+describe('getForaOAuthClient - Enhanced Error Scenarios', () => {
   let mockConfig: Config;
   let originalFetch: typeof global.fetch;
 
@@ -980,10 +980,10 @@ describe('getQwenOAuthClient - Enhanced Error Scenarios', () => {
     vi.mocked(global.fetch).mockResolvedValue(mockAuthResponse as Response);
 
     await expect(
-      import('./qwenOAuth2.js').then((module) =>
-        module.getQwenOAuthClient(mockConfig),
+      import('./foraOAuth2.js').then((module) =>
+        module.getForaOAuthClient(mockConfig),
       ),
-    ).rejects.toThrow('Qwen OAuth authentication failed');
+    ).rejects.toThrow('Fora OAuth authentication failed');
 
     SharedTokenManager.getInstance = originalGetInstance;
   });
@@ -1010,8 +1010,8 @@ describe('getQwenOAuthClient - Enhanced Error Scenarios', () => {
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 0.1, // Very short timeout for testing
       }),
     };
@@ -1029,10 +1029,10 @@ describe('getQwenOAuthClient - Enhanced Error Scenarios', () => {
       .mockResolvedValue(mockPendingResponse as Response);
 
     await expect(
-      import('./qwenOAuth2.js').then((module) =>
-        module.getQwenOAuthClient(mockConfig),
+      import('./foraOAuth2.js').then((module) =>
+        module.getForaOAuthClient(mockConfig),
       ),
-    ).rejects.toThrow('Qwen OAuth authentication timed out');
+    ).rejects.toThrow('Fora OAuth authentication timed out');
 
     SharedTokenManager.getInstance = originalGetInstance;
   });
@@ -1059,8 +1059,8 @@ describe('getQwenOAuthClient - Enhanced Error Scenarios', () => {
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -1078,11 +1078,11 @@ describe('getQwenOAuthClient - Enhanced Error Scenarios', () => {
       .mockResolvedValue(mockRateLimitResponse as Response);
 
     await expect(
-      import('./qwenOAuth2.js').then((module) =>
-        module.getQwenOAuthClient(mockConfig),
+      import('./foraOAuth2.js').then((module) =>
+        module.getForaOAuthClient(mockConfig),
       ),
     ).rejects.toThrow(
-      'Too many request for Qwen OAuth authentication, please try again later.',
+      'Too many request for Fora OAuth authentication, please try again later.',
     );
 
     SharedTokenManager.getInstance = originalGetInstance;
@@ -1116,16 +1116,16 @@ describe('getQwenOAuthClient - Enhanced Error Scenarios', () => {
     global.fetch = vi.fn().mockResolvedValue(mockAuthResponse as Response);
 
     await expect(
-      import('./qwenOAuth2.js').then((module) =>
-        module.getQwenOAuthClient(mockConfig),
+      import('./foraOAuth2.js').then((module) =>
+        module.getForaOAuthClient(mockConfig),
       ),
-    ).rejects.toThrow('Qwen OAuth authentication failed');
+    ).rejects.toThrow('Fora OAuth authentication failed');
 
     SharedTokenManager.getInstance = originalGetInstance;
   });
 });
 
-describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
+describe('authWithForaDeviceFlow - Comprehensive Testing', () => {
   let mockConfig: Config;
   let originalFetch: typeof global.fetch;
 
@@ -1174,10 +1174,10 @@ describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
     global.fetch = vi.fn().mockResolvedValue(mockAuthResponse as Response);
 
     await expect(
-      import('./qwenOAuth2.js').then((module) =>
-        module.getQwenOAuthClient(mockConfig),
+      import('./foraOAuth2.js').then((module) =>
+        module.getForaOAuthClient(mockConfig),
       ),
-    ).rejects.toThrow('Qwen OAuth authentication failed');
+    ).rejects.toThrow('Fora OAuth authentication failed');
 
     SharedTokenManager.getInstance = originalGetInstance;
   });
@@ -1193,8 +1193,8 @@ describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -1214,8 +1214,8 @@ describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
       .mockResolvedValueOnce(mockAuthResponse as Response)
       .mockResolvedValue(mockTokenResponse as Response);
 
-    const client = await import('./qwenOAuth2.js').then((module) =>
-      module.getQwenOAuthClient(mockConfig),
+    const client = await import('./foraOAuth2.js').then((module) =>
+      module.getForaOAuthClient(mockConfig),
     );
 
     expect(client).toBeInstanceOf(Object);
@@ -1242,8 +1242,8 @@ describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -1261,10 +1261,10 @@ describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
       .mockResolvedValue(mock401Response as Response);
 
     await expect(
-      import('./qwenOAuth2.js').then((module) =>
-        module.getQwenOAuthClient(mockConfig),
+      import('./foraOAuth2.js').then((module) =>
+        module.getForaOAuthClient(mockConfig),
       ),
-    ).rejects.toThrow('Qwen OAuth authentication failed');
+    ).rejects.toThrow('Fora OAuth authentication failed');
 
     SharedTokenManager.getInstance = originalGetInstance;
   });
@@ -1293,8 +1293,8 @@ describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -1315,8 +1315,8 @@ describe('authWithQwenDeviceFlow - Comprehensive Testing', () => {
       .mockResolvedValueOnce(mockAuthResponse as Response)
       .mockResolvedValue(mockTokenResponse as Response);
 
-    const client = await import('./qwenOAuth2.js').then((module) =>
-      module.getQwenOAuthClient(mockConfig),
+    const client = await import('./foraOAuth2.js').then((module) =>
+      module.getForaOAuthClient(mockConfig),
     );
 
     expect(client).toBeInstanceOf(Object);
@@ -1361,8 +1361,8 @@ describe('Browser Launch and Error Handling', () => {
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -1382,8 +1382,8 @@ describe('Browser Launch and Error Handling', () => {
       .mockResolvedValueOnce(mockAuthResponse as Response)
       .mockResolvedValue(mockTokenResponse as Response);
 
-    const client = await import('./qwenOAuth2.js').then((module) =>
-      module.getQwenOAuthClient(mockConfig),
+    const client = await import('./foraOAuth2.js').then((module) =>
+      module.getForaOAuthClient(mockConfig),
     );
 
     expect(client).toBeInstanceOf(Object);
@@ -1414,8 +1414,8 @@ describe('Browser Launch and Error Handling', () => {
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -1435,8 +1435,8 @@ describe('Browser Launch and Error Handling', () => {
       .mockResolvedValueOnce(mockAuthResponse as Response)
       .mockResolvedValue(mockTokenResponse as Response);
 
-    const client = await import('./qwenOAuth2.js').then((module) =>
-      module.getQwenOAuthClient(mockConfig),
+    const client = await import('./foraOAuth2.js').then((module) =>
+      module.getForaOAuthClient(mockConfig),
     );
 
     expect(client).toBeInstanceOf(Object);
@@ -1444,16 +1444,16 @@ describe('Browser Launch and Error Handling', () => {
 });
 
 describe('Event Emitter Integration', () => {
-  it('should export qwenOAuth2Events as EventEmitter', async () => {
-    const { qwenOAuth2Events } = await import('./qwenOAuth2.js');
-    expect(qwenOAuth2Events).toBeInstanceOf(EventEmitter);
+  it('should export foraOAuth2Events as EventEmitter', async () => {
+    const { foraOAuth2Events } = await import('./foraOAuth2.js');
+    expect(foraOAuth2Events).toBeInstanceOf(EventEmitter);
   });
 
   it('should define correct event enum values', async () => {
-    const { QwenOAuth2Event } = await import('./qwenOAuth2.js');
-    expect(QwenOAuth2Event.AuthUri).toBe('auth-uri');
-    expect(QwenOAuth2Event.AuthProgress).toBe('auth-progress');
-    expect(QwenOAuth2Event.AuthCancel).toBe('auth-cancel');
+    const { ForaOAuth2Event } = await import('./foraOAuth2.js');
+    expect(ForaOAuth2Event.AuthUri).toBe('auth-uri');
+    expect(ForaOAuth2Event.AuthProgress).toBe('auth-progress');
+    expect(ForaOAuth2Event.AuthCancel).toBe('auth-cancel');
   });
 });
 
@@ -1520,20 +1520,20 @@ describe('Utility Functions', () => {
     });
   });
 
-  describe('getQwenCachedCredentialPath', () => {
+  describe('getForaCachedCredentialPath', () => {
     it('should return correct path to cached credentials', async () => {
       const os = await import('os');
       const path = await import('path');
 
-      const expectedPath = path.join(os.homedir(), '.qwen', 'oauth_creds.json');
+      const expectedPath = path.join(os.homedir(), '.fora', 'oauth_creds.json');
 
-      // Since this is a private function, we test it indirectly through clearQwenCredentials
+      // Since this is a private function, we test it indirectly through clearForaCredentials
       const { promises: fs } = await import('node:fs');
-      const { clearQwenCredentials } = await import('./qwenOAuth2.js');
+      const { clearForaCredentials } = await import('./foraOAuth2.js');
 
       vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
-      await clearQwenCredentials();
+      await clearForaCredentials();
 
       expect(fs.unlink).toHaveBeenCalledWith(expectedPath);
     });
@@ -1541,10 +1541,10 @@ describe('Utility Functions', () => {
 });
 
 describe('Credential Caching Functions', () => {
-  describe('cacheQwenCredentials', () => {
+  describe('cacheForaCredentials', () => {
     it('should create directory and write credentials to file', async () => {
-      // Mock the internal cacheQwenCredentials function by creating client and calling refresh
-      const client = new QwenOAuth2Client();
+      // Mock the internal cacheForaCredentials function by creating client and calling refresh
+      const client = new ForaOAuth2Client();
       client.setCredentials({
         refresh_token: 'test-refresh',
       });
@@ -1569,7 +1569,7 @@ describe('Credential Caching Functions', () => {
     });
   });
 
-  describe('loadCachedQwenCredentials', () => {
+  describe('loadCachedForaCredentials', () => {
     it('should load and validate cached credentials successfully', async () => {
       const { promises: fs } = await import('node:fs');
       const mockCredentials = {
@@ -1581,7 +1581,7 @@ describe('Credential Caching Functions', () => {
 
       vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockCredentials));
 
-      // Test through getQwenOAuthClient which calls loadCachedQwenCredentials
+      // Test through getForaOAuthClient which calls loadCachedForaCredentials
       const mockConfig = {
         isBrowserLaunchSuppressed: vi.fn().mockReturnValue(true),
       } as unknown as Config;
@@ -1604,8 +1604,8 @@ describe('Credential Caching Functions', () => {
         json: async () => ({
           device_code: 'test-device-code',
           user_code: 'TEST123',
-          verification_uri: 'https://chat.qwen.ai/device',
-          verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+          verification_uri: 'https://chat.fora.ai/device',
+          verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
           expires_in: 1800,
         }),
       };
@@ -1627,8 +1627,8 @@ describe('Credential Caching Functions', () => {
         .mockResolvedValue(mockTokenResponse as Response);
 
       try {
-        await import('./qwenOAuth2.js').then((module) =>
-          module.getQwenOAuthClient(mockConfig),
+        await import('./foraOAuth2.js').then((module) =>
+          module.getForaOAuthClient(mockConfig),
         );
       } catch {
         // Expected to fail in test environment
@@ -1665,8 +1665,8 @@ describe('Credential Caching Functions', () => {
         json: async () => ({
           device_code: 'test-device-code',
           user_code: 'TEST123',
-          verification_uri: 'https://chat.qwen.ai/device',
-          verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+          verification_uri: 'https://chat.fora.ai/device',
+          verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
           expires_in: 1800,
         }),
       };
@@ -1687,8 +1687,8 @@ describe('Credential Caching Functions', () => {
         .mockResolvedValue(mockTokenResponse as Response);
 
       try {
-        await import('./qwenOAuth2.js').then((module) =>
-          module.getQwenOAuthClient(mockConfig),
+        await import('./foraOAuth2.js').then((module) =>
+          module.getForaOAuthClient(mockConfig),
         );
       } catch {
         // Expected to fail in test environment
@@ -1730,8 +1730,8 @@ describe('Credential Caching Functions', () => {
 
       // Should proceed to device flow when cache loading fails
       try {
-        await import('./qwenOAuth2.js').then((module) =>
-          module.getQwenOAuthClient(mockConfig),
+        await import('./foraOAuth2.js').then((module) =>
+          module.getForaOAuthClient(mockConfig),
         );
       } catch {
         // Expected to fail in test environment
@@ -1743,11 +1743,11 @@ describe('Credential Caching Functions', () => {
 });
 
 describe('Enhanced Error Handling and Edge Cases', () => {
-  let client: QwenOAuth2Client;
+  let client: ForaOAuth2Client;
   let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
-    client = new QwenOAuth2Client();
+    client = new ForaOAuth2Client();
     originalFetch = global.fetch;
     global.fetch = vi.fn();
   });
@@ -1757,7 +1757,7 @@ describe('Enhanced Error Handling and Edge Cases', () => {
     vi.clearAllMocks();
   });
 
-  describe('QwenOAuth2Client getAccessToken enhanced scenarios', () => {
+  describe('ForaOAuth2Client getAccessToken enhanced scenarios', () => {
     it('should return undefined when SharedTokenManager fails (no fallback)', async () => {
       // Set up client with valid credentials (but we don't use fallback anymore)
       client.setCredentials({
@@ -1769,7 +1769,7 @@ describe('Enhanced Error Handling and Edge Cases', () => {
       (
         client as unknown as {
           sharedManager: {
-            getValidCredentials: () => Promise<QwenCredentials>;
+            getValidCredentials: () => Promise<ForaCredentials>;
           };
         }
       ).sharedManager = {
@@ -1805,7 +1805,7 @@ describe('Enhanced Error Handling and Edge Cases', () => {
       (
         client as unknown as {
           sharedManager: {
-            getValidCredentials: () => Promise<QwenCredentials>;
+            getValidCredentials: () => Promise<ForaCredentials>;
           };
         }
       ).sharedManager = {
@@ -1831,7 +1831,7 @@ describe('Enhanced Error Handling and Edge Cases', () => {
       (
         client as unknown as {
           sharedManager: {
-            getValidCredentials: () => Promise<QwenCredentials>;
+            getValidCredentials: () => Promise<ForaCredentials>;
           };
         }
       ).sharedManager = {
@@ -1857,8 +1857,8 @@ describe('Enhanced Error Handling and Edge Cases', () => {
         json: async () => ({
           device_code: 'test-device-code',
           user_code: 'TEST123',
-          verification_uri: 'https://chat.qwen.ai/device',
-          verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+          verification_uri: 'https://chat.fora.ai/device',
+          verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
           expires_in: 1800,
         }),
       };
@@ -1887,8 +1887,8 @@ describe('Enhanced Error Handling and Edge Cases', () => {
         json: async () => ({
           device_code: 'test-device-code',
           user_code: 'TEST123',
-          verification_uri: 'https://chat.qwen.ai/device',
-          verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+          verification_uri: 'https://chat.fora.ai/device',
+          verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
           expires_in: 1800,
         }),
       };
@@ -1918,8 +1918,8 @@ describe('Enhanced Error Handling and Edge Cases', () => {
         json: async () => ({
           device_code: 'test-device-code',
           user_code: 'TEST123',
-          verification_uri: 'https://chat.qwen.ai/device',
-          verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+          verification_uri: 'https://chat.fora.ai/device',
+          verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
           expires_in: 1800,
         }),
       };
@@ -2015,7 +2015,7 @@ describe('Enhanced Error Handling and Edge Cases', () => {
   });
 
   describe('Enhanced refreshAccessToken scenarios', () => {
-    it('should call clearQwenCredentials on 400 error', async () => {
+    it('should call clearForaCredentials on 400 error', async () => {
       client.setCredentials({
         refresh_token: 'expired-refresh',
       });
@@ -2039,7 +2039,7 @@ describe('Enhanced Error Handling and Edge Cases', () => {
     });
 
     it('should throw CredentialsClearRequiredError on 400 error', async () => {
-      const { CredentialsClearRequiredError } = await import('./qwenOAuth2.js');
+      const { CredentialsClearRequiredError } = await import('./foraOAuth2.js');
 
       client.setCredentials({
         refresh_token: 'expired-refresh',
@@ -2124,11 +2124,11 @@ describe('Enhanced Error Handling and Edge Cases', () => {
   });
 });
 
-describe('SharedTokenManager Integration in QwenOAuth2Client', () => {
-  let client: QwenOAuth2Client;
+describe('SharedTokenManager Integration in ForaOAuth2Client', () => {
+  let client: ForaOAuth2Client;
 
   beforeEach(() => {
-    client = new QwenOAuth2Client();
+    client = new ForaOAuth2Client();
   });
 
   it('should use SharedTokenManager instance in constructor', () => {
@@ -2138,7 +2138,7 @@ describe('SharedTokenManager Integration in QwenOAuth2Client', () => {
     expect(sharedManager).toBeDefined();
   });
 
-  it('should handle TokenManagerError types correctly in getQwenOAuthClient', async () => {
+  it('should handle TokenManagerError types correctly in getForaOAuthClient', async () => {
     const mockConfig = {
       isBrowserLaunchSuppressed: vi.fn().mockReturnValue(true),
     } as unknown as Config;
@@ -2175,8 +2175,8 @@ describe('SharedTokenManager Integration in QwenOAuth2Client', () => {
         json: async () => ({
           device_code: 'test-device-code',
           user_code: 'TEST123',
-          verification_uri: 'https://chat.qwen.ai/device',
-          verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+          verification_uri: 'https://chat.fora.ai/device',
+          verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
           expires_in: 1800,
         }),
       };
@@ -2197,8 +2197,8 @@ describe('SharedTokenManager Integration in QwenOAuth2Client', () => {
         .mockResolvedValue(mockTokenResponse as Response);
 
       try {
-        await import('./qwenOAuth2.js').then((module) =>
-          module.getQwenOAuthClient(mockConfig),
+        await import('./foraOAuth2.js').then((module) =>
+          module.getForaOAuthClient(mockConfig),
         );
       } catch {
         // Expected to fail in test environment
@@ -2213,15 +2213,15 @@ describe('SharedTokenManager Integration in QwenOAuth2Client', () => {
 describe('Constants and Configuration', () => {
   it('should have correct OAuth endpoints', async () => {
     // Test that the constants are properly defined by checking they're used in requests
-    const client = new QwenOAuth2Client();
+    const client = new ForaOAuth2Client();
 
     const mockResponse = {
       ok: true,
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -2235,19 +2235,19 @@ describe('Constants and Configuration', () => {
     });
 
     const [url] = vi.mocked(global.fetch).mock.calls[0];
-    expect(url).toBe('https://chat.qwen.ai/api/v1/oauth2/device/code');
+    expect(url).toBe('https://chat.fora.ai/api/v1/oauth2/device/code');
   });
 
   it('should use correct client ID in requests', async () => {
-    const client = new QwenOAuth2Client();
+    const client = new ForaOAuth2Client();
 
     const mockResponse = {
       ok: true,
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };
@@ -2268,15 +2268,15 @@ describe('Constants and Configuration', () => {
 
   it('should use correct default scope', async () => {
     // Test the default scope constant by checking it's used in device flow
-    const client = new QwenOAuth2Client();
+    const client = new ForaOAuth2Client();
 
     const mockResponse = {
       ok: true,
       json: async () => ({
         device_code: 'test-device-code',
         user_code: 'TEST123',
-        verification_uri: 'https://chat.qwen.ai/device',
-        verification_uri_complete: 'https://chat.qwen.ai/device?code=TEST123',
+        verification_uri: 'https://chat.fora.ai/device',
+        verification_uri_complete: 'https://chat.fora.ai/device?code=TEST123',
         expires_in: 1800,
       }),
     };

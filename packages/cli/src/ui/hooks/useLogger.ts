@@ -5,8 +5,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import type { Storage } from '@qwen-code/qwen-code-core';
-import { sessionId, Logger } from '@qwen-code/qwen-code-core';
+import type { Storage } from '@jeffreysblake/foragen-cli-core';
+import { sessionId, Logger } from '@jeffreysblake/foragen-cli-core';
 
 /**
  * Hook to manage the logger instance.

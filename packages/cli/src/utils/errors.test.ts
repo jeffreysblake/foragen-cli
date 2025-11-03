@@ -5,8 +5,8 @@
  */
 
 import { vi, type MockInstance } from 'vitest';
-import type { Config } from '@qwen-code/qwen-code-core';
-import { OutputFormat, FatalInputError } from '@qwen-code/qwen-code-core';
+import type { Config } from '@jeffreysblake/foragen-cli-core';
+import { OutputFormat, FatalInputError } from '@jeffreysblake/foragen-cli-core';
 import {
   getErrorMessage,
   handleError,
@@ -16,9 +16,9 @@ import {
 } from './errors.js';
 
 // Mock the core modules
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('@jeffreysblake/foragen-cli-core', async (importOriginal) => {
   const original =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('@jeffreysblake/foragen-cli-core')>();
 
   return {
     ...original,

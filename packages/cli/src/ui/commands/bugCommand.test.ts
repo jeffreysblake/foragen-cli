@@ -11,15 +11,15 @@ import { createMockCommandContext } from '../../test-utils/mockCommandContext.js
 import { getCliVersion } from '../../utils/version.js';
 import { GIT_COMMIT_INFO } from '../../generated/git-commit.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
-import { AuthType } from '@qwen-code/qwen-code-core';
+import { AuthType } from '@jeffreysblake/foragen-cli-core';
 
 // Mock dependencies
 vi.mock('open');
 vi.mock('../../utils/version.js');
 vi.mock('../utils/formatters.js');
-vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
+vi.mock('@jeffreysblake/foragen-cli-core', async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
+    await importOriginal<typeof import('@jeffreysblake/foragen-cli-core')>();
   return {
     ...actual,
     IdeClient: {
@@ -43,7 +43,7 @@ describe('bugCommand', () => {
   beforeEach(() => {
     vi.mocked(getCliVersion).mockResolvedValue('0.1.0');
     vi.mocked(formatMemoryUsage).mockReturnValue('100 MB');
-    vi.stubEnv('SANDBOX', 'qwen-test');
+    vi.stubEnv('SANDBOX', 'fora-test');
   });
 
   afterEach(() => {
@@ -55,7 +55,7 @@ describe('bugCommand', () => {
     const mockContext = createMockCommandContext({
       services: {
         config: {
-          getModel: () => 'qwen3-coder-plus',
+          getModel: () => 'fora3-coder-plus',
           getBugCommand: () => undefined,
           getIdeMode: () => true,
           getSessionId: () => 'test-session-id',
@@ -82,12 +82,12 @@ describe('bugCommand', () => {
 * **Operating System:** test-platform v20.0.0
 * **Sandbox Environment:** test
 * **Auth Type:** 
-* **Model Version:** qwen3-coder-plus
+* **Model Version:** fora3-coder-plus
 * **Memory Usage:** 100 MB
 * **IDE Client:** VSCode
 `;
     const expectedUrl =
-      'https://github.com/QwenLM/qwen-code/issues/new?template=bug_report.yml&title=A%20test%20bug&info=' +
+      'https://github.com/jeffreysblake/foragen-cli/issues/new?template=bug_report.yml&title=A%20test%20bug&info=' +
       encodeURIComponent(expectedInfo);
 
     expect(open).toHaveBeenCalledWith(expectedUrl);
@@ -99,7 +99,7 @@ describe('bugCommand', () => {
     const mockContext = createMockCommandContext({
       services: {
         config: {
-          getModel: () => 'qwen3-coder-plus',
+          getModel: () => 'fora3-coder-plus',
           getBugCommand: () => ({ urlTemplate: customTemplate }),
           getIdeMode: () => true,
           getSessionId: () => 'test-session-id',
@@ -126,7 +126,7 @@ describe('bugCommand', () => {
 * **Operating System:** test-platform v20.0.0
 * **Sandbox Environment:** test
 * **Auth Type:** 
-* **Model Version:** qwen3-coder-plus
+* **Model Version:** fora3-coder-plus
 * **Memory Usage:** 100 MB
 * **IDE Client:** VSCode
 `;
@@ -141,7 +141,7 @@ describe('bugCommand', () => {
     const mockContext = createMockCommandContext({
       services: {
         config: {
-          getModel: () => 'qwen3-coder-plus',
+          getModel: () => 'fora3-coder-plus',
           getBugCommand: () => undefined,
           getIdeMode: () => true,
           getSessionId: () => 'test-session-id',
@@ -172,12 +172,12 @@ describe('bugCommand', () => {
 * **Sandbox Environment:** test
 * **Auth Type:** ${AuthType.USE_OPENAI}
 * **Base URL:** https://api.openai.com/v1
-* **Model Version:** qwen3-coder-plus
+* **Model Version:** fora3-coder-plus
 * **Memory Usage:** 100 MB
 * **IDE Client:** VSCode
 `;
     const expectedUrl =
-      'https://github.com/QwenLM/qwen-code/issues/new?template=bug_report.yml&title=OpenAI%20bug&info=' +
+      'https://github.com/jeffreysblake/foragen-cli/issues/new?template=bug_report.yml&title=OpenAI%20bug&info=' +
       encodeURIComponent(expectedInfo);
 
     expect(open).toHaveBeenCalledWith(expectedUrl);

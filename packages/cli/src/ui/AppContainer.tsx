@@ -40,7 +40,7 @@ import {
   getErrorMessage,
   getAllGeminiMdFilenames,
   ShellExecutionService,
-} from '@qwen-code/qwen-code-core';
+} from '@jeffreysblake/foragen-cli-core';
 import { validateAuthMethod } from '../config/auth.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
 import process from 'node:process';
@@ -48,7 +48,7 @@ import { useHistory } from './hooks/useHistoryManager.js';
 import { useMemoryMonitor } from './hooks/useMemoryMonitor.js';
 import { useThemeCommand } from './hooks/useThemeCommand.js';
 import { useAuthCommand } from './auth/useAuth.js';
-import { useQwenAuth } from './hooks/useQwenAuth.js';
+import { useForaAuth } from './hooks/useForaAuth.js';
 import { useQuotaAndFallback } from './hooks/useQuotaAndFallback.js';
 import { useEditorSettings } from './hooks/useEditorSettings.js';
 import { useSettingsCommand } from './hooks/useSettingsCommand.js';
@@ -345,15 +345,15 @@ export const AppContainer = (props: AppContainerProps) => {
     openAuthDialog,
   } = useAuthCommand(settings, config);
 
-  // Qwen OAuth authentication state
+  // Fora OAuth authentication state
   const {
-    isQwenAuth,
-    isQwenAuthenticating,
+    isForaAuth,
+    isForaAuthenticating,
     deviceAuth,
     authStatus,
     authMessage,
-    cancelQwenAuth,
-  } = useQwenAuth(settings, isAuthenticating);
+    cancelForaAuth,
+  } = useForaAuth(settings, isAuthenticating);
 
   const { proQuotaRequest, handleProQuotaChoice } = useQuotaAndFallback({
     config,
@@ -363,19 +363,19 @@ export const AppContainer = (props: AppContainerProps) => {
     setModelSwitchedFromQuotaError,
   });
 
-  // Handle Qwen OAuth timeout
-  const handleQwenAuthTimeout = useCallback(() => {
-    onAuthError('Qwen OAuth authentication timed out. Please try again.');
-    cancelQwenAuth();
+  // Handle Fora OAuth timeout
+  const handleForaAuthTimeout = useCallback(() => {
+    onAuthError('Fora OAuth authentication timed out. Please try again.');
+    cancelForaAuth();
     setAuthState(AuthState.Updating);
-  }, [onAuthError, cancelQwenAuth, setAuthState]);
+  }, [onAuthError, cancelForaAuth, setAuthState]);
 
-  // Handle Qwen OAuth cancel
-  const handleQwenAuthCancel = useCallback(() => {
-    onAuthError('Qwen OAuth authentication cancelled.');
-    cancelQwenAuth();
+  // Handle Fora OAuth cancel
+  const handleForaAuthCancel = useCallback(() => {
+    onAuthError('Fora OAuth authentication cancelled.');
+    cancelForaAuth();
     setAuthState(AuthState.Updating);
-  }, [onAuthError, cancelQwenAuth, setAuthState]);
+  }, [onAuthError, cancelForaAuth, setAuthState]);
 
   // Sync user tier from config when authentication changes
   // TODO: Implement getUserTier() method on Config if needed
@@ -555,7 +555,7 @@ export const AppContainer = (props: AppContainerProps) => {
     historyManager.addItem(
       {
         type: MessageType.INFO,
-        text: 'Refreshing hierarchical memory (QWEN.md or other context files)...',
+        text: 'Refreshing hierarchical memory (FORA.md or other context files)...',
       },
       Date.now(),
     );
@@ -1186,7 +1186,7 @@ export const AppContainer = (props: AppContainerProps) => {
     isVisionSwitchDialogOpen ||
     isPermissionsDialogOpen ||
     isAuthDialogOpen ||
-    (isAuthenticating && isQwenAuthenticating) ||
+    (isAuthenticating && isForaAuthenticating) ||
     isEditorDialogOpen ||
     showIdeRestartPrompt ||
     !!proQuotaRequest ||
@@ -1208,9 +1208,9 @@ export const AppContainer = (props: AppContainerProps) => {
       isConfigInitialized,
       authError,
       isAuthDialogOpen,
-      // Qwen OAuth state
-      isQwenAuth,
-      isQwenAuthenticating,
+      // Fora OAuth state
+      isForaAuth,
+      isForaAuthenticating,
       deviceAuth,
       authStatus,
       authMessage,
@@ -1302,9 +1302,9 @@ export const AppContainer = (props: AppContainerProps) => {
       isConfigInitialized,
       authError,
       isAuthDialogOpen,
-      // Qwen OAuth state
-      isQwenAuth,
-      isQwenAuthenticating,
+      // Fora OAuth state
+      isForaAuth,
+      isForaAuthenticating,
       deviceAuth,
       authStatus,
       authMessage,
@@ -1399,9 +1399,9 @@ export const AppContainer = (props: AppContainerProps) => {
       handleAuthSelect,
       setAuthState,
       onAuthError,
-      // Qwen OAuth handlers
-      handleQwenAuthTimeout,
-      handleQwenAuthCancel,
+      // Fora OAuth handlers
+      handleForaAuthTimeout,
+      handleForaAuthCancel,
       handleEditorSelect,
       exitEditorDialog,
       closeSettingsDialog,
@@ -1434,9 +1434,9 @@ export const AppContainer = (props: AppContainerProps) => {
       handleAuthSelect,
       setAuthState,
       onAuthError,
-      // Qwen OAuth handlers
-      handleQwenAuthTimeout,
-      handleQwenAuthCancel,
+      // Fora OAuth handlers
+      handleForaAuthTimeout,
+      handleForaAuthCancel,
       handleEditorSelect,
       exitEditorDialog,
       closeSettingsDialog,

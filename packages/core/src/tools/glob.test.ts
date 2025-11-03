@@ -30,7 +30,7 @@ describe('GlobTool', () => {
     getFileFilteringRespectGitIgnore: () => true,
     getFileFilteringOptions: () => ({
       respectGitIgnore: true,
-      respectQwenIgnore: true,
+      respectForaIgnore: true,
     }),
     getTargetDir: () => tempRootDir,
     getWorkspaceContext: () => createMockWorkspaceContext(tempRootDir),
@@ -393,13 +393,13 @@ describe('GlobTool', () => {
       expect(result.llmContent).not.toContain('a.ignored.txt');
     });
 
-    it('should respect .qwenignore files by default', async () => {
+    it('should respect .foraignore files by default', async () => {
       await fs.writeFile(
-        path.join(tempRootDir, '.qwenignore'),
-        '*.qwenignored.txt',
+        path.join(tempRootDir, '.foraignore'),
+        '*.foraignored.txt',
       );
       await fs.writeFile(
-        path.join(tempRootDir, 'a.qwenignored.txt'),
+        path.join(tempRootDir, 'a.foraignored.txt'),
         'ignored content',
       );
       await fs.writeFile(
@@ -407,7 +407,7 @@ describe('GlobTool', () => {
         'not ignored content',
       );
 
-      // Recreate the tool to pick up the new .qwenignore file
+      // Recreate the tool to pick up the new .foraignore file
       globTool = new GlobTool(mockConfig);
 
       const params: GlobToolParams = { pattern: '*.txt' };
@@ -415,7 +415,7 @@ describe('GlobTool', () => {
       const result = await invocation.execute(abortSignal);
 
       expect(result.llmContent).toContain('Found 3 file(s)'); // fileA.txt, FileB.TXT, b.notignored.txt
-      expect(result.llmContent).not.toContain('a.qwenignored.txt');
+      expect(result.llmContent).not.toContain('a.foraignored.txt');
     });
 
     it('should not respect .gitignore when respect_git_ignore is false', async () => {
@@ -436,28 +436,28 @@ describe('GlobTool', () => {
       expect(result.llmContent).toContain('a.ignored.txt');
     });
 
-    it('should not respect .qwenignore when respect_qwen_ignore is false', async () => {
+    it('should not respect .foraignore when respect_fora_ignore is false', async () => {
       await fs.writeFile(
-        path.join(tempRootDir, '.qwenignore'),
-        '*.qwenignored.txt',
+        path.join(tempRootDir, '.foraignore'),
+        '*.foraignored.txt',
       );
       await fs.writeFile(
-        path.join(tempRootDir, 'a.qwenignored.txt'),
+        path.join(tempRootDir, 'a.foraignored.txt'),
         'ignored content',
       );
 
-      // Recreate the tool to pick up the new .qwenignore file
+      // Recreate the tool to pick up the new .foraignore file
       globTool = new GlobTool(mockConfig);
 
       const params: GlobToolParams = {
         pattern: '*.txt',
-        respect_qwen_ignore: false,
+        respect_fora_ignore: false,
       };
       const invocation = globTool.build(params);
       const result = await invocation.execute(abortSignal);
 
-      expect(result.llmContent).toContain('Found 3 file(s)'); // fileA.txt, FileB.TXT, a.qwenignored.txt
-      expect(result.llmContent).toContain('a.qwenignored.txt');
+      expect(result.llmContent).toContain('Found 3 file(s)'); // fileA.txt, FileB.TXT, a.foraignored.txt
+      expect(result.llmContent).toContain('a.foraignored.txt');
     });
   });
 });
