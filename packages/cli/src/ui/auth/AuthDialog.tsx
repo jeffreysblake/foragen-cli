@@ -179,7 +179,7 @@ export function AuthDialog({
       </Box>
       <Box marginTop={1}>
         <Text color={Colors.AccentBlue}>
-          {'https://github.com/ForaLM/Fora3-Coder/blob/main/README.md'}
+          {'https://github.com/jeffreysblake/foragen-cli/blob/main/README.md'}
         </Text>
       </Box>
     </Box>

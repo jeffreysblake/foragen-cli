@@ -414,6 +414,11 @@ class Rebrander:
             "GitHub repo URL"
         )
         self.batch_replace(
+            "ForaLM/Fora3-Coder/blob/main/README.md",
+            "jeffreysblake/foragen-cli/blob/main/README.md",
+            "ForaLM docs redirect to CLI repo"
+        )
+        self.batch_replace(
             "ghcr.io/qwenlm/qwen-code",
             "foragen-cli-sandbox",
             "Container image (local)"
