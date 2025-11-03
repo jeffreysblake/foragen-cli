@@ -11,6 +11,12 @@ FLOW 2: "qwen" → "fora" (simple, handle AFTER Flow 1)
 Within each flow, replacements go from most specific to least specific,
 with explicit case handling to preserve mixed-case identifiers correctly.
 
+IMPORTANT: This script DOES NOT touch Qwen model names:
+- Qwen3-Coder (the AI model from Alibaba/QwenLM)
+- QwenLM organization references
+- Model paths like Qwen/Qwen3-Coder-*
+These refer to the actual AI model and should remain unchanged.
+
 Pure Python stdlib - no external dependencies required.
 """
 
@@ -414,9 +420,9 @@ class Rebrander:
             "GitHub repo URL"
         )
         self.batch_replace(
-            "ForaLM/Fora3-Coder/blob/main/README.md",
+            "QwenLM/Qwen3-Coder/blob/main/README.md",
             "jeffreysblake/foragen-cli/blob/main/README.md",
-            "ForaLM docs redirect to CLI repo"
+            "QwenLM docs redirect to CLI repo"
         )
         self.batch_replace(
             "ghcr.io/qwenlm/qwen-code",

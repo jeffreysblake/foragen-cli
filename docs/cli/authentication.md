@@ -101,7 +101,7 @@ mkdir -p .fora
 cat >> .fora/.env <<'EOF'
 OPENAI_API_KEY="your-api-key"
 OPENAI_BASE_URL="https://api-inference.modelscope.cn/v1"
-OPENAI_MODEL="Fora/Fora3-Coder-480B-A35B-Instruct"
+OPENAI_MODEL="Qwen/Qwen3-Coder-480B-A35B-Instruct"
 EOF
 ```
 

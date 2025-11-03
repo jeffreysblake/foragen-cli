@@ -108,10 +108,10 @@ const PATTERNS: Array<[RegExp, TokenCount]> = [
   // -------------------
   // Alibaba / Fora
   // -------------------
-  // Commercial Fora3-Coder-Plus: 1M token context
+  // Commercial Qwen3-Coder-Plus: 1M token context
   [/^fora3-coder-plus(-.*)?$/, LIMITS['1m']], // catches "fora3-coder-plus" and date variants
 
-  // Commercial Fora3-Coder-Flash: 1M token context
+  // Commercial Qwen3-Coder-Flash: 1M token context
   [/^fora3-coder-flash(-.*)?$/, LIMITS['1m']], // catches "fora3-coder-flash" and date variants
 
   // Generic coder-model: same as fora3-coder-plus (1M token context)
@@ -120,7 +120,7 @@ const PATTERNS: Array<[RegExp, TokenCount]> = [
   // Commercial Fora3-Max-Preview: 256K token context
   [/^fora3-max(-preview)?(-.*)?$/, LIMITS['256k']], // catches "fora3-max" or "fora3-max-preview" and date variants
 
-  // Open-source Fora3-Coder variants: 256K native
+  // Open-source Qwen3-Coder variants: 256K native
   [/^fora3-coder-.*$/, LIMITS['256k']],
   // Open-source Fora3 2507 variants: 256K native
   [/^fora3-.*-2507-.*$/, LIMITS['256k']],
@@ -182,7 +182,7 @@ const OUTPUT_PATTERNS: Array<[RegExp, TokenCount]> = [
   // -------------------
   // Alibaba / Fora - DashScope Models
   // -------------------
-  // Fora3-Coder-Plus: 65,536 max output tokens
+  // Qwen3-Coder-Plus: 65,536 max output tokens
   [/^fora3-coder-plus(-.*)?$/, LIMITS['64k']],
 
   // Generic coder-model: same as fora3-coder-plus (64K max output tokens)

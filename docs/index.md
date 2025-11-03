@@ -1,11 +1,11 @@
 # Welcome to Foragen CLI documentation
 
-Foragen CLI is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
+Foragen CLI is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
 
 ## 🚀 Why Choose Foragen CLI?
 
 - 🎯 **Free Tier:** Up to 60 requests/min and 2,000 requests/day with your [ForaChat](https://chat.fora.ai/) account.
-- 🧠 **Advanced Model:** Specially optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) for superior code understanding and assistance.
+- 🧠 **Advanced Model:** Specially optimized for [Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder) for superior code understanding and assistance.
 - 🏆 **Comprehensive Features:** Includes subagents, Plan Mode, TodoWrite, vision model support, and full OpenAI API compatibility—all seamlessly integrated.
 - 🔧 **Built-in & Extensible Tools:** Includes file system operations, shell command execution, web fetch/search, and more—all easily extended via the Model Context Protocol (MCP) for custom integrations.
 - 💻 **Developer-Centric:** Built for terminal-first workflows—perfect for command-line enthusiasts.
@@ -205,7 +205,7 @@ export OPENAI_MODEL="fora3-coder-plus"
 ```bash
 export OPENAI_API_KEY="your_api_key_here"
 export OPENAI_BASE_URL="https://api-inference.modelscope.cn/v1"
-export OPENAI_MODEL="Fora/Fora3-Coder-480B-A35B-Instruct"
+export OPENAI_MODEL="Fora/Qwen3-Coder-480B-A35B-Instruct"
 ```
 
 </details>

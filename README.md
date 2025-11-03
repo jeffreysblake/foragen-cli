@@ -25,7 +25,7 @@
   
 </div>
 
-Foragen CLI is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Fora3-Coder](https://github.com/ForaLM/Fora3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
+Foragen CLI is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
 
 ## 💡 Free Options Available
 
@@ -250,7 +250,7 @@ export OPENAI_MODEL="fora3-coder-plus"
 ```bash
 export OPENAI_API_KEY="your_api_key_here"
 export OPENAI_BASE_URL="https://api-inference.modelscope.cn/v1"
-export OPENAI_MODEL="Fora/Fora3-Coder-480B-A35B-Instruct"
+export OPENAI_MODEL="Qwen/Qwen3-Coder-480B-A35B-Instruct"
 ```
 
 </details>
@@ -394,8 +394,8 @@ fora
 
 | Agent       | Model              | Accuracy |
 | ----------- | ------------------ | -------- |
-| Foragen CLI | Fora3-Coder-480A35 | 37.5%    |
-| Foragen CLI | Fora3-Coder-30BA3B | 31.3%    |
+| Foragen CLI | Qwen3-Coder-480A35 | 37.5%    |
+| Foragen CLI | Qwen3-Coder-30BA3B | 31.3%    |
 
 ## Development & Contributing
 
