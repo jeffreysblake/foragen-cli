@@ -6,7 +6,10 @@
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { FileSearchFactory, AbortError, filter } from './fileSearch.js';
-import { createTmpDir, cleanupTmpDir } from '@jeffreysblake/foragen-cli-test-utils';
+import {
+  createTmpDir,
+  cleanupTmpDir,
+} from '@jeffreysblake/foragen-cli-test-utils';
 
 describe('FileSearch', () => {
   let tmpDir: string;
@@ -66,8 +69,8 @@ describe('FileSearch', () => {
 
     expect(results).toEqual([
       'src/',
-      '.foraignore',
       '.gitignore',
+      '.foraignore',
       'src/not-ignored.js',
     ]);
   });

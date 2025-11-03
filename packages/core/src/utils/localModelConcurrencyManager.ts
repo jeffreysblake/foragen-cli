@@ -24,7 +24,7 @@ export interface RequestQueueItem<T = unknown> {
 
 export class LocalModelConcurrencyManager {
   private activeRequests = new Set<string>();
-  private requestQueue: RequestQueueItem<unknown>[] = [];
+  private requestQueue: Array<RequestQueueItem<unknown>> = [];
   private config: ConcurrencyConfig;
   private performanceMetrics: {
     averageResponseTime: number;

@@ -158,23 +158,23 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
 
   describe('Type safety and edge cases', () => {
     it('should handle null input', () => {
-      expect(() => normalizeParams(null as any)).not.toThrow();
-      const result = normalizeParams(null as any);
+      expect(() => normalizeParams(null as unknown)).not.toThrow();
+      const result = normalizeParams(null as unknown);
       expect(result).toBe(null);
     });
 
     it('should handle undefined input', () => {
-      expect(() => normalizeParams(undefined as any)).not.toThrow();
-      const result = normalizeParams(undefined as any);
+      expect(() => normalizeParams(undefined as unknown)).not.toThrow();
+      const result = normalizeParams(undefined as unknown);
       expect(result).toBe(undefined);
     });
 
     it('should handle primitive values', () => {
-      expect(normalizeParams('true' as any)).toBe(true);
-      expect(normalizeParams('false' as any)).toBe(false);
-      expect(normalizeParams('other' as any)).toBe('other');
-      expect(normalizeParams(42 as any)).toBe(42);
-      expect(normalizeParams(true as any)).toBe(true);
+      expect(normalizeParams('true' as unknown)).toBe(true);
+      expect(normalizeParams('false' as unknown)).toBe(false);
+      expect(normalizeParams('other' as unknown)).toBe('other');
+      expect(normalizeParams(42 as unknown)).toBe(42);
+      expect(normalizeParams(true as unknown)).toBe(true);
     });
 
     it('should handle empty objects and arrays', () => {
@@ -183,18 +183,18 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
     });
 
     it('should handle circular references without infinite loops', () => {
-      const circular: any = { name: 'circular' };
-      circular.self = circular;
+      const circular: unknown = { name: 'circular' };
+      (circular as Record<string, unknown>).self = circular;
 
       expect(() => normalizeParams(circular)).not.toThrow();
 
-      const result = normalizeParams(circular);
+      const result = normalizeParams(circular) as Record<string, unknown>;
       expect(result.name).toBe('circular');
       expect(result.self).toBe(result); // Should maintain circular reference
     });
 
     it('should handle very deep nested structures', () => {
-      let deep: any = { value: 'true' };
+      let deep: unknown = { value: 'true' };
 
       // Create 100 levels of nesting
       for (let i = 0; i < 100; i++) {
@@ -274,7 +274,7 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
 
   describe('Performance and memory efficiency', () => {
     it('should handle large objects efficiently', () => {
-      const largeObject: any = {};
+      const largeObject: Record<string, string> = {};
 
       // Create an object with 10,000 properties
       for (let i = 0; i < 10000; i++) {
@@ -312,7 +312,9 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
     });
 
     it('should not consume excessive memory', () => {
-      const createNestedObject = (depth: number): any => {
+      const createNestedObject = (
+        depth: number,
+      ): { nested?: unknown; value: string } => {
         if (depth === 0) return { value: 'true' };
         return {
           nested: createNestedObject(depth - 1),
@@ -492,7 +494,7 @@ describe('Parameter Normalization - Type Safety and Edge Cases', () => {
         { deep: { deeper: { deepest: { value: ' TRUE ' } } } },
       ];
 
-      edgeCases.forEach((testCase, index) => {
+      edgeCases.forEach((testCase, _index) => {
         expect(() => {
           const result = normalizeParams(testCase);
           // Basic sanity check - result should be defined

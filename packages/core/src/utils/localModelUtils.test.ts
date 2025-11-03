@@ -133,7 +133,9 @@ describe('LocalModelUtils', () => {
     describe('Edge cases and error handling', () => {
       it('should handle undefined/null inputs gracefully', () => {
         expect(isLocalModel(undefined, undefined)).toBe(false);
-        expect(isLocalModel(null as any, null as any)).toBe(false);
+        expect(
+          isLocalModel(null as unknown as string, null as unknown as string),
+        ).toBe(false);
         expect(isLocalModel('', '')).toBe(false);
       });
 
@@ -466,13 +468,13 @@ describe('LocalModelUtils', () => {
       const monitor = new LocalModelMonitor();
 
       // Simulate concurrent operations
-      const promises = Array.from({ length: 100 }, (_, i) => {
-        return Promise.resolve().then(() => {
+      const promises = Array.from({ length: 100 }, (_, i) =>
+        Promise.resolve().then(() => {
           monitor.recordRequest();
           monitor.recordResponseTime(i * 10);
           if (i % 10 === 0) monitor.recordError();
-        });
-      });
+        }),
+      );
 
       return Promise.all(promises).then(() => {
         const metrics = monitor.getMetrics();

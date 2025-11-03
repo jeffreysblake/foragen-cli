@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MCPServerConfig } from '@jeffreysblake/foragen-cli-core';
+import type { MCPServerConfig } from '@jeffreysblake/foragen-cli-core';
 import { BaseMCPIntegration } from './base.js';
 import { execSync } from 'child_process';
 
