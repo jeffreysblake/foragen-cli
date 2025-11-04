@@ -304,6 +304,7 @@ export class Config {
   private readonly coreTools: string[] | undefined;
   private readonly allowedTools: string[] | undefined;
   private readonly excludeTools: string[] | undefined;
+  private allowedToolKindsInPlanMode: Set<string> = new Set();
   private readonly toolDiscoveryCommand: string | undefined;
   private readonly toolCallCommand: string | undefined;
   private readonly mcpServerCommand: string | undefined;
@@ -720,6 +721,14 @@ export class Config {
 
   getExcludeTools(): string[] | undefined {
     return this.excludeTools;
+  }
+
+  isToolKindAllowedInPlanMode(kind: string): boolean {
+    return this.allowedToolKindsInPlanMode.has(kind);
+  }
+
+  allowToolKindInPlanMode(kind: string): void {
+    this.allowedToolKindsInPlanMode.add(kind);
   }
 
   getToolDiscoveryCommand(): string | undefined {

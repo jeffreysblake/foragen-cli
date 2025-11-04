@@ -27,6 +27,7 @@ import {
   ShellTool,
   logToolOutputTruncated,
   ToolOutputTruncatedEvent,
+  isReadOnlyKind,
 } from '../index.js';
 import type { Part, PartListUnion } from '@google/genai';
 import { getResponseTextFromParts } from '../utils/generateContentResponseUtilities.js';
@@ -788,24 +789,48 @@ export class CoreToolScheduler {
           const isPlanMode =
             this.config.getApprovalMode() === ApprovalMode.PLAN;
           const isExitPlanModeTool = reqInfo.name === 'exit_plan_mode';
+          const isReadOnlyTool = isReadOnlyKind(toolCall.tool.kind);
 
           if (isPlanMode && !isExitPlanModeTool) {
             if (confirmationDetails) {
-              this.setStatusInternal(reqInfo.callId, 'error', {
-                callId: reqInfo.callId,
-                responseParts: convertToFunctionResponse(
-                  reqInfo.name,
+              // In plan mode, allow read-only tools with confirmation,
+              // but block mutator tools (edit, delete, move, execute)
+              if (!isReadOnlyTool) {
+                // Block mutator tools in plan mode
+                this.setStatusInternal(reqInfo.callId, 'error', {
+                  callId: reqInfo.callId,
+                  responseParts: convertToFunctionResponse(
+                    reqInfo.name,
+                    reqInfo.callId,
+                    getPlanModeSystemReminder(),
+                  ),
+                  resultDisplay: 'Plan mode blocked a non-read-only tool call.',
+                  error: undefined,
+                  errorType: undefined,
+                });
+                continue;
+              }
+
+              // Check if this tool kind has been previously allowed in plan mode
+              if (this.config.isToolKindAllowedInPlanMode(toolCall.tool.kind)) {
+                // Skip confirmation for previously-allowed tool kinds
+                this.setToolCallOutcome(
                   reqInfo.callId,
-                  getPlanModeSystemReminder(),
-                ),
-                resultDisplay: 'Plan mode blocked a non-read-only tool call.',
-                error: undefined,
-                errorType: undefined,
-              });
+                  ToolConfirmationOutcome.ProceedAlwaysToolKind,
+                );
+                this.setStatusInternal(reqInfo.callId, 'scheduled');
+                continue;
+              }
+
+              // Read-only tools fall through to normal confirmation flow
             } else {
+              // Tools that don't need confirmation can proceed
               this.setStatusInternal(reqInfo.callId, 'scheduled');
+              continue;
             }
-          } else if (
+          }
+
+          if (
             this.config.getApprovalMode() === ApprovalMode.YOLO ||
             doesToolInvocationMatch(toolCall.tool, invocation, allowedTools)
           ) {
@@ -906,6 +931,14 @@ export class CoreToolScheduler {
 
     if (outcome === ToolConfirmationOutcome.ProceedAlways) {
       await this.autoApproveCompatiblePendingTools(signal, callId);
+    }
+
+    if (
+      outcome === ToolConfirmationOutcome.ProceedAlwaysToolKind &&
+      toolCall?.tool
+    ) {
+      // Remember this tool kind for the session
+      this.config.allowToolKindInPlanMode(toolCall.tool.kind);
     }
 
     this.setToolCallOutcome(callId, outcome);
