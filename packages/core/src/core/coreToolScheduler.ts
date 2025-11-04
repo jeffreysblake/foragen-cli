@@ -236,22 +236,54 @@ const createErrorResponse = (
   request: ToolCallRequestInfo,
   error: Error,
   errorType: ToolErrorType | undefined,
-): ToolCallResponseInfo => ({
-  callId: request.callId,
-  error,
-  responseParts: [
-    {
-      functionResponse: {
-        id: request.callId,
-        name: request.name,
-        response: { error: error.message },
+  config?: Config,
+): ToolCallResponseInfo => {
+  // Enhance error message for better clarity, especially for local models
+  let errorMessage = error.message;
+
+  // Check if using local model (non-cloud API)
+  const baseUrl = config?.getContentGeneratorConfig()?.baseUrl;
+  const isLocalModel =
+    baseUrl &&
+    !baseUrl.includes('api.openai.com') &&
+    !baseUrl.includes('anthropic.com') &&
+    !baseUrl.includes('googleapis.com') &&
+    !baseUrl.includes('dashscope.aliyuncs.com');
+
+  if (isLocalModel) {
+    // Add explicit ERROR prefix for local models to prevent retry loops
+    if (!errorMessage.startsWith('ERROR:')) {
+      errorMessage = `ERROR: ${errorMessage}`;
+    }
+
+    // Add retry prevention guidance
+    errorMessage += `\n\nThe tool "${request.name}" failed. Do not retry this exact call.`;
+
+    // Add context-specific guidance based on error type
+    if (errorType === ToolErrorType.INVALID_TOOL_PARAMS) {
+      errorMessage += `\nCheck your arguments and try again with corrected parameters.`;
+    } else if (errorType === ToolErrorType.EXECUTION_FAILED) {
+      errorMessage += `\nConsider using a different approach or tool to accomplish this task.`;
+    }
+  }
+
+  return {
+    callId: request.callId,
+    error,
+    responseParts: [
+      {
+        functionResponse: {
+          id: request.callId,
+          name: request.name,
+          response: { error: errorMessage },
+        },
       },
-    },
-  ],
-  resultDisplay: error.message,
-  errorType,
-  contentLength: error.message.length,
-});
+    ],
+    resultDisplay: errorMessage,
+    errorType,
+    contentLength: errorMessage.length,
+  };
+};
 
 export async function truncateAndSaveToFile(
   content: string,
@@ -547,6 +579,7 @@ export class CoreToolScheduler {
           call.request,
           invocationOrError,
           ToolErrorType.INVALID_TOOL_PARAMS,
+          this.config,
         );
         return {
           request: { ...call.request, args: args as Record<string, unknown> },
@@ -684,6 +717,7 @@ export class CoreToolScheduler {
                 reqInfo,
                 new Error(errorMessage),
                 ToolErrorType.TOOL_NOT_REGISTERED,
+                this.config,
               ),
               durationMs: 0,
             };
@@ -702,6 +736,7 @@ export class CoreToolScheduler {
                 reqInfo,
                 invocationOrError,
                 ToolErrorType.INVALID_TOOL_PARAMS,
+                this.config,
               ),
               durationMs: 0,
             };
@@ -842,6 +877,7 @@ export class CoreToolScheduler {
               reqInfo,
               error instanceof Error ? error : new Error(String(error)),
               ToolErrorType.UNHANDLED_EXCEPTION,
+              this.config,
             ),
           );
         }
@@ -1114,6 +1150,7 @@ export class CoreToolScheduler {
                 scheduledCall.request,
                 error,
                 toolResult.error.type,
+                this.config,
               );
               this.setStatusInternal(callId, 'error', errorResponse);
             }
@@ -1135,6 +1172,7 @@ export class CoreToolScheduler {
                     ? executionError
                     : new Error(String(executionError)),
                   ToolErrorType.UNHANDLED_EXCEPTION,
+                  this.config,
                 ),
               );
             }

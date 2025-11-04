@@ -29,6 +29,10 @@ const CONTENT_LOOP_THRESHOLD = 10;
 const CONTENT_CHUNK_SIZE = 50;
 const MAX_HISTORY_LENGTH = 1000;
 
+// Pattern detection: track recent tool calls to detect alternating patterns
+const PATTERN_DETECTION_WINDOW = 15;
+const PATTERN_REPETITION_THRESHOLD = 3;
+
 /**
  * The number of recent conversation turns to include in the history when asking the LLM to check for a loop.
  */
@@ -79,6 +83,9 @@ export class LoopDetectionService {
   // Tool call tracking
   private lastToolCallKey: string | null = null;
   private toolCallRepetitionCount: number = 0;
+
+  // Pattern detection: track recent tool calls for alternating patterns
+  private recentToolCalls: string[] = [];
 
   // Content streaming tracking
   private streamContentHistory = '';
@@ -171,6 +178,14 @@ export class LoopDetectionService {
 
   private checkToolCallLoop(toolCall: { name: string; args: object }): boolean {
     const key = this.getToolCallKey(toolCall);
+
+    // Add to recent tool calls for pattern detection
+    this.recentToolCalls.push(key);
+    if (this.recentToolCalls.length > PATTERN_DETECTION_WINDOW) {
+      this.recentToolCalls.shift();
+    }
+
+    // Check for consecutive identical calls
     if (this.lastToolCallKey === key) {
       this.toolCallRepetitionCount++;
     } else {
@@ -187,7 +202,74 @@ export class LoopDetectionService {
       );
       return true;
     }
+
+    // Check for alternating patterns (e.g., A→B→A→B or A→B→C→A→B→C)
+    if (this.checkAlternatingPattern()) {
+      logLoopDetected(
+        this.config,
+        new LoopDetectedEvent(
+          LoopType.CONSECUTIVE_IDENTICAL_TOOL_CALLS, // Reuse existing type for now
+          this.promptId,
+        ),
+      );
+      return true;
+    }
+
     return false;
+  }
+
+  /**
+   * Detects alternating patterns in recent tool calls.
+   * Looks for repeating sequences like A→B→A→B or A→B→C→A→B→C.
+   */
+  private checkAlternatingPattern(): boolean {
+    const windowSize = this.recentToolCalls.length;
+    if (windowSize < 6) {
+      // Need at least 6 calls to detect a pattern (2-3 tools × 3 repetitions)
+      return false;
+    }
+
+    // Try pattern lengths from 2 to 5 (e.g., [A,B] to [A,B,C,D,E])
+    for (let patternLength = 2; patternLength <= 5; patternLength++) {
+      if (windowSize < patternLength * PATTERN_REPETITION_THRESHOLD) {
+        continue; // Not enough calls for this pattern length
+      }
+
+      // Extract the candidate pattern from the most recent calls
+      const pattern = this.recentToolCalls.slice(-patternLength);
+      let repetitions = 1;
+
+      // Check if this pattern repeats going backwards
+      for (
+        let i = windowSize - patternLength - 1;
+        i >= patternLength - 1;
+        i -= patternLength
+      ) {
+        const segment = this.recentToolCalls.slice(
+          i - patternLength + 1,
+          i + 1,
+        );
+        if (this.arraysEqual(segment, pattern)) {
+          repetitions++;
+        } else {
+          break; // Pattern doesn't match, stop checking
+        }
+      }
+
+      if (repetitions >= PATTERN_REPETITION_THRESHOLD) {
+        return true; // Found a repeating pattern
+      }
+    }
+
+    return false;
+  }
+
+  private arraysEqual(a: string[], b: string[]): boolean {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
   }
 
   /**
