@@ -343,17 +343,6 @@ export class Turn {
           };
         }
       }
-
-      // Validate stream terminated properly with a finish reason
-      if (!this.finishReason && !signal?.aborted) {
-        const error: StructuredError = {
-          message:
-            'Model stream ended without a finish reason. This may indicate a connection issue, ' +
-            'API error, or the model exceeded its output limits. Please try again.',
-        };
-        yield { type: GeminiEventType.Error, value: { error } };
-        return;
-      }
     } catch (e) {
       if (signal.aborted) {
         yield { type: GeminiEventType.UserCancelled };

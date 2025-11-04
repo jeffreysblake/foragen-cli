@@ -31,7 +31,7 @@ const MAX_HISTORY_LENGTH = 1000;
 
 // Pattern detection: track recent tool calls to detect alternating patterns
 const PATTERN_DETECTION_WINDOW = 15;
-const PATTERN_REPETITION_THRESHOLD = 3;
+const PATTERN_REPETITION_THRESHOLD = 4;
 
 /**
  * The number of recent conversation turns to include in the history when asking the LLM to check for a loop.
