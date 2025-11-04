@@ -274,6 +274,8 @@ export interface ConfigParameters {
   extensionManagement?: boolean;
   enablePromptCompletion?: boolean;
   skipLoopDetection?: boolean;
+  maxToolCallsPerTurn?: number;
+  maxToolCallTokensPerTurn?: number;
   vlmSwitchMode?: string;
   truncateToolOutputThreshold?: number;
   truncateToolOutputLines?: number;
@@ -363,6 +365,8 @@ export class Config {
   private readonly extensionManagement: boolean = true;
   private readonly enablePromptCompletion: boolean = false;
   private readonly skipLoopDetection: boolean;
+  private readonly maxToolCallsPerTurn: number;
+  private readonly maxToolCallTokensPerTurn: number;
   private readonly vlmSwitchMode: string | undefined;
   private initialized: boolean = false;
   readonly storage: Storage;
@@ -455,6 +459,8 @@ export class Config {
     this.interactive = params.interactive ?? false;
     this.trustedFolder = params.trustedFolder;
     this.skipLoopDetection = params.skipLoopDetection ?? false;
+    this.maxToolCallsPerTurn = params.maxToolCallsPerTurn ?? 15;
+    this.maxToolCallTokensPerTurn = params.maxToolCallTokensPerTurn ?? 10000;
 
     // Web search
     this.tavilyApiKey = params.tavilyApiKey;
@@ -1025,6 +1031,14 @@ export class Config {
 
   getSkipLoopDetection(): boolean {
     return this.skipLoopDetection;
+  }
+
+  getMaxToolCallsPerTurn(): number {
+    return this.maxToolCallsPerTurn;
+  }
+
+  getMaxToolCallTokensPerTurn(): number {
+    return this.maxToolCallTokensPerTurn;
   }
 
   getVlmSwitchMode(): string | undefined {

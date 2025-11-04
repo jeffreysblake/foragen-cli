@@ -549,6 +549,26 @@ const SETTINGS_SCHEMA = {
         description: 'Disable all loop detection checks (streaming and LLM).',
         showInDialog: true,
       },
+      maxToolCallsPerTurn: {
+        type: 'number',
+        label: 'Max Tool Calls Per Turn',
+        category: 'Model',
+        requiresRestart: false,
+        default: 15,
+        description:
+          'Maximum number of tool calls allowed in a single turn. Prevents runaway loops. YOLO mode uses 1.67x this limit.',
+        showInDialog: true,
+      },
+      maxToolCallTokensPerTurn: {
+        type: 'number',
+        label: 'Max Tool Call Tokens Per Turn',
+        category: 'Model',
+        requiresRestart: false,
+        default: 10000,
+        description:
+          'Maximum tokens allowed in tool calls per turn. Prevents excessive tool usage from consuming context window.',
+        showInDialog: true,
+      },
       enableOpenAILogging: {
         type: 'boolean',
         label: 'Enable OpenAI Logging',

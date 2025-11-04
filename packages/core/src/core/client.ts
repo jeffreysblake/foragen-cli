@@ -87,13 +87,6 @@ export function isThinkingDefault(model: string) {
 
 const MAX_TURNS = 100;
 
-// Loop prevention: limit tool calls per turn
-const MAX_TOOL_CALLS_PER_TURN_DEFAULT = 15;
-const MAX_TOOL_CALLS_PER_TURN_YOLO = 25;
-
-// Loop prevention: limit tokens used in tool calls per turn
-const MAX_TOOL_CALL_TOKENS_PER_TURN = 10000;
-
 export class GeminiClient {
   private chat?: GeminiChat;
   private readonly generateContentConfig: GenerateContentConfig = {
@@ -548,9 +541,12 @@ export class GeminiClient {
     let toolCallCount = 0;
     let toolCallTokensEstimate = 0;
     const isYoloMode = this.config.getApprovalMode() === ApprovalMode.YOLO;
+    const configuredMaxToolCalls = this.config.getMaxToolCallsPerTurn();
+    // In YOLO mode, allow more tool calls (roughly 1.67x the configured limit)
     const maxToolCalls = isYoloMode
-      ? MAX_TOOL_CALLS_PER_TURN_YOLO
-      : MAX_TOOL_CALLS_PER_TURN_DEFAULT;
+      ? Math.floor(configuredMaxToolCalls * 1.67)
+      : configuredMaxToolCalls;
+    const maxToolCallTokens = this.config.getMaxToolCallTokensPerTurn();
 
     for await (const event of resultStream) {
       // Check tool call limit before loop detection to catch runaway tool calls early
@@ -581,14 +577,14 @@ export class GeminiClient {
         const responseJson = JSON.stringify(event.value);
         toolCallTokensEstimate += Math.ceil(responseJson.length / 4);
 
-        if (toolCallTokensEstimate > MAX_TOOL_CALL_TOKENS_PER_TURN) {
+        if (toolCallTokensEstimate > maxToolCallTokens) {
           yield {
             type: GeminiEventType.ToolCallTokenBudgetExceeded,
             value: {
               currentTokens: toolCallTokensEstimate,
-              limit: MAX_TOOL_CALL_TOKENS_PER_TURN,
+              limit: maxToolCallTokens,
               message:
-                `Tool call token budget exceeded: ~${toolCallTokensEstimate} tokens > ${MAX_TOOL_CALL_TOKENS_PER_TURN} limit in this turn. ` +
+                `Tool call token budget exceeded: ~${toolCallTokensEstimate} tokens > ${maxToolCallTokens} limit in this turn. ` +
                 `This usually indicates excessive tool usage. Please simplify your request or increase maxToolCallTokensPerTurn in settings.`,
             },
           };
