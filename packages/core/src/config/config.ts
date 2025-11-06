@@ -6,6 +6,7 @@
 
 // Node built-ins
 import type { EventEmitter } from 'node:events';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import process from 'node:process';
 
@@ -67,6 +68,7 @@ import { OutputFormat } from '../output/types.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { SubagentManager } from '../subagents/subagent-manager.js';
 import { SkillManager } from '../skills/skill-manager.js';
+import { MemoryManager } from '../memory/memory-manager.js';
 import {
   DEFAULT_OTLP_ENDPOINT,
   DEFAULT_TELEMETRY_TARGET,
@@ -290,6 +292,7 @@ export class Config {
   private promptRegistry!: PromptRegistry;
   private subagentManager!: SubagentManager;
   private skillManager!: SkillManager;
+  private memoryManager!: MemoryManager;
   private readonly sessionId: string;
   private fileSystemService: FileSystemService;
   private contentGeneratorConfig!: ContentGeneratorConfig;
@@ -519,6 +522,7 @@ export class Config {
     this.promptRegistry = new PromptRegistry();
     this.subagentManager = new SubagentManager(this);
     this.skillManager = new SkillManager(this);
+    this.memoryManager = new MemoryManager(process.cwd(), os.homedir());
     this.toolRegistry = await this.createToolRegistry();
 
     await this.geminiClient.initialize();
@@ -1081,6 +1085,10 @@ export class Config {
 
   getSkillManager(): SkillManager {
     return this.skillManager;
+  }
+
+  getMemoryManager(): MemoryManager {
+    return this.memoryManager;
   }
 
   async createToolRegistry(): Promise<ToolRegistry> {
