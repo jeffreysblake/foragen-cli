@@ -257,12 +257,11 @@ export class SkillExecutor {
     }
 
     // Check required properties if schema has them
-    const schema = this.skillConfig.output.schema as
-      | Record<string, unknown>
-      | undefined;
-    if (schema.properties && schema.required) {
+    const schema = this.skillConfig.output.schema;
+    if (schema && schema['properties'] && schema['required']) {
       const outputObj = output as Record<string, unknown>;
-      for (const requiredProp of schema.required) {
+      const required = schema['required'] as string[];
+      for (const requiredProp of required) {
         if (!(requiredProp in outputObj)) {
           throw new SkillError(
             `Output missing required property: ${requiredProp}`,
