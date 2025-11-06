@@ -6,6 +6,7 @@
 
 // Node built-ins
 import type { EventEmitter } from 'node:events';
+import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import process from 'node:process';
@@ -139,6 +140,7 @@ export interface TelemetrySettings {
   logPrompts?: boolean;
   outfile?: string;
   useCollector?: boolean;
+  performanceMonitoring?: boolean;
 }
 
 export interface OutputSettings {
@@ -417,6 +419,7 @@ export class Config {
       logPrompts: params.telemetry?.logPrompts ?? true,
       outfile: params.telemetry?.outfile,
       useCollector: params.telemetry?.useCollector,
+      performanceMonitoring: params.telemetry?.performanceMonitoring ?? true,
     };
     this.gitCoAuthor = {
       enabled: params.gitCoAuthor?.enabled ?? true,
@@ -819,6 +822,10 @@ export class Config {
     return this.telemetrySettings.useCollector ?? false;
   }
 
+  getPerformanceMonitoringEnabled(): boolean {
+    return this.telemetrySettings.performanceMonitoring ?? true;
+  }
+
   getGeminiClient(): GeminiClient {
     return this.geminiClient;
   }
@@ -847,17 +854,59 @@ export class Config {
 
   /**
    * Gets custom file exclusion patterns from configuration.
-   * TODO: This is a placeholder implementation. In the future, this could
-   * read from settings files, CLI arguments, or environment variables.
+   * Reads from multiple sources in priority order:
+   * 1. .foraignore file in project directory
+   * 2. Global .foraignore file in home directory
+   * 3. Environment variable FORA_CUSTOM_EXCLUDES
    */
   getCustomExcludes(): string[] {
-    // Placeholder implementation - returns empty array for now
-    // Future implementation could read from:
-    // - User settings file
-    // - Project-specific configuration
-    // - Environment variables
-    // - CLI arguments
-    return [];
+    const patterns: string[] = [];
+
+    // 1. Try reading from .foraignore file in project directory
+    try {
+      const foraIgnorePath = path.join(this.targetDir, '.foraignore');
+      if (fs.existsSync(foraIgnorePath)) {
+        const content = fs.readFileSync(foraIgnorePath, 'utf-8');
+        const lines = content.split('\n');
+        lines.forEach((line: string) => {
+          const trimmed = line.trim();
+          // Skip empty lines and comments
+          if (trimmed && !trimmed.startsWith('#')) {
+            patterns.push(trimmed);
+          }
+        });
+      }
+    } catch (_error) {
+      // If file doesn't exist or can't be read, continue
+    }
+
+    // 2. Try reading from global .foraignore file
+    try {
+      const globalIgnorePath = path.join(os.homedir(), '.fora', '.foraignore');
+      if (fs.existsSync(globalIgnorePath)) {
+        const content = fs.readFileSync(globalIgnorePath, 'utf-8');
+        const lines = content.split('\n');
+        lines.forEach((line: string) => {
+          const trimmed = line.trim();
+          // Skip empty lines and comments
+          if (trimmed && !trimmed.startsWith('#')) {
+            patterns.push(trimmed);
+          }
+        });
+      }
+    } catch (_error) {
+      // If file doesn't exist or can't be read, continue
+    }
+
+    // 3. Read from environment variable
+    const envPatterns = process.env['FORA_CUSTOM_EXCLUDES'];
+    if (envPatterns) {
+      // Split by comma or semicolon
+      const envArray = envPatterns.split(/[,;]/).map((p) => p.trim());
+      patterns.push(...envArray.filter((p) => p.length > 0));
+    }
+
+    return patterns;
   }
 
   getCheckpointingEnabled(): boolean {

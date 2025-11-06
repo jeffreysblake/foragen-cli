@@ -65,6 +65,7 @@ export interface WorkflowMetadata {
 export class WorkflowManager {
   private orchestrator: WorkflowOrchestrator;
   private cache: Map<string, WorkflowConfig> = new Map();
+  private levelCache: Map<string, WorkflowLevel> = new Map();
   private cacheTimestamp: number = 0;
   private readonly CACHE_TTL_MS = 60000; // 1 minute
 
@@ -109,6 +110,9 @@ export class WorkflowManager {
 
     // Write workflow
     await fs.writeFile(filePath, JSON.stringify(workflow, null, 2), 'utf-8');
+
+    // Store level metadata
+    this.levelCache.set(workflow.name, options.level);
 
     // Invalidate cache
     this.invalidateCache();
@@ -349,9 +353,13 @@ export class WorkflowManager {
    * @param workflow - Workflow config
    * @returns Storage level
    */
-  private getWorkflowLevel(_workflow: WorkflowConfig): WorkflowLevel {
-    // TODO: Store level metadata in workflow
-    // For now, assume user level
+  private getWorkflowLevel(workflow: WorkflowConfig): WorkflowLevel {
+    // Look up level from cache
+    const cachedLevel = this.levelCache.get(workflow.name);
+    if (cachedLevel) {
+      return cachedLevel;
+    }
+    // Default to user level if not found
     return 'user';
   }
 
@@ -365,6 +373,7 @@ export class WorkflowManager {
     }
 
     this.cache.clear();
+    this.levelCache.clear();
 
     // Load from all levels
     for (const level of ['builtin', 'user', 'project'] as WorkflowLevel[]) {
@@ -391,6 +400,7 @@ export class WorkflowManager {
             const content = await fs.readFile(filePath, 'utf-8');
             const workflow = JSON.parse(content) as WorkflowConfig;
             this.cache.set(workflow.name, workflow);
+            this.levelCache.set(workflow.name, level);
           } catch (error) {
             console.warn(`Failed to load workflow from ${filePath}:`, error);
           }
