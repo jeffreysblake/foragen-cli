@@ -31,6 +31,7 @@ import { permissionsCommand } from '../ui/commands/permissionsCommand.js';
 import { quitCommand, quitConfirmCommand } from '../ui/commands/quitCommand.js';
 import { restoreCommand } from '../ui/commands/restoreCommand.js';
 import { settingsCommand } from '../ui/commands/settingsCommand.js';
+import { skillsCommand } from '../ui/commands/skillsCommand.js';
 import { statsCommand } from '../ui/commands/statsCommand.js';
 import { summaryCommand } from '../ui/commands/summaryCommand.js';
 import { terminalSetupCommand } from '../ui/commands/terminalSetupCommand.js';
@@ -38,6 +39,7 @@ import { themeCommand } from '../ui/commands/themeCommand.js';
 import { toolsCommand } from '../ui/commands/toolsCommand.js';
 import { vimCommand } from '../ui/commands/vimCommand.js';
 import { setupGithubCommand } from '../ui/commands/setupGithubCommand.js';
+import { workflowCommand } from '../ui/commands/workflowCommand.js';
 
 /**
  * Loads the core, hard-coded slash commands that are an integral part
@@ -79,14 +81,16 @@ export class BuiltinCommandLoader implements ICommandLoader {
       quitCommand,
       quitConfirmCommand,
       restoreCommand(this.config),
+      settingsCommand,
+      skillsCommand,
       statsCommand,
       summaryCommand,
+      terminalSetupCommand,
       themeCommand,
       toolsCommand,
-      settingsCommand,
       vimCommand,
       setupGithubCommand,
-      terminalSetupCommand,
+      workflowCommand,
     ];
 
     return allDefinitions.filter((cmd): cmd is SlashCommand => cmd !== null);

@@ -141,7 +141,12 @@ export interface OpenDialogActionReturn {
     | 'memory_search'
     | 'memory_analytics'
     | 'memory_cleanup'
-    | 'memory_export';
+    | 'memory_export'
+    | 'workflow_list'
+    | 'workflow_create'
+    | 'workflow_edit'
+    | 'workflow_execute'
+    | 'workflow_status';
 }
 
 /**

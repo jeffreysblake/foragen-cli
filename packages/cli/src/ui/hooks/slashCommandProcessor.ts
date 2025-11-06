@@ -404,7 +404,7 @@ export const useSlashCommandProcessor = (
                       return { type: 'handled' };
                     case 'help':
                       return { type: 'handled' };
-                    // TODO: Implement dialog handlers for skills and memory
+                    // TODO: Implement dialog handlers for skills, memory, and workflows
                     case 'skill_list':
                     case 'skill_create':
                     case 'skill_edit':
@@ -413,6 +413,11 @@ export const useSlashCommandProcessor = (
                     case 'memory_analytics':
                     case 'memory_cleanup':
                     case 'memory_export':
+                    case 'workflow_list':
+                    case 'workflow_create':
+                    case 'workflow_edit':
+                    case 'workflow_execute':
+                    case 'workflow_status':
                       // Placeholder - dialogs not yet implemented
                       console.log(
                         `Dialog ${result.dialog} not yet implemented`,
