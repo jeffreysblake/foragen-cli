@@ -61,6 +61,7 @@ import { TodoWriteTool } from '../tools/todoWrite.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
 import { WebSearchTool } from '../tools/web-search.js';
+import { WorkflowTool } from '../tools/workflowTool.js';
 import { WriteFileTool } from '../tools/write-file.js';
 
 // Other modules
@@ -1193,6 +1194,7 @@ export class Config {
 
     registerCoreTool(TaskTool, this);
     registerCoreTool(SkillTool, this);
+    registerCoreTool(WorkflowTool, this);
     registerCoreTool(LSTool, this);
     registerCoreTool(ReadFileTool, this);
 
