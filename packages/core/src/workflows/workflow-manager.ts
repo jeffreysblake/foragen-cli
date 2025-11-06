@@ -136,32 +136,48 @@ export class WorkflowManager {
   ): Promise<WorkflowMetadata[]> {
     await this.ensureCacheLoaded();
 
-    let workflows = Array.from(this.cache.values()).map((workflow) => {
-      const level = this.getWorkflowLevel(workflow);
-      return {
-        name: workflow.name,
-        description: workflow.description,
-        version: workflow.version,
-        level,
-        filePath: path.join(
+    const workflows = await Promise.all(
+      Array.from(this.cache.values()).map(async (workflow) => {
+        const level = this.getWorkflowLevel(workflow);
+        const filePath = path.join(
           this.getWorkflowDirectory(level),
           `${workflow.name}.json`,
-        ),
-        lastModified: new Date(), // TODO: Get actual file mtime
-        stepCount: workflow.steps.length,
-        mode: workflow.mode,
-      };
-    });
+        );
+
+        // Get actual file mtime
+        let lastModified = new Date();
+        try {
+          const stats = await fs.stat(filePath);
+          lastModified = stats.mtime;
+        } catch (_error) {
+          // If file doesn't exist or can't be read, use current time
+        }
+
+        return {
+          name: workflow.name,
+          description: workflow.description,
+          version: workflow.version,
+          level,
+          filePath,
+          lastModified,
+          stepCount: workflow.steps.length,
+          mode: workflow.mode,
+        };
+      }),
+    );
 
     // Filter by level
+    let filteredWorkflows = workflows;
     if (options.level) {
-      workflows = workflows.filter((w) => w.level === options.level);
+      filteredWorkflows = filteredWorkflows.filter(
+        (w) => w.level === options.level,
+      );
     }
 
     // Sort
     const sortBy = options.sortBy ?? 'name';
     const sortOrder = options.sortOrder ?? 'asc';
-    workflows.sort((a, b) => {
+    filteredWorkflows.sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
         case 'name':
@@ -177,7 +193,7 @@ export class WorkflowManager {
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
-    return workflows;
+    return filteredWorkflows;
   }
 
   /**

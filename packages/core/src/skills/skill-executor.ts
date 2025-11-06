@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { FunctionDeclaration } from '@google/genai';
 import type { Config } from '../config/config.js';
 import type {
   SkillConfig,
@@ -18,8 +19,12 @@ import { reportError } from '../utils/errorReporting.js';
  * Unlike SubAgentScope which supports multi-turn conversations,
  * SkillExecutor is optimized for focused, single-purpose tasks.
  *
- * TODO: This implementation needs to be completed to properly execute
- * skills using the content generator. For now, it provides a basic structure.
+ * Features:
+ * - Single-turn model execution using content generator
+ * - Parameter validation and substitution
+ * - Optional tool access
+ * - Output schema validation
+ * - Structured or text-based outputs
  */
 export class SkillExecutor {
   constructor(
@@ -191,7 +196,7 @@ export class SkillExecutor {
    *
    * @returns Array of tool declarations or undefined if no tools specified
    */
-  private prepareTools(): unknown[] | undefined {
+  private prepareTools(): FunctionDeclaration[] | undefined {
     if (!this.skillConfig.tools || this.skillConfig.tools.length === 0) {
       return undefined;
     }
@@ -210,14 +215,11 @@ export class SkillExecutor {
       name: tool.name,
       description: tool.description,
       parameters: tool.parameterSchema,
-    }));
+    })) as FunctionDeclaration[];
   }
 
   /**
    * Executes a single-turn interaction with the model.
-   *
-   * TODO: Implement proper skill execution using the content generator.
-   * This is a placeholder implementation that needs to be completed.
    *
    * @param prompt - The formatted prompt
    * @param modelConfig - Model configuration
@@ -227,13 +229,76 @@ export class SkillExecutor {
    */
   private async executeSingleTurn(
     prompt: string,
-    _modelConfig: Record<string, unknown>,
-    _tools: unknown[] | undefined,
+    modelConfig: Record<string, unknown>,
+    tools: FunctionDeclaration[] | undefined,
     _signal?: AbortSignal,
   ): Promise<string | Record<string, unknown>> {
-    // TODO: Implement actual skill execution
-    // For now, return a placeholder message
-    return `Skill execution not yet implemented. Would execute:\n${prompt.substring(0, 200)}...`;
+    const contentGenerator = this.config.getContentGenerator();
+
+    // Build generation config
+    const generationConfig = {
+      temperature: (modelConfig['temperature'] as number) ?? 0.7,
+      topP: (modelConfig['topP'] as number) ?? 1.0,
+      maxOutputTokens: (modelConfig['maxTokens'] as number) ?? 2048,
+    };
+
+    // Build contents array (user message)
+    const contents = [
+      {
+        role: 'user' as const,
+        parts: [{ text: prompt }],
+      },
+    ];
+
+    // Execute single-turn generation
+    // Wrap tools in Tool object structure if provided
+    const toolsConfig = tools ? [{ functionDeclarations: tools }] : undefined;
+    const response = await contentGenerator.generateContent(
+      {
+        model: this.config.getModel(),
+        contents,
+        config: {
+          ...generationConfig,
+          tools: toolsConfig,
+        },
+      },
+      'skill-execution',
+    );
+
+    // Extract text from response candidates
+    const candidate = response.candidates?.[0];
+    if (
+      !candidate ||
+      !candidate.content?.parts ||
+      candidate.content.parts.length === 0
+    ) {
+      throw new SkillError(
+        'Empty response from model',
+        SkillErrorCode.EXECUTION_ERROR,
+        this.skillConfig.name,
+      );
+    }
+
+    const parts = candidate.content.parts;
+
+    // If expecting structured output, try to parse JSON
+    if (this.skillConfig.output?.schema) {
+      const textPart = parts.find((part) => 'text' in part);
+      if (textPart && 'text' in textPart) {
+        try {
+          return JSON.parse(textPart.text as string);
+        } catch (_error) {
+          // If JSON parsing fails, return the text
+          return textPart.text as string;
+        }
+      }
+    }
+
+    // Otherwise return concatenated text
+    return parts
+      .filter((part) => 'text' in part)
+      .map((part) => ('text' in part ? (part.text as string) : ''))
+      .join('');
   }
 
   /**

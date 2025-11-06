@@ -69,6 +69,8 @@ import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { SubagentManager } from '../subagents/subagent-manager.js';
 import { SkillManager } from '../skills/skill-manager.js';
 import { MemoryManager } from '../memory/memory-manager.js';
+import { WorkflowManager } from '../workflows/workflow-manager.js';
+import { TemplateManager } from '../marketplace/template-manager.js';
 import {
   DEFAULT_OTLP_ENDPOINT,
   DEFAULT_TELEMETRY_TARGET,
@@ -293,6 +295,8 @@ export class Config {
   private subagentManager!: SubagentManager;
   private skillManager!: SkillManager;
   private memoryManager!: MemoryManager;
+  private workflowManager!: WorkflowManager;
+  private templateManager!: TemplateManager;
   private readonly sessionId: string;
   private fileSystemService: FileSystemService;
   private contentGeneratorConfig!: ContentGeneratorConfig;
@@ -523,6 +527,8 @@ export class Config {
     this.subagentManager = new SubagentManager(this);
     this.skillManager = new SkillManager(this);
     this.memoryManager = new MemoryManager(process.cwd(), os.homedir());
+    this.workflowManager = new WorkflowManager(this);
+    this.templateManager = new TemplateManager(this);
     this.toolRegistry = await this.createToolRegistry();
 
     await this.geminiClient.initialize();
@@ -1089,6 +1095,14 @@ export class Config {
 
   getMemoryManager(): MemoryManager {
     return this.memoryManager;
+  }
+
+  getWorkflowManager(): WorkflowManager {
+    return this.workflowManager;
+  }
+
+  getTemplateManager(): TemplateManager {
+    return this.templateManager;
   }
 
   async createToolRegistry(): Promise<ToolRegistry> {

@@ -631,15 +631,24 @@ export class SkillManager {
   }
 
   /**
-   * Creates a SubAgentScope for a skill's execution.
-   * This is used internally by the SkillExecutor.
+   * Creates a SubAgentScope for a skill's execution (reserved for future use).
+   *
+   * Note: This method is currently not needed as SkillExecutor handles
+   * skill execution directly using the content generator. It is reserved
+   * for future advanced integration scenarios where skills might need
+   * multi-turn conversational capabilities.
+   *
+   * @param _skillConfig - Skill configuration
+   * @param _config - Runtime configuration
+   * @returns Promise resolving to a skill scope
    */
   async createSkillScope(
     _skillConfig: SkillConfig,
     _config: Config,
   ): Promise<unknown> {
-    // This will be implemented when we integrate with SubAgentScope
-    // For now, return a placeholder
-    throw new Error('createSkillScope not yet implemented');
+    throw new Error(
+      'createSkillScope is reserved for future use. ' +
+        'Use SkillExecutor.execute() for skill execution.',
+    );
   }
 }

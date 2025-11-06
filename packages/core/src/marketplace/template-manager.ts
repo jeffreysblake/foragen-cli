@@ -198,7 +198,10 @@ export class TemplateManager {
       }
 
       // 4. Install dependencies
-      const installedDeps: Array<{ templateId: string; componentName: string }> = [];
+      const installedDeps: Array<{
+        templateId: string;
+        componentName: string;
+      }> = [];
       if (!options.skipDependencies && template.metadata.dependencies) {
         for (const dep of template.metadata.dependencies) {
           const depResult = await this.install(dep.templateId, {
@@ -476,12 +479,13 @@ export class TemplateManager {
         break;
       }
       case 'workflow': {
-        // TODO: Implement workflow storage
-        throw new TemplateError(
-          'Workflow installation not yet implemented',
-          TemplateErrorCode.INSTALLATION_FAILED,
-          template.metadata.id,
+        const workflowManager = this.config.getWorkflowManager();
+        const config = template.config as WorkflowConfig;
+        await workflowManager.createWorkflow(
+          { ...config, name },
+          { level, overwrite: force },
         );
+        break;
       }
       default:
         throw new TemplateError(
@@ -515,8 +519,8 @@ export class TemplateManager {
         return await skillManager.loadSkill(name);
       }
       case 'workflow': {
-        // TODO: Implement workflow loading
-        return null;
+        const workflowManager = this.config.getWorkflowManager();
+        return await workflowManager.loadWorkflow(name);
       }
       default:
         return null;
@@ -529,8 +533,7 @@ export class TemplateManager {
    * @returns Version string
    */
   private getCurrentCliVersion(): string {
-    // TODO: Get actual CLI version from package.json or build info
-    return '0.1.3';
+    return this.config.getCliVersion() ?? '0.1.3';
   }
 
   /**
