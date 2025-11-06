@@ -302,6 +302,7 @@ export const WorkflowErrorCode = {
   TIMEOUT: 'TIMEOUT',
   CANCELLED: 'CANCELLED',
   AGENT_NOT_FOUND: 'AGENT_NOT_FOUND',
+  ALREADY_EXISTS: 'ALREADY_EXISTS',
 } as const;
 
 export type WorkflowErrorCode =
