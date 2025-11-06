@@ -1165,7 +1165,7 @@ export class Config {
     registerCoreTool(WriteFileTool, this);
     registerCoreTool(ReadManyFilesTool, this);
     registerCoreTool(ShellTool, this);
-    registerCoreTool(MemoryTool);
+    registerCoreTool(MemoryTool, this);
     registerCoreTool(TodoWriteTool, this);
     registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);

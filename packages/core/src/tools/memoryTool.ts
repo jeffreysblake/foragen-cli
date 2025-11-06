@@ -23,18 +23,21 @@ import type {
   ModifyContext,
 } from './modifiable-tool.js';
 import { ToolErrorType } from './tool-error.js';
+import type { Config } from '../config/config.js';
+import type { MemoryScope } from '../memory/types.js';
+import { extractTags, extractContext } from '../memory/memory-utils.js';
 
 const memoryToolSchemaData: FunctionDeclaration = {
   name: 'save_memory',
   description:
-    'Saves a specific piece of information or fact to your long-term memory. Use this when the user explicitly asks you to remember something, or when they state a clear, concise fact that seems important to retain for future interactions.',
+    'Saves a specific piece of information or fact to your long-term memory with enhanced metadata. Use this when the user explicitly asks you to remember something, or when they state a clear, concise fact that seems important to retain for future interactions.',
   parametersJsonSchema: {
     type: 'object',
     properties: {
       fact: {
         type: 'string',
         description:
-          'The specific fact or piece of information to remember. Should be a clear, self-contained statement.',
+          'The specific fact or piece of information to remember. Should be a clear, self-contained statement. You can include #hashtags to auto-tag the memory.',
       },
       scope: {
         type: 'string',
@@ -48,7 +51,7 @@ const memoryToolSchemaData: FunctionDeclaration = {
 };
 
 const memoryToolDescription = `
-Saves a specific piece of information or fact to your long-term memory.
+Saves a specific piece of information or fact to your long-term memory with enhanced metadata support.
 
 Use this tool:
 
@@ -61,9 +64,24 @@ Do NOT use this tool:
 - To save long, complex, or rambling pieces of text. The fact should be relatively short and to the point.
 - If you are unsure whether the information is a fact worth remembering long-term. If in doubt, you can ask the user, "Should I remember that for you?"
 
+## Enhanced Features
+
+The memory system now supports:
+- **Auto-tagging**: Use #hashtags in your fact to automatically tag the memory (e.g., "User prefers #typescript over JavaScript")
+- **Context detection**: File paths and module names are automatically detected
+- **Deduplication**: Similar memories won't be saved twice
+- **Search & ranking**: Memories are ranked by relevance, recency, and usage
+- **Metadata tracking**: Each memory tracks confidence, source, and usage statistics
+
 ## Parameters
 
-- \`fact\` (string, required): The specific fact or piece of information to remember. This should be a clear, self-contained statement. For example, if the user says "My favorite color is blue", the fact would be "My favorite color is blue".
+- \`fact\` (string, required): The specific fact or piece of information to remember. This should be a clear, self-contained statement. You can include #hashtags to categorize the memory.
+
+  Examples:
+  - "User prefers #vitest over Jest for #testing"
+  - "In packages/core/, use strict TypeScript settings"
+  - "My favorite color is blue"
+
 - \`scope\` (string, optional): Where to save the memory:
   - "global": Saves to user-level ~/.fora/FORA.md (shared across all projects)
   - "project": Saves to current project's FORA.md (project-specific)
@@ -124,19 +142,7 @@ function getMemoryFilePath(scope: 'global' | 'project' = 'global'): string {
 }
 
 /**
- * Ensures proper newline separation before appending content.
- */
-function ensureNewlineSeparation(currentContent: string): string {
-  if (currentContent.length === 0) return '';
-  if (currentContent.endsWith('\n\n') || currentContent.endsWith('\r\n\r\n'))
-    return '';
-  if (currentContent.endsWith('\n') || currentContent.endsWith('\r\n'))
-    return '\n';
-  return '\n\n';
-}
-
-/**
- * Reads the current content of the memory file
+ * Reads the current content of the memory file (for preview/diff purposes)
  */
 async function readMemoryFileContent(
   scope: 'global' | 'project' = 'global',
@@ -150,55 +156,18 @@ async function readMemoryFileContent(
   }
 }
 
-/**
- * Computes the new content that would result from adding a memory entry
- */
-function computeNewContent(currentContent: string, fact: string): string {
-  let processedText = fact.trim();
-  processedText = processedText.replace(/^(-+\s*)+/, '').trim();
-  const newMemoryItem = `- ${processedText}`;
-
-  const headerIndex = currentContent.indexOf(MEMORY_SECTION_HEADER);
-
-  if (headerIndex === -1) {
-    // Header not found, append header and then the entry
-    const separator = ensureNewlineSeparation(currentContent);
-    return (
-      currentContent +
-      `${separator}${MEMORY_SECTION_HEADER}\n${newMemoryItem}\n`
-    );
-  } else {
-    // Header found, find where to insert the new memory entry
-    const startOfSectionContent = headerIndex + MEMORY_SECTION_HEADER.length;
-    let endOfSectionIndex = currentContent.indexOf(
-      '\n## ',
-      startOfSectionContent,
-    );
-    if (endOfSectionIndex === -1) {
-      endOfSectionIndex = currentContent.length; // End of file
-    }
-
-    const beforeSectionMarker = currentContent
-      .substring(0, startOfSectionContent)
-      .trimEnd();
-    let sectionContent = currentContent
-      .substring(startOfSectionContent, endOfSectionIndex)
-      .trimEnd();
-    const afterSectionMarker = currentContent.substring(endOfSectionIndex);
-
-    sectionContent += `\n${newMemoryItem}`;
-    return (
-      `${beforeSectionMarker}\n${sectionContent.trimStart()}\n${afterSectionMarker}`.trimEnd() +
-      '\n'
-    );
-  }
-}
-
 class MemoryToolInvocation extends BaseToolInvocation<
   SaveMemoryParams,
   ToolResult
 > {
   private static readonly allowlist: Set<string> = new Set();
+
+  constructor(
+    params: SaveMemoryParams,
+    private readonly config: Config,
+  ) {
+    super(params);
+  }
 
   getDescription(): string {
     if (!this.params.scope) {
@@ -216,10 +185,21 @@ class MemoryToolInvocation extends BaseToolInvocation<
   ): Promise<ToolEditConfirmationDetails | false> {
     // When scope is not specified, show a choice dialog defaulting to global
     if (!this.params.scope) {
-      // Show preview of what would be added to global by default
       const defaultScope = 'global';
       const currentContent = await readMemoryFileContent(defaultScope);
-      const newContent = computeNewContent(currentContent, this.params.fact);
+
+      // Generate preview of what would be added
+      const memoryManager = this.config.getMemoryManager();
+      const tags = extractTags(this.params.fact);
+      const context = extractContext(this.params.fact);
+
+      const previewText = `### Memory Entry: ${new Date().toISOString()}
+**Type**: fact
+**Scope**: ${defaultScope}
+${tags.length > 0 ? `**Tags**: ${tags.map(t => `#${t}`).join(' ')}\n` : ''}${context ? `**Context**: ${context}\n` : ''}**Confidence**: 1.00
+**Source**: explicit
+
+${this.params.fact}`;
 
       const globalPath = tildeifyPath(getMemoryFilePath('global'));
       const projectPath = tildeifyPath(getMemoryFilePath('project'));
@@ -229,18 +209,19 @@ class MemoryToolInvocation extends BaseToolInvocation<
 
 "${this.params.fact}"
 
+${tags.length > 0 ? `Auto-detected tags: ${tags.map(t => `#${t}`).join(', ')}\n` : ''}${context ? `Auto-detected context: ${context}\n` : ''}
 Options:
 - Global: ${globalPath} (shared across all projects)
 - Project: ${projectPath} (current project only)
 
-Preview of changes to be made to GLOBAL memory:
+Preview of enhanced memory format (GLOBAL):
 `;
       const fileDiff =
         choiceText +
         Diff.createPatch(
           fileName,
           currentContent,
-          newContent,
+          currentContent + '\n' + previewText + '\n',
           'Current',
           'Proposed (Global)',
           DEFAULT_DIFF_OPTIONS,
@@ -253,7 +234,7 @@ Preview of changes to be made to GLOBAL memory:
         filePath: getMemoryFilePath(defaultScope),
         fileDiff,
         originalContent: `scope: global\n\n# INSTRUCTIONS:\n# - Click "Yes" to save to GLOBAL memory: ${globalPath}\n# - Click "Modify with external editor" and change "global" to "project" to save to PROJECT memory: ${projectPath}\n\n${currentContent}`,
-        newContent: `scope: global\n\n# INSTRUCTIONS:\n# - Click "Yes" to save to GLOBAL memory: ${globalPath}\n# - Click "Modify with external editor" and change "global" to "project" to save to PROJECT memory: ${projectPath}\n\n${newContent}`,
+        newContent: `scope: global\n\n# INSTRUCTIONS:\n# - Click "Yes" to save to GLOBAL memory: ${globalPath}\n# - Click "Modify with external editor" and change "global" to "project" to save to PROJECT memory: ${projectPath}\n\n${currentContent}\n${previewText}\n`,
         onConfirm: async (_outcome: ToolConfirmationOutcome) => {
           // Will be handled in createUpdatedParams
         },
@@ -270,11 +251,22 @@ Preview of changes to be made to GLOBAL memory:
       return false;
     }
 
-    // Read current content of the memory file
+    // Read current content for preview
     const currentContent = await readMemoryFileContent(scope);
 
-    // Calculate the new content that will be written to the memory file
-    const newContent = computeNewContent(currentContent, this.params.fact);
+    // Generate preview
+    const tags = extractTags(this.params.fact);
+    const context = extractContext(this.params.fact);
+
+    const previewText = `### Memory Entry: ${new Date().toISOString()}
+**Type**: fact
+**Scope**: ${scope}
+${tags.length > 0 ? `**Tags**: ${tags.map(t => `#${t}`).join(' ')}\n` : ''}${context ? `**Context**: ${context}\n` : ''}**Confidence**: 1.00
+**Source**: explicit
+
+${this.params.fact}`;
+
+    const newContent = currentContent + '\n' + previewText + '\n';
 
     const fileName = path.basename(memoryFilePath);
     const fileDiff = Diff.createPatch(
@@ -339,19 +331,38 @@ Project: ${projectPath} (current project only)`;
           recursive: true,
         });
         await fs.writeFile(memoryFilePath, modified_content, 'utf-8');
+
+        // Also refresh the memory manager cache
+        await this.config.getMemoryManager().refresh();
+
         const successMessage = `Okay, I've updated the ${scope} memory file with your modifications.`;
         return {
           llmContent: successMessage,
           returnDisplay: successMessage,
         };
       } else {
-        // Use the normal memory entry logic
-        await MemoryTool.performAddMemoryEntry(fact, memoryFilePath, {
-          readFile: fs.readFile,
-          writeFile: fs.writeFile,
-          mkdir: fs.mkdir,
+        // Use the enhanced MemoryManager
+        const memoryManager = this.config.getMemoryManager();
+
+        // Extract metadata from the fact
+        const tags = extractTags(fact);
+        const context = extractContext(fact);
+
+        // Add memory with enhanced metadata
+        const memoryId = await memoryManager.addMemory(fact, {
+          scope: scope as MemoryScope,
+          type: 'fact',
+          tags,
+          context,
+          source: 'explicit',
+          confidence: 1.0,
+          checkDuplicates: true, // Auto-deduplicate
         });
-        const successMessage = `Okay, I've remembered that in ${scope} memory: "${fact}"`;
+
+        const tagsInfo = tags.length > 0 ? ` (tagged: ${tags.map(t => `#${t}`).join(', ')})` : '';
+        const contextInfo = context ? ` [context: ${context}]` : '';
+        const successMessage = `Okay, I've remembered that in ${scope} memory: "${fact}"${tagsInfo}${contextInfo}`;
+
         return {
           llmContent: successMessage,
           returnDisplay: successMessage,
@@ -374,6 +385,24 @@ Project: ${projectPath} (current project only)`;
       };
     }
   }
+
+  override createUpdatedParams(
+    modifyContext: ModifyContext,
+  ): SaveMemoryParams | null {
+    const { modified_content } = modifyContext;
+    if (!modified_content) return null;
+
+    // Extract scope from modified content
+    const scopeMatch = modified_content.match(/^scope:\s*(global|project)/i);
+    const scope = scopeMatch ? (scopeMatch[1].toLowerCase() as 'global' | 'project') : this.params.scope;
+
+    return {
+      ...this.params,
+      scope,
+      modified_by_user: true,
+      modified_content,
+    };
+  }
 }
 
 export class MemoryTool
@@ -381,7 +410,8 @@ export class MemoryTool
   implements ModifiableDeclarativeTool<SaveMemoryParams>
 {
   static readonly Name: string = memoryToolSchemaData.name!;
-  constructor() {
+
+  constructor(private readonly config: Config) {
     super(
       MemoryTool.Name,
       'SaveMemory',
@@ -397,137 +427,66 @@ export class MemoryTool
     if (params.fact.trim() === '') {
       return 'Parameter "fact" must be a non-empty string.';
     }
-
     return null;
   }
 
   protected createInvocation(params: SaveMemoryParams) {
-    return new MemoryToolInvocation(params);
+    return new MemoryToolInvocation(params, this.config);
   }
 
+  /**
+   * Legacy static method for backward compatibility
+   * @deprecated Use MemoryManager directly instead
+   */
   static async performAddMemoryEntry(
-    text: string,
+    fact: string,
     memoryFilePath: string,
-    fsAdapter: {
-      readFile: (path: string, encoding: 'utf-8') => Promise<string>;
-      writeFile: (
-        path: string,
-        data: string,
-        encoding: 'utf-8',
-      ) => Promise<void>;
-      mkdir: (
-        path: string,
-        options: { recursive: boolean },
-      ) => Promise<string | undefined>;
+    fileSystem: {
+      readFile: typeof fs.readFile;
+      writeFile: typeof fs.writeFile;
+      mkdir: typeof fs.mkdir;
     },
   ): Promise<void> {
-    try {
-      await fsAdapter.mkdir(path.dirname(memoryFilePath), { recursive: true });
-      let currentContent = '';
-      try {
-        currentContent = await fsAdapter.readFile(memoryFilePath, 'utf-8');
-      } catch (_e) {
-        // File doesn't exist, which is fine. currentContent will be empty.
+    // Legacy implementation for backward compatibility
+    const currentContent = await fileSystem
+      .readFile(memoryFilePath, 'utf-8')
+      .catch((err) => {
+        if (err.code === 'ENOENT') return '';
+        throw err;
+      });
+
+    let processedText = fact.trim();
+    processedText = processedText.replace(/^(-+\s*)+/, '').trim();
+    const newMemoryItem = `- ${processedText}`;
+
+    const headerIndex = currentContent.indexOf(MEMORY_SECTION_HEADER);
+    let newContent: string;
+
+    if (headerIndex === -1) {
+      const separator = currentContent.length === 0 ? '' : '\n\n';
+      newContent = currentContent + `${separator}${MEMORY_SECTION_HEADER}\n${newMemoryItem}\n`;
+    } else {
+      const startOfSectionContent = headerIndex + MEMORY_SECTION_HEADER.length;
+      let endOfSectionIndex = currentContent.indexOf('\n## ', startOfSectionContent);
+      if (endOfSectionIndex === -1) {
+        endOfSectionIndex = currentContent.length;
       }
 
-      const newContent = computeNewContent(currentContent, text);
+      const beforeSectionMarker = currentContent
+        .substring(0, startOfSectionContent)
+        .trimEnd();
+      let sectionContent = currentContent
+        .substring(startOfSectionContent, endOfSectionIndex)
+        .trimEnd();
+      const afterSectionMarker = currentContent.substring(endOfSectionIndex);
 
-      await fsAdapter.writeFile(memoryFilePath, newContent, 'utf-8');
-    } catch (error) {
-      console.error(
-        `[MemoryTool] Error adding memory entry to ${memoryFilePath}:`,
-        error,
-      );
-      throw new Error(
-        `[MemoryTool] Failed to add memory entry: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      sectionContent += `\n${newMemoryItem}`;
+      newContent =
+        `${beforeSectionMarker}\n${sectionContent.trimStart()}\n${afterSectionMarker}`.trimEnd() +
+        '\n';
     }
-  }
 
-  getModifyContext(_abortSignal: AbortSignal): ModifyContext<SaveMemoryParams> {
-    return {
-      getFilePath: (params: SaveMemoryParams) => {
-        // Determine scope from modified content or default
-        let scope = params.scope || 'global';
-        if (params.modified_content) {
-          const scopeMatch = params.modified_content.match(
-            /^scope:\s*(global|project)\s*\n/i,
-          );
-          if (scopeMatch) {
-            scope = scopeMatch[1].toLowerCase() as 'global' | 'project';
-          }
-        }
-        return getMemoryFilePath(scope);
-      },
-      getCurrentContent: async (params: SaveMemoryParams): Promise<string> => {
-        // Check if content starts with scope directive
-        if (params.modified_content) {
-          const scopeMatch = params.modified_content.match(
-            /^scope:\s*(global|project)\s*\n/i,
-          );
-          if (scopeMatch) {
-            const scope = scopeMatch[1].toLowerCase() as 'global' | 'project';
-            const content = await readMemoryFileContent(scope);
-            const globalPath = tildeifyPath(getMemoryFilePath('global'));
-            const projectPath = tildeifyPath(getMemoryFilePath('project'));
-            return `scope: ${scope}\n\n# INSTRUCTIONS:\n# - Save as "global" for GLOBAL memory: ${globalPath}\n# - Save as "project" for PROJECT memory: ${projectPath}\n\n${content}`;
-          }
-        }
-        const scope = params.scope || 'global';
-        const content = await readMemoryFileContent(scope);
-        const globalPath = tildeifyPath(getMemoryFilePath('global'));
-        const projectPath = tildeifyPath(getMemoryFilePath('project'));
-        return `scope: ${scope}\n\n# INSTRUCTIONS:\n# - Save as "global" for GLOBAL memory: ${globalPath}\n# - Save as "project" for PROJECT memory: ${projectPath}\n\n${content}`;
-      },
-      getProposedContent: async (params: SaveMemoryParams): Promise<string> => {
-        let scope = params.scope || 'global';
-
-        // Check if modified content has scope directive
-        if (params.modified_content) {
-          const scopeMatch = params.modified_content.match(
-            /^scope:\s*(global|project)\s*\n/i,
-          );
-          if (scopeMatch) {
-            scope = scopeMatch[1].toLowerCase() as 'global' | 'project';
-          }
-        }
-
-        const currentContent = await readMemoryFileContent(scope);
-        const newContent = computeNewContent(currentContent, params.fact);
-        const globalPath = tildeifyPath(getMemoryFilePath('global'));
-        const projectPath = tildeifyPath(getMemoryFilePath('project'));
-        return `scope: ${scope}\n\n# INSTRUCTIONS:\n# - Save as "global" for GLOBAL memory: ${globalPath}\n# - Save as "project" for PROJECT memory: ${projectPath}\n\n${newContent}`;
-      },
-      createUpdatedParams: (
-        _oldContent: string,
-        modifiedProposedContent: string,
-        originalParams: SaveMemoryParams,
-      ): SaveMemoryParams => {
-        // Parse user's scope choice from modified content
-        const scopeMatch = modifiedProposedContent.match(
-          /^scope:\s*(global|project)/i,
-        );
-        const scope = scopeMatch
-          ? (scopeMatch[1].toLowerCase() as 'global' | 'project')
-          : 'global';
-
-        // Strip out the scope directive and instruction lines, keep only the actual memory content
-        const contentWithoutScope = modifiedProposedContent.replace(
-          /^scope:\s*(global|project)\s*\n/,
-          '',
-        );
-        const actualContent = contentWithoutScope
-          .replace(/^#[^\n]*\n/gm, '')
-          .replace(/^\s*\n/gm, '')
-          .trim();
-
-        return {
-          ...originalParams,
-          scope,
-          modified_by_user: true,
-          modified_content: actualContent,
-        };
-      },
-    };
+    await fileSystem.mkdir(path.dirname(memoryFilePath), { recursive: true });
+    await fileSystem.writeFile(memoryFilePath, newContent, 'utf-8');
   }
 }
