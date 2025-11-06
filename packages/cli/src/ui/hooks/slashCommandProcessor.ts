@@ -404,6 +404,20 @@ export const useSlashCommandProcessor = (
                       return { type: 'handled' };
                     case 'help':
                       return { type: 'handled' };
+                    // TODO: Implement dialog handlers for skills and memory
+                    case 'skill_list':
+                    case 'skill_create':
+                    case 'skill_edit':
+                    case 'skill_execute':
+                    case 'memory_search':
+                    case 'memory_analytics':
+                    case 'memory_cleanup':
+                    case 'memory_export':
+                      // Placeholder - dialogs not yet implemented
+                      console.log(
+                        `Dialog ${result.dialog} not yet implemented`,
+                      );
+                      return { type: 'handled' };
                     default: {
                       const unhandled: never = result.dialog;
                       throw new Error(
