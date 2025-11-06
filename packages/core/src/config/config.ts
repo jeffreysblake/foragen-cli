@@ -52,6 +52,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { canUseRipgrep } from '../utils/ripgrepUtils.js';
 import { RipGrepTool } from '../tools/ripGrep.js';
 import { ShellTool } from '../tools/shell.js';
+import { SkillTool } from '../tools/skillTool.js';
 import { SmartEditTool } from '../tools/smart-edit.js';
 import { TaskTool } from '../tools/task.js';
 import { TodoWriteTool } from '../tools/todoWrite.js';
@@ -65,6 +66,7 @@ import { ideContextStore } from '../ide/ideContext.js';
 import { OutputFormat } from '../output/types.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { SubagentManager } from '../subagents/subagent-manager.js';
+import { SkillManager } from '../skills/skill-manager.js';
 import {
   DEFAULT_OTLP_ENDPOINT,
   DEFAULT_TELEMETRY_TARGET,
@@ -287,6 +289,7 @@ export class Config {
   private toolRegistry!: ToolRegistry;
   private promptRegistry!: PromptRegistry;
   private subagentManager!: SubagentManager;
+  private skillManager!: SkillManager;
   private readonly sessionId: string;
   private fileSystemService: FileSystemService;
   private contentGeneratorConfig!: ContentGeneratorConfig;
@@ -515,6 +518,7 @@ export class Config {
     }
     this.promptRegistry = new PromptRegistry();
     this.subagentManager = new SubagentManager(this);
+    this.skillManager = new SkillManager(this);
     this.toolRegistry = await this.createToolRegistry();
 
     await this.geminiClient.initialize();
@@ -1075,6 +1079,10 @@ export class Config {
     return this.subagentManager;
   }
 
+  getSkillManager(): SkillManager {
+    return this.skillManager;
+  }
+
   async createToolRegistry(): Promise<ToolRegistry> {
     const registry = new ToolRegistry(this, this.eventEmitter);
 
@@ -1113,6 +1121,7 @@ export class Config {
     };
 
     registerCoreTool(TaskTool, this);
+    registerCoreTool(SkillTool, this);
     registerCoreTool(LSTool, this);
     registerCoreTool(ReadFileTool, this);
 
