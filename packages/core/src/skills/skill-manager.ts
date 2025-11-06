@@ -14,6 +14,7 @@ import {
 import type {
   SkillConfig,
   SkillLevel,
+  SkillCategory,
   ListSkillsOptions,
   CreateSkillOptions,
   SkillParameter,
@@ -337,10 +338,14 @@ export class SkillManager {
             aVal = a.version;
             bVal = b.version;
             break;
-          case 'level':
+          case 'level': {
             const levelOrder = { builtin: 0, user: 1, project: 2 };
             aVal = levelOrder[a.level];
             bVal = levelOrder[b.level];
+            break;
+          }
+          default:
+            // No sorting for unknown sortBy values
             break;
         }
 
@@ -498,7 +503,7 @@ export class SkillManager {
       }
 
       // Extract optional fields
-      const category = frontmatter['category'] as any;
+      const category = frontmatter['category'] as string | undefined;
       const tags = frontmatter['tags'] as string[] | undefined;
       const tools = frontmatter['tools'] as string[] | undefined;
       const parameters = frontmatter['parameters'] as SkillParameter[] | [];
@@ -512,7 +517,7 @@ export class SkillManager {
         name,
         description,
         version,
-        category: category as any,
+        category: category as SkillCategory | undefined,
         tags,
         tools,
         systemPrompt: systemPrompt.trim(),
@@ -621,8 +626,7 @@ export class SkillManager {
       throw new Error('Cannot get directory for builtin skills');
     }
 
-    const baseDir =
-      level === 'project' ? process.cwd() : os.homedir();
+    const baseDir = level === 'project' ? process.cwd() : os.homedir();
     return path.join(baseDir, FORA_CONFIG_DIR, SKILL_CONFIG_DIR);
   }
 
@@ -631,9 +635,9 @@ export class SkillManager {
    * This is used internally by the SkillExecutor.
    */
   async createSkillScope(
-    skillConfig: SkillConfig,
-    config: Config,
-  ): Promise<any> {
+    _skillConfig: SkillConfig,
+    _config: Config,
+  ): Promise<unknown> {
     // This will be implemented when we integrate with SubAgentScope
     // For now, return a placeholder
     throw new Error('createSkillScope not yet implemented');

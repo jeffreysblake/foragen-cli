@@ -6,7 +6,11 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import type { MemoryEntry, MemoryScope, SerializedMemoryEntry } from './types.js';
+import type {
+  MemoryEntry,
+  MemoryScope,
+  SerializedMemoryEntry,
+} from './types.js';
 import { parseMemoryFile, serializeMemoryFile } from './memory-parser.js';
 
 const FORA_CONFIG_DIR = '.fora';
@@ -33,7 +37,7 @@ export class MemoryStorage {
     try {
       const globalMemories = await this.loadMemoriesFromScope('global');
       memories.push(...globalMemories);
-    } catch (error) {
+    } catch (_error) {
       // File might not exist yet
     }
 
@@ -41,7 +45,7 @@ export class MemoryStorage {
     try {
       const projectMemories = await this.loadMemoriesFromScope('project');
       memories.push(...projectMemories);
-    } catch (error) {
+    } catch (_error) {
       // File might not exist yet
     }
 

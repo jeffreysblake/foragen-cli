@@ -67,7 +67,10 @@ export class SkillExecutor {
       );
 
       // 6. Validate output if schema provided
-      if (this.skillConfig.output?.validateOutput && this.skillConfig.output?.schema) {
+      if (
+        this.skillConfig.output?.validateOutput &&
+        this.skillConfig.output?.schema
+      ) {
         this.validateOutput(result);
       }
 
@@ -188,7 +191,7 @@ export class SkillExecutor {
    *
    * @returns Array of tool declarations or undefined if no tools specified
    */
-  private prepareTools(): any[] | undefined {
+  private prepareTools(): unknown[] | undefined {
     if (!this.skillConfig.tools || this.skillConfig.tools.length === 0) {
       return undefined;
     }
@@ -224,8 +227,8 @@ export class SkillExecutor {
    */
   private async executeSingleTurn(
     prompt: string,
-    _modelConfig: any,
-    _tools: any[] | undefined,
+    _modelConfig: Record<string, unknown>,
+    _tools: unknown[] | undefined,
     _signal?: AbortSignal,
   ): Promise<string | Record<string, unknown>> {
     // TODO: Implement actual skill execution
@@ -254,7 +257,9 @@ export class SkillExecutor {
     }
 
     // Check required properties if schema has them
-    const schema = this.skillConfig.output.schema as any;
+    const schema = this.skillConfig.output.schema as
+      | Record<string, unknown>
+      | undefined;
     if (schema.properties && schema.required) {
       const outputObj = output as Record<string, unknown>;
       for (const requiredProp of schema.required) {

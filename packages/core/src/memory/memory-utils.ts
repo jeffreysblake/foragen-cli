@@ -83,7 +83,7 @@ export function extractTags(content: string): string[] {
  */
 export function extractContext(content: string): string | undefined {
   // Look for file paths
-  const pathRegex = /(?:^|\s)([\/\w\-_.]+\.[a-z]{1,4})/gi;
+  const pathRegex = /(?:^|\s)([/\w\-_.]+\.[a-z]{1,4})/gi;
   const paths = [];
   let match;
   while ((match = pathRegex.exec(content)) !== null) {
@@ -95,7 +95,8 @@ export function extractContext(content: string): string | undefined {
   }
 
   // Look for module/package names (e.g., "in the auth module")
-  const moduleRegex = /(?:in|from|at|within)\s+(?:the\s+)?(\w+)\s+(?:module|package|component)/i;
+  const moduleRegex =
+    /(?:in|from|at|within)\s+(?:the\s+)?(\w+)\s+(?:module|package|component)/i;
   match = content.match(moduleRegex);
   if (match) {
     return match[1];
@@ -140,6 +141,7 @@ export function formatRelativeTime(date: Date): string {
   if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
   if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
   if (diffWeek < 4) return `${diffWeek} week${diffWeek > 1 ? 's' : ''} ago`;
-  if (diffMonth < 12) return `${diffMonth} month${diffMonth > 1 ? 's' : ''} ago`;
+  if (diffMonth < 12)
+    return `${diffMonth} month${diffMonth > 1 ? 's' : ''} ago`;
   return `${diffYear} year${diffYear > 1 ? 's' : ''} ago`;
 }

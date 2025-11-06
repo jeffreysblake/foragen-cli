@@ -25,10 +25,7 @@ export class MemoryManager {
   private cacheInitialized = false;
   private readonly storage: MemoryStorage;
 
-  constructor(
-    projectRoot: string,
-    userHome: string,
-  ) {
+  constructor(projectRoot: string, userHome: string) {
     this.storage = new MemoryStorage(projectRoot, userHome);
   }
 
@@ -39,10 +36,7 @@ export class MemoryManager {
    * @param options - Memory options
    * @returns The created memory ID
    */
-  async addMemory(
-    content: string,
-    options: AddMemoryOptions,
-  ): Promise<string> {
+  async addMemory(content: string, options: AddMemoryOptions): Promise<string> {
     await this.ensureCacheInitialized();
 
     // Check for duplicates if requested
@@ -138,7 +132,8 @@ export class MemoryManager {
 
       switch (sortBy) {
         case 'relevance':
-          comparison = this.calculateRelevanceScore(b, options.query || '') -
+          comparison =
+            this.calculateRelevanceScore(b, options.query || '') -
             this.calculateRelevanceScore(a, options.query || '');
           break;
         case 'recency':
@@ -149,6 +144,9 @@ export class MemoryManager {
           break;
         case 'confidence':
           comparison = b.confidence - a.confidence;
+          break;
+        default:
+          // No sorting for unknown sortBy values
           break;
       }
 
@@ -215,10 +213,7 @@ export class MemoryManager {
    * @param id - Memory ID
    * @param updates - Fields to update
    */
-  async updateMemory(
-    id: string,
-    updates: Partial<MemoryEntry>,
-  ): Promise<void> {
+  async updateMemory(id: string, updates: Partial<MemoryEntry>): Promise<void> {
     await this.ensureCacheInitialized();
 
     const existing = this.memoryCache.get(id);
