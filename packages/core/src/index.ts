@@ -94,6 +94,9 @@ export * from './context/index.js';
 // Export Phase 3: Marketplace and templates
 export * from './marketplace/index.js';
 
+// Export Phase 4: Model routing
+export * from './routing/index.js';
+
 // Export prompt logic
 export * from './prompts/mcp-prompts.js';
 
