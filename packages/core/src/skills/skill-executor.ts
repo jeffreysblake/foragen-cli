@@ -1,0 +1,339 @@
+/**
+ * @license
+ * Copyright 2025 Fora
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import type { Config } from '../config/config.js';
+import type {
+  SkillConfig,
+  SkillResult,
+  SkillExecutionMetadata,
+  SkillParameter,
+} from './types.js';
+import { SkillError, SkillErrorCode } from './types.js';
+import { GeminiChat } from '../core/geminiChat.js';
+import type { Content, Part } from '@google/genai';
+import { CoreToolScheduler } from '../core/coreToolScheduler.js';
+import { reportError } from '../utils/errorReporting.js';
+
+/**
+ * Executes skills in a lightweight, single-turn fashion.
+ * Unlike SubAgentScope which supports multi-turn conversations,
+ * SkillExecutor is optimized for focused, single-purpose tasks.
+ */
+export class SkillExecutor {
+  private readonly geminiChat: GeminiChat;
+  private readonly toolScheduler: CoreToolScheduler;
+
+  constructor(
+    private readonly config: Config,
+    private readonly skillConfig: SkillConfig,
+  ) {
+    this.geminiChat = config.getGeminiClient();
+    this.toolScheduler = config.getCoreToolScheduler();
+  }
+
+  /**
+   * Executes the skill with the provided parameters.
+   *
+   * @param params - Input parameters for the skill
+   * @param signal - Optional abort signal for cancellation
+   * @returns SkillResult containing the output
+   */
+  async execute(
+    params: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<SkillResult> {
+    const startTime = new Date();
+
+    try {
+      // 1. Validate parameters
+      this.validateParams(params);
+
+      // 2. Build the prompt with parameter substitution
+      const prompt = this.buildPrompt(params);
+
+      // 3. Prepare model configuration
+      const modelConfig = {
+        model: this.skillConfig.model?.model || 'qwen3-coder',
+        temp: this.skillConfig.model?.temp ?? 0.5,
+        top_p: this.skillConfig.model?.top_p,
+        max_tokens: this.skillConfig.model?.max_tokens ?? 2048,
+      };
+
+      // 4. Prepare tools (if specified)
+      const toolDeclarations = this.prepareTools();
+
+      // 5. Execute the skill (single-turn)
+      const result = await this.executeSingleTurn(
+        prompt,
+        modelConfig,
+        toolDeclarations,
+        signal,
+      );
+
+      // 6. Validate output if schema provided
+      if (this.skillConfig.output?.validateOutput && this.skillConfig.output?.schema) {
+        this.validateOutput(result);
+      }
+
+      // 7. Build execution metadata
+      const endTime = new Date();
+      const metadata: SkillExecutionMetadata = {
+        skillName: this.skillConfig.name,
+        inputParams: params,
+        startTime,
+        endTime,
+        duration: endTime.getTime() - startTime.getTime(),
+        model: modelConfig.model,
+      };
+
+      return {
+        success: true,
+        output: result,
+        metadata,
+      };
+    } catch (error) {
+      const endTime = new Date();
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      reportError(
+        `Skill execution failed for "${this.skillConfig.name}": ${errorMessage}`,
+        error instanceof Error ? error : undefined,
+      );
+
+      return {
+        success: false,
+        output: '',
+        error: errorMessage,
+        metadata: {
+          skillName: this.skillConfig.name,
+          inputParams: params,
+          startTime,
+          endTime,
+          duration: endTime.getTime() - startTime.getTime(),
+        },
+      };
+    }
+  }
+
+  /**
+   * Validates that all required parameters are provided and valid.
+   *
+   * @param params - Parameters to validate
+   * @throws SkillError if validation fails
+   */
+  private validateParams(params: Record<string, unknown>): void {
+    for (const paramDef of this.skillConfig.parameters) {
+      const value = params[paramDef.name];
+
+      // Check required parameters
+      if (paramDef.required && value === undefined) {
+        throw new SkillError(
+          `Required parameter "${paramDef.name}" is missing`,
+          SkillErrorCode.PARAMETER_MISSING,
+          this.skillConfig.name,
+        );
+      }
+
+      // Use default value if not provided
+      if (value === undefined && paramDef.default !== undefined) {
+        params[paramDef.name] = paramDef.default;
+        continue;
+      }
+
+      // Skip validation if value is undefined and not required
+      if (value === undefined) {
+        continue;
+      }
+
+      // Type validation
+      const actualType = Array.isArray(value) ? 'array' : typeof value;
+      if (actualType !== paramDef.type && paramDef.type !== 'object') {
+        throw new SkillError(
+          `Parameter "${paramDef.name}" has invalid type. Expected ${paramDef.type}, got ${actualType}`,
+          SkillErrorCode.PARAMETER_INVALID,
+          this.skillConfig.name,
+        );
+      }
+
+      // Enum validation
+      if (paramDef.enum && paramDef.enum.length > 0) {
+        if (!paramDef.enum.includes(String(value))) {
+          throw new SkillError(
+            `Parameter "${paramDef.name}" must be one of: ${paramDef.enum.join(', ')}. Got: ${value}`,
+            SkillErrorCode.PARAMETER_INVALID,
+            this.skillConfig.name,
+          );
+        }
+      }
+    }
+  }
+
+  /**
+   * Builds the prompt by substituting parameters into the system prompt.
+   *
+   * @param params - Input parameters
+   * @returns Formatted prompt string
+   */
+  private buildPrompt(params: Record<string, unknown>): string {
+    let prompt = this.skillConfig.systemPrompt;
+
+    // Simple template substitution: ${param_name}
+    for (const [key, value] of Object.entries(params)) {
+      const placeholder = `\${${key}}`;
+      const valueStr = String(value);
+      prompt = prompt.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), valueStr);
+    }
+
+    return prompt;
+  }
+
+  /**
+   * Prepares tool declarations based on skill configuration.
+   *
+   * @returns Array of tool declarations or undefined if no tools specified
+   */
+  private prepareTools(): any[] | undefined {
+    if (!this.skillConfig.tools || this.skillConfig.tools.length === 0) {
+      return undefined;
+    }
+
+    // Get all available tools from the tool registry
+    const toolRegistry = this.config.getToolRegistry();
+    const allTools = toolRegistry.getTools();
+
+    // Filter to only include tools specified in skill config
+    const selectedTools = allTools.filter((tool) =>
+      this.skillConfig.tools!.includes(tool.name),
+    );
+
+    // Convert to function declarations
+    return selectedTools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameterSchema,
+    }));
+  }
+
+  /**
+   * Executes a single-turn interaction with the model.
+   *
+   * @param prompt - The formatted prompt
+   * @param modelConfig - Model configuration
+   * @param tools - Optional tool declarations
+   * @param signal - Optional abort signal
+   * @returns Generated output
+   */
+  private async executeSingleTurn(
+    prompt: string,
+    modelConfig: any,
+    tools: any[] | undefined,
+    signal?: AbortSignal,
+  ): Promise<string | Record<string, unknown>> {
+    // Prepare the initial message
+    const userMessage: Content = {
+      role: 'user',
+      parts: [{ text: prompt }],
+    };
+
+    // Initialize chat with system prompt and tools
+    const generateConfig: any = {
+      systemInstruction: this.skillConfig.systemPrompt,
+      model: modelConfig.model,
+      generationConfig: {
+        temperature: modelConfig.temp,
+        topP: modelConfig.top_p,
+        maxOutputTokens: modelConfig.max_tokens,
+      },
+    };
+
+    if (tools && tools.length > 0) {
+      generateConfig.tools = [{ functionDeclarations: tools }];
+    }
+
+    // Start a new chat session
+    const chat = this.geminiChat.createChat(generateConfig);
+
+    // Send the message and get response
+    const response = await chat.sendMessage(userMessage.parts);
+
+    // Extract text from response
+    const text = response.candidates?.[0]?.content?.parts
+      ?.map((part: Part) => {
+        if ('text' in part) {
+          return part.text;
+        }
+        return '';
+      })
+      .join('');
+
+    if (!text) {
+      throw new SkillError(
+        'Model did not return any text',
+        SkillErrorCode.EXECUTION_ERROR,
+        this.skillConfig.name,
+      );
+    }
+
+    // Parse structured output if needed
+    if (this.skillConfig.output?.format === 'structured') {
+      try {
+        // Try to extract JSON from the response
+        const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const jsonStr = jsonMatch[1] || jsonMatch[0];
+          return JSON.parse(jsonStr);
+        }
+        // If no JSON block found, try parsing the whole text
+        return JSON.parse(text);
+      } catch (error) {
+        throw new SkillError(
+          `Failed to parse structured output: ${error instanceof Error ? error.message : 'Invalid JSON'}`,
+          SkillErrorCode.INVALID_OUTPUT,
+          this.skillConfig.name,
+        );
+      }
+    }
+
+    return text;
+  }
+
+  /**
+   * Validates output against the schema if provided.
+   *
+   * @param output - Output to validate
+   * @throws SkillError if validation fails
+   */
+  private validateOutput(output: string | Record<string, unknown>): void {
+    // Basic validation - proper JSON Schema validation would require a library
+    if (!this.skillConfig.output?.schema) {
+      return;
+    }
+
+    if (typeof output !== 'object') {
+      throw new SkillError(
+        'Expected structured output but got text',
+        SkillErrorCode.INVALID_OUTPUT,
+        this.skillConfig.name,
+      );
+    }
+
+    // Check required properties if schema has them
+    const schema = this.skillConfig.output.schema as any;
+    if (schema.properties && schema.required) {
+      const outputObj = output as Record<string, unknown>;
+      for (const requiredProp of schema.required) {
+        if (!(requiredProp in outputObj)) {
+          throw new SkillError(
+            `Output missing required property: ${requiredProp}`,
+            SkillErrorCode.INVALID_OUTPUT,
+            this.skillConfig.name,
+          );
+        }
+      }
+    }
+  }
+}
