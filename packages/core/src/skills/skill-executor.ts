@@ -9,30 +9,23 @@ import type {
   SkillConfig,
   SkillResult,
   SkillExecutionMetadata,
-  SkillParameter,
 } from './types.js';
 import { SkillError, SkillErrorCode } from './types.js';
-import { GeminiChat } from '../core/geminiChat.js';
-import type { Content, Part } from '@google/genai';
-import { CoreToolScheduler } from '../core/coreToolScheduler.js';
 import { reportError } from '../utils/errorReporting.js';
 
 /**
  * Executes skills in a lightweight, single-turn fashion.
  * Unlike SubAgentScope which supports multi-turn conversations,
  * SkillExecutor is optimized for focused, single-purpose tasks.
+ *
+ * TODO: This implementation needs to be completed to properly execute
+ * skills using the content generator. For now, it provides a basic structure.
  */
 export class SkillExecutor {
-  private readonly geminiChat: GeminiChat;
-  private readonly toolScheduler: CoreToolScheduler;
-
   constructor(
     private readonly config: Config,
     private readonly skillConfig: SkillConfig,
-  ) {
-    this.geminiChat = config.getGeminiClient();
-    this.toolScheduler = config.getCoreToolScheduler();
-  }
+  ) {}
 
   /**
    * Executes the skill with the provided parameters.
@@ -99,9 +92,9 @@ export class SkillExecutor {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 
-      reportError(
-        `Skill execution failed for "${this.skillConfig.name}": ${errorMessage}`,
-        error instanceof Error ? error : undefined,
+      await reportError(
+        error,
+        `Skill execution failed for "${this.skillConfig.name}"`,
       );
 
       return {
@@ -183,7 +176,6 @@ export class SkillExecutor {
 
     // Simple template substitution: ${param_name}
     for (const [key, value] of Object.entries(params)) {
-      const placeholder = `\${${key}}`;
       const valueStr = String(value);
       prompt = prompt.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), valueStr);
     }
@@ -203,7 +195,7 @@ export class SkillExecutor {
 
     // Get all available tools from the tool registry
     const toolRegistry = this.config.getToolRegistry();
-    const allTools = toolRegistry.getTools();
+    const allTools = toolRegistry.getAllTools();
 
     // Filter to only include tools specified in skill config
     const selectedTools = allTools.filter((tool) =>
@@ -221,6 +213,9 @@ export class SkillExecutor {
   /**
    * Executes a single-turn interaction with the model.
    *
+   * TODO: Implement proper skill execution using the content generator.
+   * This is a placeholder implementation that needs to be completed.
+   *
    * @param prompt - The formatted prompt
    * @param modelConfig - Model configuration
    * @param tools - Optional tool declarations
@@ -229,76 +224,13 @@ export class SkillExecutor {
    */
   private async executeSingleTurn(
     prompt: string,
-    modelConfig: any,
-    tools: any[] | undefined,
-    signal?: AbortSignal,
+    _modelConfig: any,
+    _tools: any[] | undefined,
+    _signal?: AbortSignal,
   ): Promise<string | Record<string, unknown>> {
-    // Prepare the initial message
-    const userMessage: Content = {
-      role: 'user',
-      parts: [{ text: prompt }],
-    };
-
-    // Initialize chat with system prompt and tools
-    const generateConfig: any = {
-      systemInstruction: this.skillConfig.systemPrompt,
-      model: modelConfig.model,
-      generationConfig: {
-        temperature: modelConfig.temp,
-        topP: modelConfig.top_p,
-        maxOutputTokens: modelConfig.max_tokens,
-      },
-    };
-
-    if (tools && tools.length > 0) {
-      generateConfig.tools = [{ functionDeclarations: tools }];
-    }
-
-    // Start a new chat session
-    const chat = this.geminiChat.createChat(generateConfig);
-
-    // Send the message and get response
-    const response = await chat.sendMessage(userMessage.parts);
-
-    // Extract text from response
-    const text = response.candidates?.[0]?.content?.parts
-      ?.map((part: Part) => {
-        if ('text' in part) {
-          return part.text;
-        }
-        return '';
-      })
-      .join('');
-
-    if (!text) {
-      throw new SkillError(
-        'Model did not return any text',
-        SkillErrorCode.EXECUTION_ERROR,
-        this.skillConfig.name,
-      );
-    }
-
-    // Parse structured output if needed
-    if (this.skillConfig.output?.format === 'structured') {
-      try {
-        // Try to extract JSON from the response
-        const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const jsonStr = jsonMatch[1] || jsonMatch[0];
-          return JSON.parse(jsonStr);
-        }
-        // If no JSON block found, try parsing the whole text
-        return JSON.parse(text);
-      } catch (error) {
-        throw new SkillError(
-          `Failed to parse structured output: ${error instanceof Error ? error.message : 'Invalid JSON'}`,
-          SkillErrorCode.INVALID_OUTPUT,
-          this.skillConfig.name,
-        );
-      }
-    }
-
-    return text;
+    // TODO: Implement actual skill execution
+    // For now, return a placeholder message
+    return `Skill execution not yet implemented. Would execute:\n${prompt.substring(0, 200)}...`;
   }
 
   /**

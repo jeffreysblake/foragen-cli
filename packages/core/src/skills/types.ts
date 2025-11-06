@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Content } from '@google/genai';
-
 /**
  * Represents the storage level for a skill configuration.
  * - 'project': Stored in `.fora/skills/` within the project directory

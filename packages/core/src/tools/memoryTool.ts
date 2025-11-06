@@ -189,7 +189,6 @@ class MemoryToolInvocation extends BaseToolInvocation<
       const currentContent = await readMemoryFileContent(defaultScope);
 
       // Generate preview of what would be added
-      const memoryManager = this.config.getMemoryManager();
       const tags = extractTags(this.params.fact);
       const context = extractContext(this.params.fact);
 
@@ -349,7 +348,7 @@ Project: ${projectPath} (current project only)`;
         const context = extractContext(fact);
 
         // Add memory with enhanced metadata
-        const memoryId = await memoryManager.addMemory(fact, {
+        await memoryManager.addMemory(fact, {
           scope: scope as MemoryScope,
           type: 'fact',
           tags,
@@ -385,24 +384,6 @@ Project: ${projectPath} (current project only)`;
       };
     }
   }
-
-  override createUpdatedParams(
-    modifyContext: ModifyContext,
-  ): SaveMemoryParams | null {
-    const { modified_content } = modifyContext;
-    if (!modified_content) return null;
-
-    // Extract scope from modified content
-    const scopeMatch = modified_content.match(/^scope:\s*(global|project)/i);
-    const scope = scopeMatch ? (scopeMatch[1].toLowerCase() as 'global' | 'project') : this.params.scope;
-
-    return {
-      ...this.params,
-      scope,
-      modified_by_user: true,
-      modified_content,
-    };
-  }
 }
 
 export class MemoryTool
@@ -432,6 +413,51 @@ export class MemoryTool
 
   protected createInvocation(params: SaveMemoryParams) {
     return new MemoryToolInvocation(params, this.config);
+  }
+
+  getModifyContext(_abortSignal: AbortSignal): ModifyContext<SaveMemoryParams> {
+    return {
+      getFilePath: (params: SaveMemoryParams) => {
+        const scope = params.scope || 'global';
+        return getMemoryFilePath(scope);
+      },
+      getCurrentContent: async (params: SaveMemoryParams) => {
+        const scope = params.scope || 'global';
+        return await readMemoryFileContent(scope);
+      },
+      getProposedContent: async (params: SaveMemoryParams) => {
+        const scope = params.scope || 'global';
+        const currentContent = await readMemoryFileContent(scope);
+        const tags = extractTags(params.fact);
+        const context = extractContext(params.fact);
+
+        const previewText = `### Memory Entry: ${new Date().toISOString()}
+**Type**: fact
+**Scope**: ${scope}
+${tags.length > 0 ? `**Tags**: ${tags.map(t => `#${t}`).join(' ')}\n` : ''}${context ? `**Context**: ${context}\n` : ''}**Confidence**: 1.00
+**Source**: explicit
+
+${params.fact}`;
+
+        return currentContent + '\n' + previewText + '\n';
+      },
+      createUpdatedParams: (
+        _oldContent: string,
+        modifiedProposedContent: string,
+        originalParams: SaveMemoryParams,
+      ) => {
+        // Extract scope from modified content
+        const scopeMatch = modifiedProposedContent.match(/^scope:\s*(global|project)/i);
+        const scope = scopeMatch ? (scopeMatch[1].toLowerCase() as 'global' | 'project') : originalParams.scope;
+
+        return {
+          ...originalParams,
+          scope,
+          modified_by_user: true,
+          modified_content: modifiedProposedContent,
+        };
+      },
+    };
   }
 
   /**

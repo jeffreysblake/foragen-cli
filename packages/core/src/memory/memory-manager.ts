@@ -26,8 +26,8 @@ export class MemoryManager {
   private readonly storage: MemoryStorage;
 
   constructor(
-    private readonly projectRoot: string,
-    private readonly userHome: string,
+    projectRoot: string,
+    userHome: string,
   ) {
     this.storage = new MemoryStorage(projectRoot, userHome);
   }

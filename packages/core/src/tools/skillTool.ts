@@ -5,11 +5,8 @@
  */
 
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
-import { ToolNames } from './tool-names.js';
 import type {
   ToolResult,
-  ToolResultDisplay,
-  ToolCallConfirmationDetails,
 } from './tools.js';
 import type { Config } from '../config/config.js';
 import type { SkillManager } from '../skills/skill-manager.js';
@@ -260,10 +257,7 @@ class SkillToolInvocation extends BaseToolInvocation<SkillToolParams, ToolResult
       if (!skillConfig) {
         return {
           llmContent: `Skill "${this.params.skill_name}" not found`,
-          returnDisplay: {
-            type: 'text',
-            text: `Skill "${this.params.skill_name}" not found`,
-          },
+          returnDisplay: `Skill "${this.params.skill_name}" not found`,
         };
       }
 
@@ -279,17 +273,14 @@ class SkillToolInvocation extends BaseToolInvocation<SkillToolParams, ToolResult
           ? result.output
           : JSON.stringify(result.output, null, 2);
 
-      const display: ToolResultDisplay = {
-        type: 'text',
-        text: `Skill "${this.params.skill_name}" executed ${result.success ? 'successfully' : 'with errors'}\n\n${resultText}${result.error ? `\n\nError: ${result.error}` : ''}`,
-      };
+      const displayText = `Skill "${this.params.skill_name}" executed ${result.success ? 'successfully' : 'with errors'}\n\n${resultText}${result.error ? `\n\nError: ${result.error}` : ''}`;
 
       return {
         llmContent:
           typeof result.output === 'string'
             ? [{ text: result.output }]
             : [{ text: JSON.stringify(result.output) }],
-        returnDisplay: display,
+        returnDisplay: displayText,
       };
     } catch (error) {
       const errorMessage =
@@ -298,10 +289,7 @@ class SkillToolInvocation extends BaseToolInvocation<SkillToolParams, ToolResult
 
       return {
         llmContent: `Failed to execute skill: ${errorMessage}`,
-        returnDisplay: {
-          type: 'text',
-          text: `Failed to execute skill "${this.params.skill_name}": ${errorMessage}`,
-        },
+        returnDisplay: `Failed to execute skill "${this.params.skill_name}": ${errorMessage}`,
       };
     }
   }
