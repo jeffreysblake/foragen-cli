@@ -56,6 +56,19 @@ For detailed setup instructions, see [Authorization](#authorization).
 - **Enhanced Parser** - Adapted parser specifically optimized for Foragen-Clir models
 - **Vision Model Support** - Automatically detect images in your input and seamlessly switch to vision-capable models for multimodal analysis
 
+## 🚀 Fork Enhancements
+
+This fork adds powerful enhancements optimized for local models and developer experience:
+
+- **🤖 Local Model Optimizations** - Enhanced error recovery and scope persistence for Qwen3/LLaMA/Mistral models
+- **🧪 Test Infrastructure** - `createMockConfig()` utility reduces test boilerplate by ~70%
+- **🔍 Smart Web Search** - Auto-fetches top URLs after search (Claude Code-style workflow)
+- **🎯 Model Router** - Intelligent task-based model selection with automatic fallback
+- **📚 Learning System** - Pattern tracking and skill creation from recurring workflows
+- **⚡ Git Workflow** - "Search Git History First" prevents duplicate fixes after merges
+
+See [**FORK-ENHANCEMENTS.md**](./docs/FORK-ENHANCEMENTS.md) for complete documentation of all enhancements.
+
 ## Installation
 
 ### Prerequisites
