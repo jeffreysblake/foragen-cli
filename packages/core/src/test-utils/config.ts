@@ -18,6 +18,10 @@ export const DEFAULT_CONFIG_PARAMETERS: ConfigParameters = {
   model: 'fora-9001-super-duper',
   targetDir: '/',
   cwd: '/',
+  telemetry: {
+    enabled: false,
+    performanceMonitoring: true,
+  },
 };
 
 /**
