@@ -9,6 +9,7 @@
 import './src/gemini.js';
 import { main } from './src/gemini.js';
 import { FatalError } from '@jeffreysblake/foragen-cli-core';
+import { sanitizeSensitiveData } from './src/utils/errors.js';
 
 // --- Global Entry Point ---
 main().catch((error) => {
@@ -17,14 +18,14 @@ main().catch((error) => {
     if (!process.env['NO_COLOR']) {
       errorMessage = `\x1b[31m${errorMessage}\x1b[0m`;
     }
-    console.error(errorMessage);
+    console.error(sanitizeSensitiveData(errorMessage));
     process.exit(error.exitCode);
   }
   console.error('An unexpected critical error occurred:');
   if (error instanceof Error) {
-    console.error(error.stack);
+    console.error(sanitizeSensitiveData(error.stack ?? ''));
   } else {
-    console.error(String(error));
+    console.error(sanitizeSensitiveData(String(error)));
   }
   process.exit(1);
 });

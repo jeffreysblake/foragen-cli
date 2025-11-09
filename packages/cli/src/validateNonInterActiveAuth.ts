@@ -9,7 +9,7 @@ import { AuthType, OutputFormat } from '@jeffreysblake/foragen-cli-core';
 import { USER_SETTINGS_PATH } from './config/settings.js';
 import { validateAuthMethod } from './config/auth.js';
 import { type LoadedSettings } from './config/settings.js';
-import { handleError } from './utils/errors.js';
+import { handleError, sanitizeSensitiveData } from './utils/errors.js';
 
 function getAuthTypeFromEnv(): AuthType | undefined {
   if (process.env['OPENAI_API_KEY']) {
@@ -65,7 +65,9 @@ export async function validateNonInteractiveAuth(
         1,
       );
     } else {
-      console.error(error instanceof Error ? error.message : String(error));
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(sanitizeSensitiveData(errorMessage));
       process.exit(1);
     }
   }

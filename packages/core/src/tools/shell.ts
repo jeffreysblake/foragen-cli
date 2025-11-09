@@ -351,8 +351,14 @@ Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
 
     // Handle different git commit patterns
     // Match -m "message" or -m 'message'
-    const messagePattern = /(-m\s+)(['"])((?:\\.|[^\\])*?)(\2)/;
-    const match = command.match(messagePattern);
+    // Use unrolled loop pattern to prevent ReDoS vulnerability
+    const doubleQuotePattern = /(-m\s+)(")([^"\\]*(?:\\.[^"\\]*)*)(")/;
+    const singleQuotePattern = /(-m\s+)(')([^'\\]*(?:\\.[^'\\]*)*)(')/;
+
+    let match = command.match(doubleQuotePattern);
+    if (!match) {
+      match = command.match(singleQuotePattern);
+    }
 
     if (match) {
       const [fullMatch, prefix, quote, existingMessage, closingQuote] = match;

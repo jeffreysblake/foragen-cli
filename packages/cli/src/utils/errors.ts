@@ -14,6 +14,58 @@ import {
   FatalCancellationError,
 } from '@jeffreysblake/foragen-cli-core';
 
+/**
+ * Sanitizes error messages and strings by redacting sensitive information
+ * such as API keys, tokens, passwords, and other credentials.
+ */
+export function sanitizeSensitiveData(input: string): string {
+  let sanitized = input;
+
+  // Redact API keys (various formats)
+  sanitized = sanitized.replace(
+    /\b(api[_-]?key|apikey)([=:\s]+)['"]?[a-zA-Z0-9_/+=]{16,}['"]?/gi,
+    '$1$2[REDACTED]',
+  );
+
+  // Redact Bearer tokens
+  sanitized = sanitized.replace(
+    /\b(bearer\s+)[a-zA-Z0-9_.+=]{16,}/gi,
+    '$1[REDACTED]',
+  );
+
+  // Redact Authorization headers
+  sanitized = sanitized.replace(
+    /(authorization[=:\s]+)['"]?[^'"}\s]{16,}['"]?/gi,
+    '$1[REDACTED]',
+  );
+
+  // Redact passwords
+  sanitized = sanitized.replace(
+    /\b(password|passwd|pwd)([=:\s]+)['"]?[^'"}\s]+['"]?/gi,
+    '$1$2[REDACTED]',
+  );
+
+  // Redact tokens (access_token, refresh_token, etc.)
+  sanitized = sanitized.replace(
+    /\b([a-z_]*token)([=:\s]+)['"]?[a-zA-Z0-9_.+=]{16,}['"]?/gi,
+    '$1$2[REDACTED]',
+  );
+
+  // Redact secret keys
+  sanitized = sanitized.replace(
+    /\b([a-z_]*secret[a-z_]*)([=:\s]+)['"]?[^'"}\s]{8,}['"]?/gi,
+    '$1$2[REDACTED]',
+  );
+
+  // Redact OAuth codes
+  sanitized = sanitized.replace(
+    /\b(code|oauth[_-]?code)([=:\s]+)['"]?[a-zA-Z0-9_-]{16,}['"]?/gi,
+    '$1$2[REDACTED]',
+  );
+
+  return sanitized;
+}
+
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -78,10 +130,10 @@ export function handleError(
       errorCode,
     );
 
-    console.error(formattedError);
+    console.error(sanitizeSensitiveData(formattedError));
     process.exit(getNumericExitCode(errorCode));
   } else {
-    console.error(errorMessage);
+    console.error(sanitizeSensitiveData(errorMessage));
     throw error;
   }
 }

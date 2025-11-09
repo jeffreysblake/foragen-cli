@@ -60,7 +60,17 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     let url = this.params.url;
 
     // Convert GitHub blob URL to raw URL
-    if (url.includes('github.com') && url.includes('/blob/')) {
+    let hostname = '';
+    try {
+      hostname = new URL(url).hostname.toLowerCase();
+    } catch (_e) {
+      // Invalid URL, let fetchWithTimeout handle the error
+      hostname = '';
+    }
+
+    const isGitHub =
+      hostname === 'github.com' || hostname.endsWith('.github.com');
+    if (isGitHub && url.includes('/blob/')) {
       url = url
         .replace('github.com', 'raw.githubusercontent.com')
         .replace('/blob/', '/');
