@@ -350,27 +350,54 @@ export class ShellToolInvocation extends BaseToolInvocation<
 Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
 
     // Handle different git commit patterns
-    // Match -m "message" or -m 'message'
-    // Use unrolled loop pattern to prevent ReDoS vulnerability
-    const doubleQuotePattern = /(-m\s+)(")([^"\\]*(?:\\.[^"\\]*)*)(")/;
-    const singleQuotePattern = /(-m\s+)(')([^'\\]*(?:\\.[^'\\]*)*)(')/;
-
-    let match = command.match(doubleQuotePattern);
-    if (!match) {
-      match = command.match(singleQuotePattern);
+    // Use string parsing instead of regex to avoid ReDoS vulnerabilities
+    const mFlagIndex = command.indexOf('-m');
+    if (mFlagIndex === -1) {
+      // No -m flag found, command might open an editor
+      return command;
     }
 
-    if (match) {
-      const [fullMatch, prefix, quote, existingMessage, closingQuote] = match;
-      const newMessage = existingMessage + coAuthor;
-      const replacement = prefix + quote + newMessage + closingQuote;
-
-      return command.replace(fullMatch, replacement);
+    // Find the quote character after -m and optional whitespace
+    let quoteStartIndex = mFlagIndex + 2; // Start after '-m'
+    while (
+      quoteStartIndex < command.length &&
+      /\s/.test(command[quoteStartIndex])
+    ) {
+      quoteStartIndex++;
     }
 
-    // If no -m flag found, the command might open an editor
-    // In this case, we can't easily modify it, so return as-is
-    return command;
+    if (quoteStartIndex >= command.length) {
+      return command; // No quote found
+    }
+
+    const quoteChar = command[quoteStartIndex];
+    if (quoteChar !== '"' && quoteChar !== "'") {
+      return command; // Not a quoted string
+    }
+
+    // Find the closing quote, respecting escapes
+    let quoteEndIndex = quoteStartIndex + 1;
+    while (quoteEndIndex < command.length) {
+      if (command[quoteEndIndex] === '\\') {
+        // Skip escaped character
+        quoteEndIndex += 2;
+        continue;
+      }
+      if (command[quoteEndIndex] === quoteChar) {
+        // Found closing quote
+        break;
+      }
+      quoteEndIndex++;
+    }
+
+    if (quoteEndIndex >= command.length) {
+      return command; // No closing quote found
+    }
+
+    // Extract message and add co-author
+    const beforeQuote = command.substring(0, quoteEndIndex);
+    const afterQuote = command.substring(quoteEndIndex);
+    return beforeQuote + coAuthor + afterQuote;
   }
 }
 
