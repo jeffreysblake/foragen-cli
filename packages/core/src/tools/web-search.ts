@@ -18,6 +18,7 @@ import {
 import type { Config } from '../config/config.js';
 import { ApprovalMode } from '../config/config.js';
 import { getErrorMessage } from '../utils/errors.js';
+import { debugLogger, LogCategory } from '../utils/debugLogger.js';
 
 interface TavilyResultItem {
   title: string;
@@ -85,7 +86,157 @@ class WebSearchToolInvocation extends BaseToolInvocation<
     return confirmationDetails;
   }
 
+  private async executeWithMcp(
+    signal: AbortSignal,
+  ): Promise<WebSearchToolResult> {
+    const mcpServerName = this.config.getWebSearchMcpServer();
+    const toolRegistry = this.config.getToolRegistry();
+
+    debugLogger.debug(LogCategory.WEBSEARCH, 'Attempting MCP web search', {
+      serverName: mcpServerName,
+      query: this.params.query,
+    });
+
+    // Try to find a web search tool from the specified MCP server
+    const mcpTools = toolRegistry.getToolsByServer(mcpServerName);
+
+    if (mcpTools.length === 0) {
+      debugLogger.warn(
+        LogCategory.WEBSEARCH,
+        'No MCP tools found for web search',
+        {
+          serverName: mcpServerName,
+          query: this.params.query,
+        },
+      );
+      return {
+        llmContent: `MCP web search is configured but no tools found from server "${mcpServerName}". Please ensure the MCP server is configured in mcpServers settings.`,
+        returnDisplay: `MCP server "${mcpServerName}" not found or has no tools.`,
+      };
+    }
+
+    // Look for a tool that seems to be a web search tool
+    // Prefer full/comprehensive search tools over summaries
+    // Common names: full-web-search, web_search, brave_web_search, search, etc.
+    let searchTool = mcpTools.find(
+      (tool) =>
+        tool.name.toLowerCase().includes('full') &&
+        tool.name.toLowerCase().includes('search'),
+    );
+
+    // Fall back to any tool with "search" in the name (but not "summaries")
+    if (!searchTool) {
+      searchTool = mcpTools.find(
+        (tool) =>
+          tool.name.toLowerCase().includes('search') &&
+          !tool.name.toLowerCase().includes('summaries') &&
+          !tool.name.toLowerCase().includes('summary'),
+      );
+    }
+
+    // Last resort: any tool with "search" or "web"
+    if (!searchTool) {
+      searchTool = mcpTools.find(
+        (tool) =>
+          tool.name.toLowerCase().includes('search') ||
+          tool.name.toLowerCase().includes('web'),
+      );
+    }
+
+    if (!searchTool) {
+      const toolNames = mcpTools.map((t) => t.name).join(', ');
+      debugLogger.warn(
+        LogCategory.WEBSEARCH,
+        'No search tool found in MCP server',
+        {
+          serverName: mcpServerName,
+          availableTools: toolNames,
+          query: this.params.query,
+        },
+      );
+      return {
+        llmContent: `MCP web search is configured but no search tool found in server "${mcpServerName}". Available tools: ${toolNames}`,
+        returnDisplay: `No search tool found in MCP server "${mcpServerName}".`,
+      };
+    }
+
+    try {
+      // Create an invocation with the search query
+      // For full-web-search, we can pass optional limit and includeContent
+      const mcpParams: Record<string, unknown> = {
+        query: this.params.query,
+      };
+
+      // Add optional parameters if this is full-web-search
+      if (searchTool.name.toLowerCase().includes('full')) {
+        mcpParams['limit'] = 5; // Default to 5 results
+        mcpParams['includeContent'] = true; // Include full page content
+      }
+
+      debugLogger.info(
+        LogCategory.WEBSEARCH,
+        `Calling MCP search tool "${searchTool.name}"`,
+        { params: mcpParams, query: this.params.query },
+      );
+      const invocation = searchTool.build(mcpParams);
+      const result = await invocation.execute(signal);
+      debugLogger.info(
+        LogCategory.WEBSEARCH,
+        `MCP search tool "${searchTool.name}" completed successfully`,
+        { query: this.params.query },
+      );
+
+      // Build the response, checking if sources exist on the result
+      const response: WebSearchToolResult = {
+        llmContent: result.llmContent,
+        returnDisplay: result.returnDisplay ?? 'Search completed via MCP.',
+      };
+
+      // If the MCP result has sources (extended from WebSearchToolResult), include them
+      if ('sources' in result && result.sources) {
+        response.sources = result.sources as Array<{
+          title: string;
+          url: string;
+        }>;
+      }
+
+      return response;
+    } catch (error: unknown) {
+      const errorMessage = `Error executing MCP web search via "${searchTool.name}": ${getErrorMessage(error)}`;
+      debugLogger.error(LogCategory.WEBSEARCH, errorMessage, {
+        serverName: mcpServerName,
+        toolName: searchTool.name,
+        query: this.params.query,
+        error: error instanceof Error ? error.stack : String(error),
+      });
+      return {
+        llmContent: `Error: ${errorMessage}`,
+        returnDisplay: `Error performing MCP web search.`,
+      };
+    }
+  }
+
   async execute(signal: AbortSignal): Promise<WebSearchToolResult> {
+    const provider = this.config.getWebSearchProvider();
+
+    debugLogger.info(LogCategory.WEBSEARCH, 'Web search requested', {
+      query: this.params.query,
+      provider,
+    });
+
+    // If MCP provider is configured, delegate to MCP tool
+    if (provider === 'mcp') {
+      return this.executeWithMcp(signal);
+    }
+
+    // Otherwise, use Tavily (default)
+    debugLogger.debug(
+      LogCategory.WEBSEARCH,
+      'Using Tavily API for web search',
+      {
+        query: this.params.query,
+      },
+    );
     const apiKey = this.config.getTavilyApiKey();
     if (!apiKey) {
       return {
@@ -120,6 +271,12 @@ class WebSearchToolInvocation extends BaseToolInvocation<
       }
 
       const data = (await response.json()) as TavilySearchResponse;
+
+      debugLogger.info(LogCategory.WEBSEARCH, 'Tavily API search completed', {
+        query: this.params.query,
+        resultCount: data.results?.length ?? 0,
+        hasAnswer: !!data.answer,
+      });
 
       const sources = (data.results || []).map((r) => ({
         title: r.title,
@@ -159,7 +316,11 @@ class WebSearchToolInvocation extends BaseToolInvocation<
       const errorMessage = `Error during web search for query "${this.params.query}": ${getErrorMessage(
         error,
       )}`;
-      console.error(errorMessage, error);
+      debugLogger.error(LogCategory.WEBSEARCH, errorMessage, {
+        query: this.params.query,
+        provider: 'tavily',
+        error: error instanceof Error ? error.stack : String(error),
+      });
       return {
         llmContent: `Error: ${errorMessage}`,
         returnDisplay: `Error performing web search.`,
@@ -169,7 +330,7 @@ class WebSearchToolInvocation extends BaseToolInvocation<
 }
 
 /**
- * A tool to perform web searches using Tavily Search via the Tavily API.
+ * A tool to perform web searches using either Tavily API or MCP web search servers.
  */
 export class WebSearchTool extends BaseDeclarativeTool<
   WebSearchToolParams,
@@ -178,22 +339,22 @@ export class WebSearchTool extends BaseDeclarativeTool<
   static readonly Name: string = 'web_search';
 
   constructor(private readonly config: Config) {
-    super(
-      WebSearchTool.Name,
-      'WebSearch',
-      'Performs a web search using the Tavily API and returns a concise answer with sources. Requires the TAVILY_API_KEY environment variable.',
-      Kind.Search,
-      {
-        type: 'object',
-        properties: {
-          query: {
-            type: 'string',
-            description: 'The search query to find information on the web.',
-          },
+    const provider = config.getWebSearchProvider();
+    const description =
+      provider === 'mcp'
+        ? `Performs a web search using an MCP web search server and returns results with sources. Requires an MCP web search server to be configured in mcpServers (default: "${config.getWebSearchMcpServer()}").`
+        : 'Performs a web search using the Tavily API and returns a concise answer with sources. Requires the TAVILY_API_KEY environment variable.';
+
+    super(WebSearchTool.Name, 'WebSearch', description, Kind.Search, {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'The search query to find information on the web.',
         },
-        required: ['query'],
       },
-    );
+      required: ['query'],
+    });
   }
 
   /**

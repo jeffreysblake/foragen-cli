@@ -23,6 +23,7 @@ import {
   isFunctionResponse,
 } from '../utils/messageInspectors.js';
 import { DEFAULT_FORA_MODEL } from '../config/models.js';
+import { debugLogger, LogCategory } from '../utils/debugLogger.js';
 
 const TOOL_CALL_LOOP_THRESHOLD = 5;
 const CONTENT_LOOP_THRESHOLD = 10;
@@ -104,6 +105,13 @@ export class LoopDetectionService {
    */
   disableForSession(): void {
     this.disabledForSession = true;
+    debugLogger.info(
+      LogCategory.LOOP_DETECTION,
+      'Loop detection disabled for session',
+      {
+        promptId: this.promptId,
+      },
+    );
     logLoopDetectionDisabled(
       this.config,
       new LoopDetectionDisabledEvent(this.promptId),
@@ -178,6 +186,16 @@ export class LoopDetectionService {
       this.toolCallRepetitionCount = 1;
     }
     if (this.toolCallRepetitionCount >= TOOL_CALL_LOOP_THRESHOLD) {
+      debugLogger.warn(
+        LogCategory.LOOP_DETECTION,
+        'Consecutive identical tool calls detected',
+        {
+          toolCall: key,
+          repetitionCount: this.toolCallRepetitionCount,
+          threshold: TOOL_CALL_LOOP_THRESHOLD,
+          promptId: this.promptId,
+        },
+      );
       logLoopDetected(
         this.config,
         new LoopDetectedEvent(
@@ -291,6 +309,16 @@ export class LoopDetectionService {
       const chunkHash = createHash('sha256').update(currentChunk).digest('hex');
 
       if (this.isLoopDetectedForChunk(currentChunk, chunkHash)) {
+        debugLogger.warn(
+          LogCategory.LOOP_DETECTION,
+          'Content loop detected - repetitive text chunks',
+          {
+            chunkSize: CONTENT_CHUNK_SIZE,
+            threshold: CONTENT_LOOP_THRESHOLD,
+            promptId: this.promptId,
+            sampleChunk: currentChunk.substring(0, 100), // First 100 chars for context
+          },
+        );
         logLoopDetected(
           this.config,
           new LoopDetectedEvent(
@@ -390,6 +418,16 @@ export class LoopDetectionService {
   }
 
   private async checkForLoopWithLLM(signal: AbortSignal) {
+    debugLogger.info(
+      LogCategory.LOOP_DETECTION,
+      'Running LLM-based loop detection',
+      {
+        turn: this.turnsInCurrentPrompt,
+        interval: this.llmCheckInterval,
+        promptId: this.promptId,
+      },
+    );
+
     const recentHistory = this.config
       .getGeminiClient()
       .getHistory()
@@ -431,26 +469,52 @@ export class LoopDetectionService {
       });
     } catch (e) {
       // Do nothing, treat it as a non-loop.
-      this.config.getDebugMode() ? console.error(e) : console.debug(e);
+      debugLogger.warn(
+        LogCategory.LOOP_DETECTION,
+        'LLM loop detection failed',
+        {
+          error: e instanceof Error ? e.message : String(e),
+          promptId: this.promptId,
+        },
+      );
       return false;
     }
 
     if (typeof result['confidence'] === 'number') {
       if (result['confidence'] > 0.9) {
-        if (typeof result['reasoning'] === 'string' && result['reasoning']) {
-          console.warn(result['reasoning']);
-        }
+        const reasoning =
+          typeof result['reasoning'] === 'string' ? result['reasoning'] : '';
+        debugLogger.warn(
+          LogCategory.LOOP_DETECTION,
+          'LLM detected loop with high confidence',
+          {
+            confidence: result['confidence'],
+            reasoning,
+            promptId: this.promptId,
+          },
+        );
         logLoopDetected(
           this.config,
           new LoopDetectedEvent(LoopType.LLM_DETECTED_LOOP, this.promptId),
         );
         return true;
       } else {
-        this.llmCheckInterval = Math.round(
+        const newInterval = Math.round(
           MIN_LLM_CHECK_INTERVAL +
             (MAX_LLM_CHECK_INTERVAL - MIN_LLM_CHECK_INTERVAL) *
               (1 - result['confidence']),
         );
+        debugLogger.debug(
+          LogCategory.LOOP_DETECTION,
+          'LLM loop check completed - no loop detected',
+          {
+            confidence: result['confidence'],
+            oldInterval: this.llmCheckInterval,
+            newInterval,
+            promptId: this.promptId,
+          },
+        );
+        this.llmCheckInterval = newInterval;
       }
     }
     return false;

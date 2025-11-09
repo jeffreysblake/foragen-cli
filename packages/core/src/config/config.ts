@@ -272,6 +272,8 @@ export interface ConfigParameters {
   loadMemoryFromIncludeDirectories?: boolean;
   // Web search providers
   tavilyApiKey?: string;
+  webSearchProvider?: 'tavily' | 'mcp';
+  webSearchMcpServer?: string;
   chatCompression?: ChatCompressionSettings;
   interactive?: boolean;
   trustedFolder?: boolean;
@@ -365,6 +367,8 @@ export class Config {
   private readonly experimentalZedIntegration: boolean = false;
   private readonly loadMemoryFromIncludeDirectories: boolean = false;
   private readonly tavilyApiKey?: string;
+  private readonly webSearchProvider?: 'tavily' | 'mcp';
+  private readonly webSearchMcpServer?: string;
   private readonly chatCompression: ChatCompressionSettings | undefined;
   private readonly interactive: boolean;
   private readonly trustedFolder: boolean | undefined;
@@ -472,6 +476,8 @@ export class Config {
 
     // Web search
     this.tavilyApiKey = params.tavilyApiKey;
+    this.webSearchProvider = params.webSearchProvider ?? 'tavily';
+    this.webSearchMcpServer = params.webSearchMcpServer ?? 'web-search';
     this.useRipgrep = params.useRipgrep ?? true;
     this.useBuiltinRipgrep = params.useBuiltinRipgrep ?? true;
     this.shouldUseNodePtyShell = params.shouldUseNodePtyShell ?? false;
@@ -980,6 +986,14 @@ export class Config {
     return this.tavilyApiKey;
   }
 
+  getWebSearchProvider(): 'tavily' | 'mcp' {
+    return this.webSearchProvider ?? 'tavily';
+  }
+
+  getWebSearchMcpServer(): string {
+    return this.webSearchMcpServer ?? 'web-search';
+  }
+
   getIdeMode(): boolean {
     return this.ideMode;
   }
@@ -1234,8 +1248,9 @@ export class Config {
     registerCoreTool(TodoWriteTool, this);
     registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
-    // Conditionally register web search tool only if Tavily API key is set
-    if (this.getTavilyApiKey()) {
+    // Conditionally register web search tool if Tavily API key is set OR MCP provider is configured
+    const webSearchProvider = this.getWebSearchProvider();
+    if (webSearchProvider === 'mcp' || this.getTavilyApiKey()) {
       registerCoreTool(WebSearchTool, this);
     }
 

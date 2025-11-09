@@ -42,6 +42,7 @@ import { doesToolInvocationMatch } from '../utils/tool-utils.js';
 import levenshtein from 'fast-levenshtein';
 import { getPlanModeSystemReminder } from './prompts.js';
 import { ShellToolInvocation } from '../tools/shell.js';
+import { debugLogger, LogCategory } from '../utils/debugLogger.js';
 
 export type ValidatingToolCall = {
   status: 'validating';
@@ -236,22 +237,71 @@ const createErrorResponse = (
   request: ToolCallRequestInfo,
   error: Error,
   errorType: ToolErrorType | undefined,
-): ToolCallResponseInfo => ({
-  callId: request.callId,
-  error,
-  responseParts: [
-    {
-      functionResponse: {
-        id: request.callId,
-        name: request.name,
-        response: { error: error.message },
+  config?: Config,
+): ToolCallResponseInfo => {
+  // Enhance error message for better clarity, especially for local models
+  let errorMessage = error.message;
+
+  // Check if using local model (non-cloud API)
+  const baseUrl = config?.getContentGeneratorConfig()?.baseUrl;
+  const isLocalModel =
+    baseUrl &&
+    !baseUrl.includes('api.openai.com') &&
+    !baseUrl.includes('anthropic.com') &&
+    !baseUrl.includes('googleapis.com') &&
+    !baseUrl.includes('dashscope.aliyuncs.com');
+
+  if (isLocalModel) {
+    debugLogger.warn(
+      LogCategory.TOOLS,
+      'Tool execution failed on local model',
+      {
+        toolName: request.name,
+        errorType,
+        errorMessage: error.message,
+        baseUrl,
       },
-    },
-  ],
-  resultDisplay: error.message,
-  errorType,
-  contentLength: error.message.length,
-});
+    );
+
+    // Add explicit ERROR prefix for local models to prevent retry loops
+    if (!errorMessage.startsWith('ERROR:')) {
+      errorMessage = `ERROR: ${errorMessage}`;
+    }
+
+    // Add retry prevention guidance
+    errorMessage += `\n\nThe tool "${request.name}" failed. Do not retry this exact call.`;
+
+    // Add context-specific guidance based on error type
+    if (errorType === ToolErrorType.INVALID_TOOL_PARAMS) {
+      errorMessage += `\nCheck your arguments and try again with corrected parameters.`;
+    } else if (errorType === ToolErrorType.EXECUTION_FAILED) {
+      errorMessage += `\nConsider using a different approach or tool to accomplish this task.`;
+    }
+  } else {
+    debugLogger.error(LogCategory.TOOLS, 'Tool execution failed', {
+      toolName: request.name,
+      errorType,
+      errorMessage: error.message,
+    });
+  }
+
+  return {
+    callId: request.callId,
+    error,
+    responseParts: [
+      {
+        functionResponse: {
+          id: request.callId,
+          name: request.name,
+          response: { error: errorMessage },
+        },
+      },
+    ],
+    resultDisplay: error.message,
+    errorType,
+    contentLength: error.message.length,
+  };
+};
 
 export async function truncateAndSaveToFile(
   content: string,
@@ -547,6 +597,7 @@ export class CoreToolScheduler {
           call.request,
           invocationOrError,
           ToolErrorType.INVALID_TOOL_PARAMS,
+          this.config,
         );
         return {
           request: { ...call.request, args: args as Record<string, unknown> },
@@ -596,6 +647,50 @@ export class CoreToolScheduler {
    * @returns A suggestion string like " Did you mean 'tool'?" or " Did you mean one of: 'tool1', 'tool2'?", or an empty string if no suggestions are found.
    */
   private getToolSuggestion(unknownToolName: string, topN = 3): string {
+    // Common wrong tool names from other frameworks → correct Fora tool names
+    const commonMistakes: Record<
+      string,
+      { correct: string; description: string }
+    > = {
+      list_files: { correct: 'glob', description: 'find files by pattern' },
+      search_files: { correct: 'grep', description: 'search content in files' },
+      find_files: { correct: 'glob', description: 'find files by pattern' },
+      search: { correct: 'grep', description: 'search content in files' },
+      find: { correct: 'glob', description: 'find files by pattern' },
+      read: { correct: 'read_file', description: 'read a file' },
+      write: { correct: 'write_file', description: 'write to a file' },
+      run: {
+        correct: 'run_shell_command',
+        description: 'execute shell command',
+      },
+      execute: {
+        correct: 'run_shell_command',
+        description: 'execute shell command',
+      },
+      bash: {
+        correct: 'run_shell_command',
+        description: 'execute shell command',
+      },
+      shell: {
+        correct: 'run_shell_command',
+        description: 'execute shell command',
+      },
+    };
+
+    // Check for exact matches in common mistakes
+    const lowerName = unknownToolName.toLowerCase();
+    if (commonMistakes[lowerName]) {
+      const { correct, description } = commonMistakes[lowerName];
+      return `
+
+Common mistake detected! "${unknownToolName}" doesn't exist in this framework.
+
+CORRECT TOOL: "${correct}" - ${description}
+
+This is a common error when using tool names from other frameworks (Anthropic, OpenAI, etc.).
+Always use the exact tool names listed in your system prompt.`;
+    }
+
     const allToolNames = this.toolRegistry.getAllToolNames();
 
     const matches = allToolNames.map((toolName) => ({
@@ -605,10 +700,21 @@ export class CoreToolScheduler {
 
     matches.sort((a, b) => a.distance - b.distance);
 
-    const topNResults = matches.slice(0, topN);
+    const topNResults = matches.slice(0, topN).filter((m) => m.distance <= 5); // Only suggest if reasonably close
 
     if (topNResults.length === 0) {
-      return '';
+      // No good matches - list common file operation tools
+      return `
+
+No similar tool name found. Common tools you might need:
+- "glob" - find files by pattern
+- "grep" - search content in files
+- "read_file" - read a single file
+- "write_file" - create or overwrite a file
+- "edit" - modify part of an existing file
+- "run_shell_command" - execute shell commands
+
+Use only the exact tool names listed in your system prompt.`;
     }
 
     const suggestedNames = topNResults
@@ -684,6 +790,7 @@ export class CoreToolScheduler {
                 reqInfo,
                 new Error(errorMessage),
                 ToolErrorType.TOOL_NOT_REGISTERED,
+                this.config,
               ),
               durationMs: 0,
             };
@@ -702,6 +809,7 @@ export class CoreToolScheduler {
                 reqInfo,
                 invocationOrError,
                 ToolErrorType.INVALID_TOOL_PARAMS,
+                this.config,
               ),
               durationMs: 0,
             };
@@ -842,6 +950,7 @@ export class CoreToolScheduler {
               reqInfo,
               error instanceof Error ? error : new Error(String(error)),
               ToolErrorType.UNHANDLED_EXCEPTION,
+              this.config,
             ),
           );
         }
@@ -995,6 +1104,12 @@ export class CoreToolScheduler {
         const invocation = scheduledCall.invocation;
         this.setStatusInternal(callId, 'executing');
 
+        debugLogger.info(LogCategory.TOOLS, 'Tool execution started', {
+          toolName,
+          callId,
+          params: scheduledCall.request.args,
+        });
+
         const liveOutputCallback = scheduledCall.tool.canUpdateOutput
           ? (outputChunk: ToolResultDisplay) => {
               if (this.outputUpdateHandler) {
@@ -1042,6 +1157,10 @@ export class CoreToolScheduler {
         promise
           .then(async (toolResult: ToolResult) => {
             if (signal.aborted) {
+              debugLogger.info(LogCategory.TOOLS, 'Tool execution cancelled', {
+                toolName,
+                callId,
+              });
               this.setStatusInternal(
                 callId,
                 'cancelled',
@@ -1106,26 +1225,67 @@ export class CoreToolScheduler {
                 outputFile,
                 contentLength,
               };
+              debugLogger.info(
+                LogCategory.TOOLS,
+                'Tool execution completed successfully',
+                {
+                  toolName,
+                  callId,
+                  contentLength,
+                  outputFile,
+                },
+              );
               this.setStatusInternal(callId, 'success', successResponse);
             } else {
               // It is a failure
+              debugLogger.error(
+                LogCategory.TOOLS,
+                'Tool returned error result',
+                {
+                  toolName,
+                  callId,
+                  errorMessage: toolResult.error.message,
+                  errorType: toolResult.error.type,
+                },
+              );
               const error = new Error(toolResult.error.message);
               const errorResponse = createErrorResponse(
                 scheduledCall.request,
                 error,
                 toolResult.error.type,
+                this.config,
               );
               this.setStatusInternal(callId, 'error', errorResponse);
             }
           })
           .catch((executionError: Error) => {
             if (signal.aborted) {
+              debugLogger.info(
+                LogCategory.TOOLS,
+                'Tool execution cancelled (in catch)',
+                {
+                  toolName,
+                  callId,
+                },
+              );
               this.setStatusInternal(
                 callId,
                 'cancelled',
                 'User cancelled tool execution.',
               );
             } else {
+              debugLogger.error(
+                LogCategory.TOOLS,
+                'Tool execution threw exception',
+                {
+                  toolName,
+                  callId,
+                  error:
+                    executionError instanceof Error
+                      ? executionError.message
+                      : String(executionError),
+                },
+              );
               this.setStatusInternal(
                 callId,
                 'error',
@@ -1135,6 +1295,7 @@ export class CoreToolScheduler {
                     ? executionError
                     : new Error(String(executionError)),
                   ToolErrorType.UNHANDLED_EXCEPTION,
+                  this.config,
                 ),
               );
             }

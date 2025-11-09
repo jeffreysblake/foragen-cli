@@ -781,6 +781,8 @@ export async function loadCliConfig(
       argv.tavilyApiKey ||
       settings.advanced?.tavilyApiKey ||
       process.env['TAVILY_API_KEY'],
+    webSearchProvider: settings.advanced?.webSearchProvider ?? 'tavily',
+    webSearchMcpServer: settings.advanced?.webSearchMcpServer ?? 'web-search',
     summarizeToolOutput: settings.model?.summarizeToolOutput,
     ideMode,
     chatCompression: settings.model?.chatCompression,

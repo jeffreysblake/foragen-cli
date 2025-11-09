@@ -1077,7 +1077,27 @@ const SETTINGS_SCHEMA = {
         requiresRestart: false,
         default: undefined as string | undefined,
         description:
-          'The API key for the Tavily API. Required to enable the web_search tool functionality.',
+          'The API key for the Tavily API. Required to enable the web_search tool functionality when using Tavily provider.',
+        showInDialog: false,
+      },
+      webSearchProvider: {
+        type: 'string',
+        label: 'Web Search Provider',
+        category: 'Advanced',
+        requiresRestart: false,
+        default: 'tavily' as 'tavily' | 'mcp' | undefined,
+        description:
+          'Choose which web search backend to use: "tavily" for Tavily API or "mcp" to use an MCP web search server (e.g., web-search-mcp). When using "mcp", ensure you have a web search MCP server configured in mcpServers.',
+        showInDialog: false,
+      },
+      webSearchMcpServer: {
+        type: 'string',
+        label: 'Web Search MCP Server Name',
+        category: 'Advanced',
+        requiresRestart: false,
+        default: 'web-search' as string | undefined,
+        description:
+          'Name of the MCP server to use for web search when webSearchProvider is "mcp". Defaults to "web-search". This should match the server name in your mcpServers configuration.',
         showInDialog: false,
       },
     },
