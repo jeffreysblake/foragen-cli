@@ -14,18 +14,17 @@ import { sanitizeSensitiveData } from './src/utils/errors.js';
 // --- Global Entry Point ---
 main().catch((error) => {
   if (error instanceof FatalError) {
-    let errorMessage = error.message;
+    const errorMessage = error.message;
     if (!process.env['NO_COLOR']) {
-      errorMessage = `\x1b[31m${errorMessage}\x1b[0m`;
+      console.error(`\x1b[31m${sanitizeSensitiveData(errorMessage)}\x1b[0m`);
+    } else {
+      console.error(sanitizeSensitiveData(errorMessage));
     }
-    console.error(sanitizeSensitiveData(errorMessage));
     process.exit(error.exitCode);
   }
-  console.error('An unexpected critical error occurred:');
-  if (error instanceof Error) {
-    console.error(sanitizeSensitiveData(error.stack ?? ''));
-  } else {
-    console.error(sanitizeSensitiveData(String(error)));
-  }
+  // Log generic error without details to avoid exposing sensitive data
+  console.error(
+    'An unexpected critical error occurred. Enable debug mode for details.',
+  );
   process.exit(1);
 });
