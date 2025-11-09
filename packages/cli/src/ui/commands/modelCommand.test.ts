@@ -42,7 +42,9 @@ describe('modelCommand', () => {
 
   it('should have the correct name and description', () => {
     expect(modelCommand.name).toBe('model');
-    expect(modelCommand.description).toBe('Switch the model for this session');
+    expect(modelCommand.description).toBe(
+      'Switch the model for this session. Use /model refresh to clear cache.',
+    );
   });
 
   it('should return error when config is not available', async () => {
@@ -139,7 +141,7 @@ describe('modelCommand', () => {
       type: 'message',
       messageType: 'error',
       content:
-        'No models available for the current authentication type (openai).',
+        'No models available for the current authentication type (openai). ',
     });
   });
 
@@ -158,7 +160,7 @@ describe('modelCommand', () => {
       type: 'message',
       messageType: 'error',
       content:
-        'No models available for the current authentication type (UNSUPPORTED_AUTH_TYPE).',
+        'No models available for the current authentication type (UNSUPPORTED_AUTH_TYPE). ',
     });
   });
 

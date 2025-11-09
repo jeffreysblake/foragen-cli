@@ -536,7 +536,62 @@ export class GeminiClient {
       requestToSent,
       signal,
     );
+
+    // Track tool calls in this turn to prevent runaway loops
+    let toolCallCount = 0;
+    let toolCallTokensEstimate = 0;
+    const isYoloMode = this.config.getApprovalMode() === ApprovalMode.YOLO;
+    const configuredMaxToolCalls = this.config.getMaxToolCallsPerTurn();
+    // In YOLO mode, allow more tool calls (roughly 1.67x the configured limit)
+    const maxToolCalls = isYoloMode
+      ? Math.floor(configuredMaxToolCalls * 1.67)
+      : configuredMaxToolCalls;
+    const maxToolCallTokens = this.config.getMaxToolCallTokensPerTurn();
+
     for await (const event of resultStream) {
+      // Check tool call limit before loop detection to catch runaway tool calls early
+      if (event.type === GeminiEventType.ToolCallRequest) {
+        toolCallCount++;
+        if (toolCallCount > maxToolCalls) {
+          yield {
+            type: GeminiEventType.MaxToolCallsExceeded,
+            value: {
+              currentCalls: toolCallCount,
+              limit: maxToolCalls,
+              message:
+                `Tool call limit exceeded: ${toolCallCount} calls > ${maxToolCalls} limit in this turn. ` +
+                `This usually indicates a loop. Please review your request or increase maxToolCallsPerTurn in settings.`,
+            },
+          };
+          return turn;
+        }
+
+        // Estimate tokens for tool call request (rough heuristic: ~1 token per 4 characters)
+        const toolCallJson = JSON.stringify(event.value);
+        toolCallTokensEstimate += Math.ceil(toolCallJson.length / 4);
+      }
+
+      // Check token budget for tool calls
+      if (event.type === GeminiEventType.ToolCallResponse) {
+        // Estimate tokens for tool call response
+        const responseJson = JSON.stringify(event.value);
+        toolCallTokensEstimate += Math.ceil(responseJson.length / 4);
+
+        if (toolCallTokensEstimate > maxToolCallTokens) {
+          yield {
+            type: GeminiEventType.ToolCallTokenBudgetExceeded,
+            value: {
+              currentTokens: toolCallTokensEstimate,
+              limit: maxToolCallTokens,
+              message:
+                `Tool call token budget exceeded: ~${toolCallTokensEstimate} tokens > ${maxToolCallTokens} limit in this turn. ` +
+                `This usually indicates excessive tool usage. Please simplify your request or increase maxToolCallTokensPerTurn in settings.`,
+            },
+          };
+          return turn;
+        }
+      }
+
       if (!this.config.getSkipLoopDetection()) {
         if (this.loopDetector.addAndCheck(event)) {
           yield { type: GeminiEventType.LoopDetected };

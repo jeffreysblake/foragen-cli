@@ -58,6 +58,7 @@ class WebSearchToolInvocation extends BaseToolInvocation<
   constructor(
     private readonly config: Config,
     params: WebSearchToolParams,
+    private readonly toolKind: Kind,
   ) {
     super(params);
   }
@@ -77,6 +78,7 @@ class WebSearchToolInvocation extends BaseToolInvocation<
       type: 'info',
       title: 'Confirm Web Search',
       prompt: `Search the web for: "${this.params.query}"`,
+      toolKind: this.toolKind,
       onConfirm: async (outcome: ToolConfirmationOutcome) => {
         if (outcome === ToolConfirmationOutcome.ProceedAlways) {
           this.config.setApprovalMode(ApprovalMode.AUTO_EDIT);
@@ -374,6 +376,6 @@ export class WebSearchTool extends BaseDeclarativeTool<
   protected createInvocation(
     params: WebSearchToolParams,
   ): ToolInvocation<WebSearchToolParams, WebSearchToolResult> {
-    return new WebSearchToolInvocation(this.config, params);
+    return new WebSearchToolInvocation(this.config, params, this.kind);
   }
 }

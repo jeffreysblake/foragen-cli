@@ -374,6 +374,8 @@ describe('Gemini Client (client.ts)', () => {
       }),
       getSubagentManager: vi.fn().mockReturnValue(mockSubagentManager),
       getSkipLoopDetection: vi.fn().mockReturnValue(false),
+      getMaxToolCallsPerTurn: vi.fn().mockReturnValue(15),
+      getMaxToolCallTokensPerTurn: vi.fn().mockReturnValue(10000),
     } as unknown as Config;
 
     client = new GeminiClient(mockConfig);
