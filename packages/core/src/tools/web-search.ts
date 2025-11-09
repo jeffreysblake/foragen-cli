@@ -202,6 +202,77 @@ class WebSearchToolInvocation extends BaseToolInvocation<
         }>;
       }
 
+      // Auto-fetch top URLs if sources are available (Claude Code-style workflow)
+      if (response.sources && response.sources.length > 0) {
+        debugLogger.info(
+          LogCategory.WEBSEARCH,
+          'Auto-fetching top URLs from search results',
+          { count: Math.min(response.sources.length, 2) },
+        );
+
+        const fetchedContent: string[] = [];
+        const urlsToFetch = response.sources.slice(0, 2); // Fetch top 2 URLs
+
+        for (const source of urlsToFetch) {
+          try {
+            debugLogger.debug(
+              LogCategory.WEBSEARCH,
+              `Fetching content from: ${source.url}`,
+              { title: source.title },
+            );
+
+            // Try to find an MCP fetch tool
+            let fetchTool = mcpTools.find((tool) =>
+              tool.name.toLowerCase().includes('fetch'),
+            );
+
+            if (!fetchTool) {
+              fetchTool = mcpTools.find((tool) =>
+                tool.name.toLowerCase().includes('get'),
+              );
+            }
+
+            if (fetchTool) {
+              // Use MCP fetch tool
+              const fetchInvocation = fetchTool.build({ url: source.url });
+              const fetchResult = await fetchInvocation.execute(signal);
+
+              if (fetchResult.llmContent) {
+                fetchedContent.push(
+                  `\n\n### Content from: ${source.title}\nURL: ${source.url}\n\n${fetchResult.llmContent}`,
+                );
+                debugLogger.info(
+                  LogCategory.WEBSEARCH,
+                  `Successfully fetched content from ${source.url}`,
+                );
+              }
+            }
+          } catch (fetchError: unknown) {
+            debugLogger.warn(
+              LogCategory.WEBSEARCH,
+              `Failed to fetch ${source.url}`,
+              {
+                error:
+                  fetchError instanceof Error
+                    ? fetchError.message
+                    : String(fetchError),
+              },
+            );
+            // Continue with other URLs even if one fails
+          }
+        }
+
+        // Append fetched content to the response
+        if (fetchedContent.length > 0) {
+          response.llmContent = `${response.llmContent}\n\n## Fetched URL Content\n${fetchedContent.join('\n')}`;
+          debugLogger.info(
+            LogCategory.WEBSEARCH,
+            'Added fetched content to search results',
+            { fetchedCount: fetchedContent.length },
+          );
+        }
+      }
+
       return response;
     } catch (error: unknown) {
       const errorMessage = `Error executing MCP web search via "${searchTool.name}": ${getErrorMessage(error)}`;
@@ -344,7 +415,7 @@ export class WebSearchTool extends BaseDeclarativeTool<
     const provider = config.getWebSearchProvider();
     const description =
       provider === 'mcp'
-        ? `Performs a web search using an MCP web search server and returns results with sources. Requires an MCP web search server to be configured in mcpServers (default: "${config.getWebSearchMcpServer()}").`
+        ? `Performs a web search using an MCP web search server and returns results with sources. When sources are available, automatically fetches content from the top 2 URLs to provide comprehensive information (Claude Code-style workflow). Requires an MCP web search server to be configured in mcpServers (default: "${config.getWebSearchMcpServer()}").`
         : 'Performs a web search using the Tavily API and returns a concise answer with sources. Requires the TAVILY_API_KEY environment variable.';
 
     super(WebSearchTool.Name, 'WebSearch', description, Kind.Search, {
