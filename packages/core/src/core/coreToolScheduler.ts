@@ -39,6 +39,7 @@ import {
 import * as Diff from 'diff';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import { URL } from 'node:url';
 import { doesToolInvocationMatch } from '../utils/tool-utils.js';
 import levenshtein from 'fast-levenshtein';
 import { getPlanModeSystemReminder } from './prompts.js';
@@ -245,12 +246,29 @@ const createErrorResponse = (
 
   // Check if using local model (non-cloud API)
   const baseUrl = config?.getContentGeneratorConfig()?.baseUrl;
-  const isLocalModel =
-    baseUrl &&
-    !baseUrl.includes('api.openai.com') &&
-    !baseUrl.includes('anthropic.com') &&
-    !baseUrl.includes('googleapis.com') &&
-    !baseUrl.includes('dashscope.aliyuncs.com');
+  let hostname = '';
+  if (baseUrl) {
+    try {
+      // Parse the URL's hostname using the URL constructor
+      hostname = new URL(baseUrl).hostname;
+    } catch (e) {
+      // If baseUrl is invalid, treat as local
+      hostname = '';
+    }
+  }
+  const cloudDomains = [
+    'api.openai.com',
+    'anthropic.com',
+    'googleapis.com',
+    'dashscope.aliyuncs.com',
+  ];
+  // The check: it's not a local model if the hostname matches any cloud domain or its direct subdomain
+  const isCloudProvider = hostname &&
+    cloudDomains.some(domain =>
+      hostname === domain ||
+      hostname.endsWith('.' + domain)
+    );
+  const isLocalModel = baseUrl && !isCloudProvider;
 
   if (isLocalModel) {
     debugLogger.warn(
