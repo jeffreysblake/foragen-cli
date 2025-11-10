@@ -294,8 +294,9 @@ export function normalizeParams<T>(params: T, visited = new WeakMap()): T {
       // Only convert if the original string has whitespace on BOTH sides or is exact
       const hasLeadingWhitespace = params !== params.trimStart();
       const hasTrailingWhitespace = params !== params.trimEnd();
-      const shouldConvert = (hasLeadingWhitespace && hasTrailingWhitespace) || params === trimmed;
-      
+      const shouldConvert =
+        (hasLeadingWhitespace && hasTrailingWhitespace) || params === trimmed;
+
       if (shouldConvert && lowerValue === 'true') {
         return true as T;
       } else if (shouldConvert && lowerValue === 'false') {
@@ -314,7 +315,7 @@ export function normalizeParams<T>(params: T, visited = new WeakMap()): T {
   if (Array.isArray(params)) {
     const normalizedArray: unknown[] = [];
     visited.set(params as object, normalizedArray);
-    
+
     for (let i = 0; i < params.length; i++) {
       normalizedArray[i] = normalizeParams(params[i], visited);
     }
@@ -322,19 +323,21 @@ export function normalizeParams<T>(params: T, visited = new WeakMap()): T {
   }
 
   // Handle built-in objects that shouldn't be normalized
-  if (params instanceof Date || 
-      params instanceof RegExp || 
-      params instanceof Error ||
-      params instanceof Map ||
-      params instanceof Set ||
-      typeof params === 'function') {
+  if (
+    params instanceof Date ||
+    params instanceof RegExp ||
+    params instanceof Error ||
+    params instanceof Map ||
+    params instanceof Set ||
+    typeof params === 'function'
+  ) {
     return params;
   }
 
   // Handle regular objects - preserve prototype and circular references
   const normalized = Object.create(Object.getPrototypeOf(params));
   visited.set(params as object, normalized);
-  
+
   // Copy and normalize all properties
   for (const [key, value] of Object.entries(params as object)) {
     normalized[key] = normalizeParams(value, visited);
@@ -637,6 +640,7 @@ export interface ToolInfoConfirmationDetails {
   ) => Promise<void>;
   prompt: string;
   urls?: string[];
+  toolKind?: Kind;
 }
 
 export type ToolCallConfirmationDetails =
@@ -658,6 +662,7 @@ export enum ToolConfirmationOutcome {
   ProceedAlways = 'proceed_always',
   ProceedAlwaysServer = 'proceed_always_server',
   ProceedAlwaysTool = 'proceed_always_tool',
+  ProceedAlwaysToolKind = 'proceed_always_tool_kind',
   ModifyWithEditor = 'modify_with_editor',
   Cancel = 'cancel',
   RejectWithFeedback = 'reject_with_feedback',
@@ -682,6 +687,21 @@ export const MUTATOR_KINDS: Kind[] = [
   Kind.Move,
   Kind.Execute,
 ] as const;
+
+// Function kinds that are read-only (safe to use in plan mode)
+export const READONLY_KINDS: Kind[] = [
+  Kind.Read,
+  Kind.Search,
+  Kind.Fetch,
+  Kind.Think,
+] as const;
+
+/**
+ * Check if a tool kind is read-only (safe to use in plan mode with confirmation)
+ */
+export function isReadOnlyKind(kind: Kind): boolean {
+  return READONLY_KINDS.includes(kind);
+}
 
 export interface ToolLocation {
   // Absolute path to the file

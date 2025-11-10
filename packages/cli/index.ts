@@ -13,18 +13,18 @@ import { FatalError } from '@jeffreysblake/foragen-cli-core';
 // --- Global Entry Point ---
 main().catch((error) => {
   if (error instanceof FatalError) {
-    let errorMessage = error.message;
+    // Log generic error to avoid exposing potentially sensitive error details
+    const genericMessage = 'An error occurred during execution.';
     if (!process.env['NO_COLOR']) {
-      errorMessage = `\x1b[31m${errorMessage}\x1b[0m`;
+      console.error(`\x1b[31m${genericMessage}\x1b[0m`);
+    } else {
+      console.error(genericMessage);
     }
-    console.error(errorMessage);
     process.exit(error.exitCode);
   }
-  console.error('An unexpected critical error occurred:');
-  if (error instanceof Error) {
-    console.error(error.stack);
-  } else {
-    console.error(String(error));
-  }
+  // Log generic error without details to avoid exposing sensitive data
+  console.error(
+    'An unexpected critical error occurred. Enable debug mode for details.',
+  );
   process.exit(1);
 });

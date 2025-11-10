@@ -44,7 +44,7 @@ export const OUTPUT_UPDATE_INTERVAL_MS = 1000;
 
 export interface ShellToolParams {
   command: string;
-  is_background: boolean;
+  is_background?: boolean;
   description?: string;
   directory?: string;
 }
@@ -58,6 +58,10 @@ export class ShellToolInvocation extends BaseToolInvocation<
     params: ShellToolParams,
     private readonly allowlist: Set<string>,
   ) {
+    // Set default value for is_background if not provided
+    if (params.is_background === undefined) {
+      params.is_background = false;
+    }
     super(params);
   }
 
@@ -346,21 +350,54 @@ export class ShellToolInvocation extends BaseToolInvocation<
 Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
 
     // Handle different git commit patterns
-    // Match -m "message" or -m 'message'
-    const messagePattern = /(-m\s+)(['"])((?:\\.|[^\\])*?)(\2)/;
-    const match = command.match(messagePattern);
-
-    if (match) {
-      const [fullMatch, prefix, quote, existingMessage, closingQuote] = match;
-      const newMessage = existingMessage + coAuthor;
-      const replacement = prefix + quote + newMessage + closingQuote;
-
-      return command.replace(fullMatch, replacement);
+    // Use string parsing instead of regex to avoid ReDoS vulnerabilities
+    const mFlagIndex = command.indexOf('-m');
+    if (mFlagIndex === -1) {
+      // No -m flag found, command might open an editor
+      return command;
     }
 
-    // If no -m flag found, the command might open an editor
-    // In this case, we can't easily modify it, so return as-is
-    return command;
+    // Find the quote character after -m and optional whitespace
+    let quoteStartIndex = mFlagIndex + 2; // Start after '-m'
+    while (
+      quoteStartIndex < command.length &&
+      /\s/.test(command[quoteStartIndex])
+    ) {
+      quoteStartIndex++;
+    }
+
+    if (quoteStartIndex >= command.length) {
+      return command; // No quote found
+    }
+
+    const quoteChar = command[quoteStartIndex];
+    if (quoteChar !== '"' && quoteChar !== "'") {
+      return command; // Not a quoted string
+    }
+
+    // Find the closing quote, respecting escapes
+    let quoteEndIndex = quoteStartIndex + 1;
+    while (quoteEndIndex < command.length) {
+      if (command[quoteEndIndex] === '\\') {
+        // Skip escaped character
+        quoteEndIndex += 2;
+        continue;
+      }
+      if (command[quoteEndIndex] === quoteChar) {
+        // Found closing quote
+        break;
+      }
+      quoteEndIndex++;
+    }
+
+    if (quoteEndIndex >= command.length) {
+      return command; // No closing quote found
+    }
+
+    // Extract message and add co-author
+    const beforeQuote = command.substring(0, quoteEndIndex);
+    const afterQuote = command.substring(quoteEndIndex);
+    return beforeQuote + coAuthor + afterQuote;
   }
 }
 
@@ -442,7 +479,7 @@ export class ShellTool extends BaseDeclarativeTool<
           is_background: {
             type: 'boolean',
             description:
-              'Whether to run the command in background. Default is false. Set to true for long-running processes like development servers, watchers, or daemons that should continue running without blocking further commands.',
+              'Whether to run the command in background (optional, defaults to false). Set to true for long-running processes like development servers, watchers, or daemons that should continue running without blocking further commands.',
           },
           description: {
             type: 'string',
@@ -455,7 +492,7 @@ export class ShellTool extends BaseDeclarativeTool<
               '(OPTIONAL) The absolute path of the directory to run the command in. If not provided, the project root directory is used. Must be a directory within the workspace and must already exist.',
           },
         },
-        required: ['command', 'is_background'],
+        required: ['command'],
       },
       false, // output is not markdown
       true, // output can be updated

@@ -65,7 +65,8 @@ export async function validateNonInteractiveAuth(
         1,
       );
     } else {
-      console.error(error instanceof Error ? error.message : String(error));
+      // Log generic message to avoid exposing potentially sensitive auth details
+      console.error('Authentication failed. Please check your credentials.');
       process.exit(1);
     }
   }

@@ -51,6 +51,7 @@ class WebFetchToolInvocation extends BaseToolInvocation<
   constructor(
     private readonly config: Config,
     params: WebFetchToolParams,
+    private readonly toolKind: Kind,
   ) {
     super(params);
   }
@@ -59,7 +60,17 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     let url = this.params.url;
 
     // Convert GitHub blob URL to raw URL
-    if (url.includes('github.com') && url.includes('/blob/')) {
+    let hostname = '';
+    try {
+      hostname = new URL(url).hostname.toLowerCase();
+    } catch (_e) {
+      // Invalid URL, let fetchWithTimeout handle the error
+      hostname = '';
+    }
+
+    const isGitHub =
+      hostname === 'github.com' || hostname.endsWith('.github.com');
+    if (isGitHub && url.includes('/blob/')) {
       url = url
         .replace('github.com', 'raw.githubusercontent.com')
         .replace('/blob/', '/');
@@ -156,6 +167,7 @@ ${textContent}
       title: `Confirm Web Fetch`,
       prompt: `Fetch content from ${this.params.url} and process with: ${this.params.prompt}`,
       urls: [this.params.url],
+      toolKind: this.toolKind,
       onConfirm: async (outcome: ToolConfirmationOutcome) => {
         if (outcome === ToolConfirmationOutcome.ProceedAlways) {
           this.config.setApprovalMode(ApprovalMode.AUTO_EDIT);
@@ -240,6 +252,6 @@ export class WebFetchTool extends BaseDeclarativeTool<
   protected createInvocation(
     params: WebFetchToolParams,
   ): ToolInvocation<WebFetchToolParams, ToolResult> {
-    return new WebFetchToolInvocation(this.config, params);
+    return new WebFetchToolInvocation(this.config, params, this.kind);
   }
 }

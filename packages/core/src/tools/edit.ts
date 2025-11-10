@@ -166,7 +166,28 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       } else if (occurrences === 0) {
         error = {
           display: `Failed to edit, could not find the string to replace.`,
-          raw: `Failed to edit, 0 occurrences found for old_string in ${params.file_path}. No edits made. The exact text in old_string was not found. Ensure you're not escaping content incorrectly and check whitespace, indentation, and context. Use ${ReadFileTool.Name} tool to verify.`,
+          raw: `Failed to edit, 0 occurrences found for old_string in ${params.file_path}. No edits made.
+
+The exact text in old_string was not found in the file.
+
+REQUIRED NEXT STEPS:
+1. Use ${ReadFileTool.Name} to read ${params.file_path} and verify the current content
+2. Check for whitespace differences (tabs vs spaces, trailing spaces)
+3. Check for indentation differences (the file may use different indentation than you assumed)
+4. Check if the content has already been modified in a previous turn
+5. Select a LARGER, more unique block of text that includes context lines
+
+COMMON CAUSES:
+- Extra or missing whitespace (spaces, tabs, newlines)
+- Wrong indentation level
+- Content already changed in a previous edit
+- Copy-paste error from earlier in conversation
+- Hallucinated content that never existed
+
+DO NOT:
+- Retry edit with the same old_string without reading the file first
+- Simplify or abandon the task
+- Assume the file content matches what you think it should be`,
           type: ToolErrorType.EDIT_NO_OCCURRENCE_FOUND,
         };
       } else if (occurrences !== expectedReplacements) {
@@ -181,7 +202,21 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       } else if (finalOldString === finalNewString) {
         error = {
           display: `No changes to apply. The old_string and new_string are identical.`,
-          raw: `No changes to apply. The old_string and new_string are identical in file: ${params.file_path}`,
+          raw: `No changes to apply. The old_string and new_string are identical in file: ${params.file_path}
+
+This is a wasted tool call. The edit would make no changes to the file.
+
+REQUIRED NEXT STEPS:
+1. Re-read the requirements to understand what actually needs to change
+2. Use ${ReadFileTool.Name} to verify the current file state
+3. Determine what the actual difference should be
+4. Try the edit again with a meaningful change
+
+COMMON CAUSES:
+- Copy-paste error (copied same content to both old_string and new_string)
+- Misunderstanding of what needs to be changed
+- File already contains the desired content
+- Confusion about current vs desired state`,
           type: ToolErrorType.EDIT_NO_CHANGE,
         };
       }

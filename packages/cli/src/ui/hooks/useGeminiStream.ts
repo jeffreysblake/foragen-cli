@@ -758,6 +758,26 @@ export const useGeminiStream = (
           case ServerGeminiEventType.Retry:
             // Will add the missing logic later
             break;
+          case ServerGeminiEventType.MaxToolCallsExceeded:
+            handleErrorEvent(
+              {
+                error: {
+                  message: event.value.message,
+                },
+              },
+              userMessageTimestamp,
+            );
+            break;
+          case ServerGeminiEventType.ToolCallTokenBudgetExceeded:
+            handleErrorEvent(
+              {
+                error: {
+                  message: event.value.message,
+                },
+              },
+              userMessageTimestamp,
+            );
+            break;
           default: {
             // enforces exhaustive switch-case
             const unreachable: never = event;

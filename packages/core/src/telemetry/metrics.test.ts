@@ -12,14 +12,13 @@ import type {
   Context,
   Histogram,
 } from '@opentelemetry/api';
-import type { Config } from '../config/config.js';
 import {
   FileOperation,
   MemoryMetricType,
   ToolExecutionPhase,
   ApiRequestPhase,
 } from './metrics.js';
-import { makeFakeConfig } from '../test-utils/config.js';
+import { makeFakeConfig, createMockConfig } from '../test-utils/config.js';
 
 const mockCounterAddFn: Mock<
   (value: number, attributes?: Attributes, context?: Context) => void
@@ -151,10 +150,7 @@ describe('Telemetry Metrics', () => {
   });
 
   describe('recordTokenUsageMetrics', () => {
-    const mockConfig = {
-      getSessionId: () => 'test-session-id',
-      getTelemetryEnabled: () => true,
-    } as unknown as Config;
+    const mockConfig = createMockConfig();
 
     it('should not record metrics if not initialized', () => {
       recordTokenUsageMetricsModule(mockConfig, 100, {
@@ -243,10 +239,7 @@ describe('Telemetry Metrics', () => {
   });
 
   describe('recordFileOperationMetric', () => {
-    const mockConfig = {
-      getSessionId: () => 'test-session-id',
-      getTelemetryEnabled: () => true,
-    } as unknown as Config;
+    const mockConfig = createMockConfig();
 
     it('should not record metrics if not initialized', () => {
       recordFileOperationMetricModule(mockConfig, {
@@ -358,18 +351,15 @@ describe('Telemetry Metrics', () => {
   });
 
   describe('Performance Monitoring Metrics', () => {
-    const mockConfig = {
-      getSessionId: () => 'test-session-id',
-      getTelemetryEnabled: () => true,
-    } as unknown as Config;
+    const mockConfig = createMockConfig();
 
     describe('recordStartupPerformance', () => {
       it('should not record metrics when performance monitoring is disabled', async () => {
         // Re-import with performance monitoring disabled by mocking the config
-        const mockConfigDisabled = {
-          getSessionId: () => 'test-session-id',
+        const mockConfigDisabled = createMockConfig({
           getTelemetryEnabled: () => false, // Disable telemetry to disable performance monitoring
-        } as unknown as Config;
+          getPerformanceMonitoringEnabled: () => false,
+        });
 
         initializeMetricsModule(mockConfigDisabled);
         mockHistogramRecordFn.mockClear();

@@ -6,6 +6,8 @@
 
 // Node built-ins
 import type { EventEmitter } from 'node:events';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import process from 'node:process';
 
@@ -52,12 +54,14 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { canUseRipgrep } from '../utils/ripgrepUtils.js';
 import { RipGrepTool } from '../tools/ripGrep.js';
 import { ShellTool } from '../tools/shell.js';
+import { SkillTool } from '../tools/skillTool.js';
 import { SmartEditTool } from '../tools/smart-edit.js';
 import { TaskTool } from '../tools/task.js';
 import { TodoWriteTool } from '../tools/todoWrite.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
 import { WebSearchTool } from '../tools/web-search.js';
+import { WorkflowTool } from '../tools/workflowTool.js';
 import { WriteFileTool } from '../tools/write-file.js';
 
 // Other modules
@@ -65,6 +69,10 @@ import { ideContextStore } from '../ide/ideContext.js';
 import { OutputFormat } from '../output/types.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { SubagentManager } from '../subagents/subagent-manager.js';
+import { SkillManager } from '../skills/skill-manager.js';
+import { MemoryManager } from '../memory/memory-manager.js';
+import { WorkflowManager } from '../workflows/workflow-manager.js';
+import { TemplateManager } from '../marketplace/template-manager.js';
 import {
   DEFAULT_OTLP_ENDPOINT,
   DEFAULT_TELEMETRY_TARGET,
@@ -133,6 +141,7 @@ export interface TelemetrySettings {
   logPrompts?: boolean;
   outfile?: string;
   useCollector?: boolean;
+  performanceMonitoring?: boolean;
 }
 
 export interface OutputSettings {
@@ -263,6 +272,8 @@ export interface ConfigParameters {
   loadMemoryFromIncludeDirectories?: boolean;
   // Web search providers
   tavilyApiKey?: string;
+  webSearchProvider?: 'tavily' | 'mcp';
+  webSearchMcpServer?: string;
   chatCompression?: ChatCompressionSettings;
   interactive?: boolean;
   trustedFolder?: boolean;
@@ -274,6 +285,8 @@ export interface ConfigParameters {
   extensionManagement?: boolean;
   enablePromptCompletion?: boolean;
   skipLoopDetection?: boolean;
+  maxToolCallsPerTurn?: number;
+  maxToolCallTokensPerTurn?: number;
   vlmSwitchMode?: string;
   truncateToolOutputThreshold?: number;
   truncateToolOutputLines?: number;
@@ -287,6 +300,10 @@ export class Config {
   private toolRegistry!: ToolRegistry;
   private promptRegistry!: PromptRegistry;
   private subagentManager!: SubagentManager;
+  private skillManager!: SkillManager;
+  private memoryManager!: MemoryManager;
+  private workflowManager!: WorkflowManager;
+  private templateManager!: TemplateManager;
   private readonly sessionId: string;
   private fileSystemService: FileSystemService;
   private contentGeneratorConfig!: ContentGeneratorConfig;
@@ -302,6 +319,7 @@ export class Config {
   private readonly coreTools: string[] | undefined;
   private readonly allowedTools: string[] | undefined;
   private readonly excludeTools: string[] | undefined;
+  private allowedToolKindsInPlanMode: Set<string> = new Set();
   private readonly toolDiscoveryCommand: string | undefined;
   private readonly toolCallCommand: string | undefined;
   private readonly mcpServerCommand: string | undefined;
@@ -352,6 +370,8 @@ export class Config {
   private readonly experimentalZedIntegration: boolean = false;
   private readonly loadMemoryFromIncludeDirectories: boolean = false;
   private readonly tavilyApiKey?: string;
+  private readonly webSearchProvider?: 'tavily' | 'mcp';
+  private readonly webSearchMcpServer?: string;
   private readonly chatCompression: ChatCompressionSettings | undefined;
   private readonly interactive: boolean;
   private readonly trustedFolder: boolean | undefined;
@@ -363,6 +383,8 @@ export class Config {
   private readonly extensionManagement: boolean = true;
   private readonly enablePromptCompletion: boolean = false;
   private readonly skipLoopDetection: boolean;
+  private readonly maxToolCallsPerTurn: number;
+  private readonly maxToolCallTokensPerTurn: number;
   private readonly vlmSwitchMode: string | undefined;
   private initialized: boolean = false;
   readonly storage: Storage;
@@ -407,6 +429,7 @@ export class Config {
       logPrompts: params.telemetry?.logPrompts ?? true,
       outfile: params.telemetry?.outfile,
       useCollector: params.telemetry?.useCollector,
+      performanceMonitoring: params.telemetry?.performanceMonitoring ?? true,
     };
     this.gitCoAuthor = {
       enabled: params.gitCoAuthor?.enabled ?? true,
@@ -455,9 +478,13 @@ export class Config {
     this.interactive = params.interactive ?? false;
     this.trustedFolder = params.trustedFolder;
     this.skipLoopDetection = params.skipLoopDetection ?? false;
+    this.maxToolCallsPerTurn = params.maxToolCallsPerTurn ?? 15;
+    this.maxToolCallTokensPerTurn = params.maxToolCallTokensPerTurn ?? 10000;
 
     // Web search
     this.tavilyApiKey = params.tavilyApiKey;
+    this.webSearchProvider = params.webSearchProvider ?? 'tavily';
+    this.webSearchMcpServer = params.webSearchMcpServer ?? 'web-search';
     this.useRipgrep = params.useRipgrep ?? true;
     this.useBuiltinRipgrep = params.useBuiltinRipgrep ?? true;
     this.shouldUseNodePtyShell = params.shouldUseNodePtyShell ?? false;
@@ -515,6 +542,10 @@ export class Config {
     }
     this.promptRegistry = new PromptRegistry();
     this.subagentManager = new SubagentManager(this);
+    this.skillManager = new SkillManager(this);
+    this.memoryManager = new MemoryManager(process.cwd(), os.homedir());
+    this.workflowManager = new WorkflowManager(this);
+    this.templateManager = new TemplateManager(this);
     this.toolRegistry = await this.createToolRegistry();
 
     await this.geminiClient.initialize();
@@ -716,6 +747,14 @@ export class Config {
     return this.excludeTools;
   }
 
+  isToolKindAllowedInPlanMode(kind: string): boolean {
+    return this.allowedToolKindsInPlanMode.has(kind);
+  }
+
+  allowToolKindInPlanMode(kind: string): void {
+    this.allowedToolKindsInPlanMode.add(kind);
+  }
+
   getToolDiscoveryCommand(): string | undefined {
     return this.toolDiscoveryCommand;
   }
@@ -805,6 +844,10 @@ export class Config {
     return this.telemetrySettings.useCollector ?? false;
   }
 
+  getPerformanceMonitoringEnabled(): boolean {
+    return this.telemetrySettings.performanceMonitoring ?? true;
+  }
+
   getGeminiClient(): GeminiClient {
     return this.geminiClient;
   }
@@ -833,17 +876,59 @@ export class Config {
 
   /**
    * Gets custom file exclusion patterns from configuration.
-   * TODO: This is a placeholder implementation. In the future, this could
-   * read from settings files, CLI arguments, or environment variables.
+   * Reads from multiple sources in priority order:
+   * 1. .foraignore file in project directory
+   * 2. Global .foraignore file in home directory
+   * 3. Environment variable FORA_CUSTOM_EXCLUDES
    */
   getCustomExcludes(): string[] {
-    // Placeholder implementation - returns empty array for now
-    // Future implementation could read from:
-    // - User settings file
-    // - Project-specific configuration
-    // - Environment variables
-    // - CLI arguments
-    return [];
+    const patterns: string[] = [];
+
+    // 1. Try reading from .foraignore file in project directory
+    try {
+      const foraIgnorePath = path.join(this.targetDir, '.foraignore');
+      if (fs.existsSync(foraIgnorePath)) {
+        const content = fs.readFileSync(foraIgnorePath, 'utf-8');
+        const lines = content.split('\n');
+        lines.forEach((line: string) => {
+          const trimmed = line.trim();
+          // Skip empty lines and comments
+          if (trimmed && !trimmed.startsWith('#')) {
+            patterns.push(trimmed);
+          }
+        });
+      }
+    } catch (_error) {
+      // If file doesn't exist or can't be read, continue
+    }
+
+    // 2. Try reading from global .foraignore file
+    try {
+      const globalIgnorePath = path.join(os.homedir(), '.fora', '.foraignore');
+      if (fs.existsSync(globalIgnorePath)) {
+        const content = fs.readFileSync(globalIgnorePath, 'utf-8');
+        const lines = content.split('\n');
+        lines.forEach((line: string) => {
+          const trimmed = line.trim();
+          // Skip empty lines and comments
+          if (trimmed && !trimmed.startsWith('#')) {
+            patterns.push(trimmed);
+          }
+        });
+      }
+    } catch (_error) {
+      // If file doesn't exist or can't be read, continue
+    }
+
+    // 3. Read from environment variable
+    const envPatterns = process.env['FORA_CUSTOM_EXCLUDES'];
+    if (envPatterns) {
+      // Split by comma or semicolon
+      const envArray = envPatterns.split(/[,;]/).map((p) => p.trim());
+      patterns.push(...envArray.filter((p) => p.length > 0));
+    }
+
+    return patterns;
   }
 
   getCheckpointingEnabled(): boolean {
@@ -914,6 +999,14 @@ export class Config {
   // Web search provider configuration
   getTavilyApiKey(): string | undefined {
     return this.tavilyApiKey;
+  }
+
+  getWebSearchProvider(): 'tavily' | 'mcp' {
+    return this.webSearchProvider ?? 'tavily';
+  }
+
+  getWebSearchMcpServer(): string {
+    return this.webSearchMcpServer ?? 'web-search';
   }
 
   getIdeMode(): boolean {
@@ -1027,6 +1120,14 @@ export class Config {
     return this.skipLoopDetection;
   }
 
+  getMaxToolCallsPerTurn(): number {
+    return this.maxToolCallsPerTurn;
+  }
+
+  getMaxToolCallTokensPerTurn(): number {
+    return this.maxToolCallTokensPerTurn;
+  }
+
   getVlmSwitchMode(): string | undefined {
     return this.vlmSwitchMode;
   }
@@ -1075,6 +1176,22 @@ export class Config {
     return this.subagentManager;
   }
 
+  getSkillManager(): SkillManager {
+    return this.skillManager;
+  }
+
+  getMemoryManager(): MemoryManager {
+    return this.memoryManager;
+  }
+
+  getWorkflowManager(): WorkflowManager {
+    return this.workflowManager;
+  }
+
+  getTemplateManager(): TemplateManager {
+    return this.templateManager;
+  }
+
   async createToolRegistry(): Promise<ToolRegistry> {
     const registry = new ToolRegistry(this, this.eventEmitter);
 
@@ -1113,6 +1230,8 @@ export class Config {
     };
 
     registerCoreTool(TaskTool, this);
+    registerCoreTool(SkillTool, this);
+    registerCoreTool(WorkflowTool, this);
     registerCoreTool(LSTool, this);
     registerCoreTool(ReadFileTool, this);
 
@@ -1148,12 +1267,13 @@ export class Config {
     registerCoreTool(WriteFileTool, this);
     registerCoreTool(ReadManyFilesTool, this);
     registerCoreTool(ShellTool, this);
-    registerCoreTool(MemoryTool);
+    registerCoreTool(MemoryTool, this);
     registerCoreTool(TodoWriteTool, this);
     registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
-    // Conditionally register web search tool only if Tavily API key is set
-    if (this.getTavilyApiKey()) {
+    // Conditionally register web search tool if Tavily API key is set OR MCP provider is configured
+    const webSearchProvider = this.getWebSearchProvider();
+    if (webSearchProvider === 'mcp' || this.getTavilyApiKey()) {
       registerCoreTool(WebSearchTool, this);
     }
 
