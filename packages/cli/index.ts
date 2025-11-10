@@ -9,16 +9,16 @@
 import './src/gemini.js';
 import { main } from './src/gemini.js';
 import { FatalError } from '@jeffreysblake/foragen-cli-core';
-import { sanitizeSensitiveData } from './src/utils/errors.js';
 
 // --- Global Entry Point ---
 main().catch((error) => {
   if (error instanceof FatalError) {
-    const errorMessage = error.message;
+    // Log generic error to avoid exposing potentially sensitive error details
+    const genericMessage = 'An error occurred during execution.';
     if (!process.env['NO_COLOR']) {
-      console.error(`\x1b[31m${sanitizeSensitiveData(errorMessage)}\x1b[0m`);
+      console.error(`\x1b[31m${genericMessage}\x1b[0m`);
     } else {
-      console.error(sanitizeSensitiveData(errorMessage));
+      console.error(genericMessage);
     }
     process.exit(error.exitCode);
   }

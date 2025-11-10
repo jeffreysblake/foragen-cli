@@ -8,7 +8,6 @@ import type { Config } from '@jeffreysblake/foragen-cli-core';
 import {
   OutputFormat,
   JsonFormatter,
-  parseAndFormatApiError,
   FatalTurnLimitedError,
   FatalToolExecutionError,
   FatalCancellationError,
@@ -116,24 +115,21 @@ export function handleError(
   config: Config,
   customErrorCode?: string | number,
 ): never {
-  const errorMessage = parseAndFormatApiError(
-    error,
-    config.getContentGeneratorConfig()?.authType,
-  );
+  // Don't log error details to avoid exposing sensitive data
+  // Error details may contain API keys, tokens, or other credentials
 
   if (config.getOutputFormat() === OutputFormat.JSON) {
     const formatter = new JsonFormatter();
     const errorCode = customErrorCode ?? extractErrorCode(error);
 
-    const formattedError = formatter.formatError(
-      error instanceof Error ? error : new Error(getErrorMessage(error)),
-      errorCode,
-    );
+    // Create generic error without sensitive details
+    const genericError = new Error('An error occurred during execution.');
+    const formattedError = formatter.formatError(genericError, errorCode);
 
-    console.error(sanitizeSensitiveData(formattedError));
+    console.error(formattedError);
     process.exit(getNumericExitCode(errorCode));
   } else {
-    console.error(sanitizeSensitiveData(errorMessage));
+    console.error('An error occurred during execution.');
     throw error;
   }
 }
