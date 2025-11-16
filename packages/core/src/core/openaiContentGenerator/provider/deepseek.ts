@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { URL } from 'node:url';
 import type OpenAI from 'openai';
 import type { Config } from '../../../config/config.js';
 import type { ContentGeneratorConfig } from '../../contentGenerator.js';
@@ -21,8 +22,20 @@ export class DeepSeekOpenAICompatibleProvider extends DefaultOpenAICompatiblePro
     contentGeneratorConfig: ContentGeneratorConfig,
   ): boolean {
     const baseUrl = contentGeneratorConfig.baseUrl ?? '';
+    if (!baseUrl) {
+      return false;
+    }
 
-    return baseUrl.toLowerCase().includes('api.deepseek.com');
+    let hostname = '';
+    try {
+      hostname = new URL(baseUrl).hostname.toLowerCase();
+    } catch (_e) {
+      return false;
+    }
+
+    return (
+      hostname === 'api.deepseek.com' || hostname.endsWith('.api.deepseek.com')
+    );
   }
 
   override buildRequest(

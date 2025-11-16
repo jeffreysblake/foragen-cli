@@ -201,6 +201,15 @@ describe('ShellTool', () => {
       });
       expect(invocation.getDescription()).not.toContain('[background]');
     });
+
+    it('should default to foreground when is_background is not provided', () => {
+      const invocation = shellTool.build({
+        command: 'ls -la',
+      });
+      // Should not include [background] indicator, confirming default is false
+      expect(invocation.getDescription()).not.toContain('[background]');
+      expect(invocation.getDescription()).toBe('ls -la');
+    });
   });
 
   describe('execute', () => {

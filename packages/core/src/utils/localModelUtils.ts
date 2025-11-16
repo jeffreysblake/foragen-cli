@@ -63,7 +63,7 @@ export function isLocalModel(baseUrl?: string, model?: string): boolean {
     'ollama',
     'llama',
     'mistral',
-    'fora',
+    'fora2.5', // Match fora2.5 specifically (local models), not generic 'fora' (cloud models)
     'codellama',
     'vicuna',
     'alpaca',
@@ -92,33 +92,46 @@ export function getLocalModelTokenLimit(model: string): number {
   }
 
   // Model-specific limits based on common local deployments
+  // Strategy: Match size at the end or before common suffixes (-instruct, -chat, etc.)
   const modelLower = model.toLowerCase();
 
-  if (modelLower.includes('fora2.5-72b') || modelLower.includes('llama-70b')) {
-    return 80000; // Large models can handle more context
+  const sizeMap = new Map([
+    ['72', 32768],
+    ['70', 32768],
+    ['32', 16384],
+    ['30', 16384],
+    ['14', 8192],
+    ['13', 8192],
+    ['7', 4096],
+    ['3', 2048],
+    ['1.5', 2048],
+  ]);
+
+  // Match size at the end of the name or before common suffixes
+  // Pattern: number followed by 'b', then optionally followed by -, suffix, or end of string
+  const endPattern = /(\d+\.?\d*)b(?:-(?:instruct|chat|code|based|v\d)|$)/;
+  const endMatch = modelLower.match(endPattern);
+  if (endMatch && endMatch[1]) {
+    const limit = sizeMap.get(endMatch[1]);
+    if (limit) {
+      return limit;
+    }
   }
 
-  if (modelLower.includes('fora2.5-32b') || modelLower.includes('llama-30b')) {
-    return 80000;
+  // Fallback: find all size patterns and use the rightmost one
+  const matches = Array.from(modelLower.matchAll(/(\d+\.?\d*)b/g));
+  if (matches.length > 0) {
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const size = matches[i][1];
+      const limit = sizeMap.get(size);
+      if (limit) {
+        return limit;
+      }
+    }
   }
 
-  if (modelLower.includes('fora2.5-14b') || modelLower.includes('llama-13b')) {
-    return 80000;
-  }
-
-  if (modelLower.includes('fora2.5-7b') || modelLower.includes('llama-7b')) {
-    return 80000;
-  }
-
-  if (
-    modelLower.includes('fora2.5-3b') ||
-    modelLower.includes('fora2.5-1.5b')
-  ) {
-    return 80000; // Smaller models need conservative limits
-  }
-
-  // Conservative default for unknown local models - increased to 80k as requested
-  return 80000;
+  // Conservative default for unknown local models
+  return 8192;
 }
 
 /**
@@ -196,15 +209,15 @@ export function detectLocalModelCapabilities(): LocalModelConfig {
   if (totalMemory > 8e9) {
     // > 8GB
     config.maxConcurrentRequests = 4;
-    config.memoryConstraints!.maxContextSize = 80000;
+    config.memoryConstraints!.maxContextSize = 16384;
   } else if (totalMemory > 4e9) {
     // > 4GB
     config.maxConcurrentRequests = 2;
-    config.memoryConstraints!.maxContextSize = 80000;
+    config.memoryConstraints!.maxContextSize = 8192;
   } else {
     // < 4GB
     config.maxConcurrentRequests = 1;
-    config.memoryConstraints!.maxContextSize = 80000;
+    config.memoryConstraints!.maxContextSize = 4096;
     config.memoryConstraints!.aggressiveCompression = true;
   }
 
@@ -251,13 +264,17 @@ export function getCompressionThreshold(isLocal: boolean): number {
  * Gets optimal sampling parameters for local models
  */
 export function getLocalModelSamplingParams(): Record<string, unknown> {
+  const maxTokensEnv = process.env['LOCAL_MODEL_MAX_TOKENS'] || '1024';
+  const maxTokensParsed = parseInt(maxTokensEnv, 10);
+  const maxTokens = isNaN(maxTokensParsed) ? 1024 : maxTokensParsed;
+
   return {
     temperature: 0.3, // Lower temperature for more consistent local output
     top_p: 0.9,
     top_k: 40,
     repetition_penalty: 1.1, // Help prevent repetition in local models
     max_tokens: Math.min(
-      parseInt(process.env['LOCAL_MODEL_MAX_TOKENS'] || '1024', 10),
+      maxTokens,
       2048, // Hard cap to prevent memory issues
     ),
   };

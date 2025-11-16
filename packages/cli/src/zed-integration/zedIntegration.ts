@@ -454,6 +454,7 @@ class Session {
           case ToolConfirmationOutcome.ProceedAlways:
           case ToolConfirmationOutcome.ProceedAlwaysServer:
           case ToolConfirmationOutcome.ProceedAlwaysTool:
+          case ToolConfirmationOutcome.ProceedAlwaysToolKind:
           case ToolConfirmationOutcome.ModifyWithEditor:
             break;
           default: {

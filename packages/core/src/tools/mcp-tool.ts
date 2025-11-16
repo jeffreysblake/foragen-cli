@@ -200,6 +200,78 @@ class DiscoveredMCPToolInvocation extends BaseToolInvocation<
   }
 }
 
+/**
+ * Infer the Kind of an MCP tool based on its name and description.
+ * This helps classify tools correctly for plan mode and other features.
+ */
+function inferMcpToolKind(toolName: string, description: string): Kind {
+  const lowerName = toolName.toLowerCase();
+  const lowerDesc = description.toLowerCase();
+
+  // Check for web search tools
+  if (
+    lowerName.includes('search') ||
+    lowerName.includes('web') ||
+    lowerDesc.includes('search') ||
+    lowerDesc.includes('web search')
+  ) {
+    return Kind.Search;
+  }
+
+  // Check for read operations
+  if (
+    lowerName.includes('read') ||
+    lowerName.includes('get') ||
+    lowerName.includes('fetch') ||
+    lowerName.includes('list') ||
+    lowerDesc.includes('read') ||
+    lowerDesc.includes('retrieve')
+  ) {
+    return Kind.Read;
+  }
+
+  // Check for write/edit operations
+  if (
+    lowerName.includes('write') ||
+    lowerName.includes('update') ||
+    lowerName.includes('edit') ||
+    lowerName.includes('modify') ||
+    lowerDesc.includes('write') ||
+    lowerDesc.includes('update') ||
+    lowerDesc.includes('modify')
+  ) {
+    return Kind.Edit;
+  }
+
+  // Check for delete operations
+  if (
+    lowerName.includes('delete') ||
+    lowerName.includes('remove') ||
+    lowerDesc.includes('delete')
+  ) {
+    return Kind.Delete;
+  }
+
+  // Check for execute operations
+  if (
+    lowerName.includes('execute') ||
+    lowerName.includes('run') ||
+    lowerName.includes('exec') ||
+    lowerDesc.includes('execute') ||
+    lowerDesc.includes('run command')
+  ) {
+    return Kind.Execute;
+  }
+
+  // Check for fetch operations (HTTP/API)
+  if (lowerName.includes('fetch') || lowerDesc.includes('fetch')) {
+    return Kind.Fetch;
+  }
+
+  // Default to Other
+  return Kind.Other;
+}
+
 export class DiscoveredMCPTool extends BaseDeclarativeTool<
   ToolParams,
   ToolResult
@@ -213,12 +285,13 @@ export class DiscoveredMCPTool extends BaseDeclarativeTool<
     readonly trust?: boolean,
     nameOverride?: string,
     private readonly cliConfig?: Config,
+    kind?: Kind,
   ) {
     super(
       nameOverride ?? generateValidName(serverToolName),
       `${serverToolName} (${serverName} MCP Server)`,
       description,
-      Kind.Other,
+      kind ?? inferMcpToolKind(serverToolName, description),
       parameterSchema,
       true, // isOutputMarkdown
       false, // canUpdateOutput
@@ -235,6 +308,7 @@ export class DiscoveredMCPTool extends BaseDeclarativeTool<
       this.trust,
       `${this.serverName}__${this.serverToolName}`,
       this.cliConfig,
+      this.kind, // Preserve the kind
     );
   }
 

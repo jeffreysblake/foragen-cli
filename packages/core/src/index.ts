@@ -82,8 +82,20 @@ export * from './tools/tools.js';
 export * from './tools/tool-error.js';
 export * from './tools/tool-registry.js';
 
-// Export subagents (Phase 1)
+// Export Phase 1: Enhanced agents, skills, memory
 export * from './subagents/index.js';
+export * from './skills/index.js';
+export * from './memory/index.js';
+
+// Export Phase 2: Workflows and context optimization
+export * from './workflows/index.js';
+export * from './context/index.js';
+
+// Export Phase 3: Marketplace and templates
+export * from './marketplace/index.js';
+
+// Export Phase 4: Model routing
+export * from './routing/index.js';
 
 // Export prompt logic
 export * from './prompts/mcp-prompts.js';

@@ -37,9 +37,15 @@ export class DefaultOpenAICompatibleProvider
       maxRetries = DEFAULT_MAX_RETRIES,
     } = this.contentGeneratorConfig;
     const defaultHeaders = this.buildHeaders();
+
+    // Normalize baseURL to include /v1 suffix for OpenAI-compatible endpoints
+    // The OpenAI SDK will append paths like /chat/completions to this base URL
+    const normalizedBaseUrl =
+      baseUrl && !baseUrl.endsWith('/v1') ? `${baseUrl}/v1` : baseUrl;
+
     return new OpenAI({
       apiKey,
-      baseURL: baseUrl,
+      baseURL: normalizedBaseUrl,
       timeout,
       maxRetries,
       defaultHeaders,

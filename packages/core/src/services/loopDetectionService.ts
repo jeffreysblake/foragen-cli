@@ -23,11 +23,16 @@ import {
   isFunctionResponse,
 } from '../utils/messageInspectors.js';
 import { DEFAULT_FORA_MODEL } from '../config/models.js';
+import { debugLogger, LogCategory } from '../utils/debugLogger.js';
 
 const TOOL_CALL_LOOP_THRESHOLD = 5;
 const CONTENT_LOOP_THRESHOLD = 10;
 const CONTENT_CHUNK_SIZE = 50;
 const MAX_HISTORY_LENGTH = 1000;
+
+// Pattern detection: track recent tool calls to detect alternating patterns
+const PATTERN_DETECTION_WINDOW = 15;
+const PATTERN_REPETITION_THRESHOLD = 4;
 
 /**
  * The number of recent conversation turns to include in the history when asking the LLM to check for a loop.
@@ -80,6 +85,9 @@ export class LoopDetectionService {
   private lastToolCallKey: string | null = null;
   private toolCallRepetitionCount: number = 0;
 
+  // Pattern detection: track recent tool calls for alternating patterns
+  private recentToolCalls: string[] = [];
+
   // Content streaming tracking
   private streamContentHistory = '';
   private contentStats = new Map<string, number[]>();
@@ -104,6 +112,13 @@ export class LoopDetectionService {
    */
   disableForSession(): void {
     this.disabledForSession = true;
+    debugLogger.info(
+      LogCategory.LOOP_DETECTION,
+      'Loop detection disabled for session',
+      {
+        promptId: this.promptId,
+      },
+    );
     logLoopDetectionDisabled(
       this.config,
       new LoopDetectionDisabledEvent(this.promptId),
@@ -171,6 +186,14 @@ export class LoopDetectionService {
 
   private checkToolCallLoop(toolCall: { name: string; args: object }): boolean {
     const key = this.getToolCallKey(toolCall);
+
+    // Add to recent tool calls for pattern detection
+    this.recentToolCalls.push(key);
+    if (this.recentToolCalls.length > PATTERN_DETECTION_WINDOW) {
+      this.recentToolCalls.shift();
+    }
+
+    // Check for consecutive identical calls
     if (this.lastToolCallKey === key) {
       this.toolCallRepetitionCount++;
     } else {
@@ -178,6 +201,16 @@ export class LoopDetectionService {
       this.toolCallRepetitionCount = 1;
     }
     if (this.toolCallRepetitionCount >= TOOL_CALL_LOOP_THRESHOLD) {
+      debugLogger.warn(
+        LogCategory.LOOP_DETECTION,
+        'Consecutive identical tool calls detected',
+        {
+          toolCall: key,
+          repetitionCount: this.toolCallRepetitionCount,
+          threshold: TOOL_CALL_LOOP_THRESHOLD,
+          promptId: this.promptId,
+        },
+      );
       logLoopDetected(
         this.config,
         new LoopDetectedEvent(
@@ -187,7 +220,74 @@ export class LoopDetectionService {
       );
       return true;
     }
+
+    // Check for alternating patterns (e.g., A→B→A→B or A→B→C→A→B→C)
+    if (this.checkAlternatingPattern()) {
+      logLoopDetected(
+        this.config,
+        new LoopDetectedEvent(
+          LoopType.CONSECUTIVE_IDENTICAL_TOOL_CALLS, // Reuse existing type for now
+          this.promptId,
+        ),
+      );
+      return true;
+    }
+
     return false;
+  }
+
+  /**
+   * Detects alternating patterns in recent tool calls.
+   * Looks for repeating sequences like A→B→A→B or A→B→C→A→B→C.
+   */
+  private checkAlternatingPattern(): boolean {
+    const windowSize = this.recentToolCalls.length;
+    if (windowSize < 6) {
+      // Need at least 6 calls to detect a pattern (2-3 tools × 3 repetitions)
+      return false;
+    }
+
+    // Try pattern lengths from 2 to 5 (e.g., [A,B] to [A,B,C,D,E])
+    for (let patternLength = 2; patternLength <= 5; patternLength++) {
+      if (windowSize < patternLength * PATTERN_REPETITION_THRESHOLD) {
+        continue; // Not enough calls for this pattern length
+      }
+
+      // Extract the candidate pattern from the most recent calls
+      const pattern = this.recentToolCalls.slice(-patternLength);
+      let repetitions = 1;
+
+      // Check if this pattern repeats going backwards
+      for (
+        let i = windowSize - patternLength - 1;
+        i >= patternLength - 1;
+        i -= patternLength
+      ) {
+        const segment = this.recentToolCalls.slice(
+          i - patternLength + 1,
+          i + 1,
+        );
+        if (this.arraysEqual(segment, pattern)) {
+          repetitions++;
+        } else {
+          break; // Pattern doesn't match, stop checking
+        }
+      }
+
+      if (repetitions >= PATTERN_REPETITION_THRESHOLD) {
+        return true; // Found a repeating pattern
+      }
+    }
+
+    return false;
+  }
+
+  private arraysEqual(a: string[], b: string[]): boolean {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
   }
 
   /**
@@ -206,12 +306,12 @@ export class LoopDetectionService {
     // To avoid false positives, we detect when we encounter different content types and
     // reset tracking to avoid analyzing content that spans across different element boundaries.
     const numFences = (content.match(/```/g) ?? []).length;
-    const hasTable = /(^|\n)\s*(\|.*\||[|+-]{3,})/.test(content);
+    const hasTable = /(^|\n)\s*(\|.*\||[-+|]{3,})/.test(content);
     const hasListItem =
       /(^|\n)\s*[*-+]\s/.test(content) || /(^|\n)\s*\d+\.\s/.test(content);
     const hasHeading = /(^|\n)#+\s/.test(content);
     const hasBlockquote = /(^|\n)>\s/.test(content);
-    const isDivider = /^[+-_=*\u2500-\u257F]+$/.test(content);
+    const isDivider = /^[-+_=*\u2500-\u257F]+$/.test(content);
 
     if (
       numFences ||
@@ -291,6 +391,16 @@ export class LoopDetectionService {
       const chunkHash = createHash('sha256').update(currentChunk).digest('hex');
 
       if (this.isLoopDetectedForChunk(currentChunk, chunkHash)) {
+        debugLogger.warn(
+          LogCategory.LOOP_DETECTION,
+          'Content loop detected - repetitive text chunks',
+          {
+            chunkSize: CONTENT_CHUNK_SIZE,
+            threshold: CONTENT_LOOP_THRESHOLD,
+            promptId: this.promptId,
+            sampleChunk: currentChunk.substring(0, 100), // First 100 chars for context
+          },
+        );
         logLoopDetected(
           this.config,
           new LoopDetectedEvent(
@@ -390,6 +500,16 @@ export class LoopDetectionService {
   }
 
   private async checkForLoopWithLLM(signal: AbortSignal) {
+    debugLogger.info(
+      LogCategory.LOOP_DETECTION,
+      'Running LLM-based loop detection',
+      {
+        turn: this.turnsInCurrentPrompt,
+        interval: this.llmCheckInterval,
+        promptId: this.promptId,
+      },
+    );
+
     const recentHistory = this.config
       .getGeminiClient()
       .getHistory()
@@ -431,26 +551,52 @@ export class LoopDetectionService {
       });
     } catch (e) {
       // Do nothing, treat it as a non-loop.
-      this.config.getDebugMode() ? console.error(e) : console.debug(e);
+      debugLogger.warn(
+        LogCategory.LOOP_DETECTION,
+        'LLM loop detection failed',
+        {
+          error: e instanceof Error ? e.message : String(e),
+          promptId: this.promptId,
+        },
+      );
       return false;
     }
 
     if (typeof result['confidence'] === 'number') {
       if (result['confidence'] > 0.9) {
-        if (typeof result['reasoning'] === 'string' && result['reasoning']) {
-          console.warn(result['reasoning']);
-        }
+        const reasoning =
+          typeof result['reasoning'] === 'string' ? result['reasoning'] : '';
+        debugLogger.warn(
+          LogCategory.LOOP_DETECTION,
+          'LLM detected loop with high confidence',
+          {
+            confidence: result['confidence'],
+            reasoning,
+            promptId: this.promptId,
+          },
+        );
         logLoopDetected(
           this.config,
           new LoopDetectedEvent(LoopType.LLM_DETECTED_LOOP, this.promptId),
         );
         return true;
       } else {
-        this.llmCheckInterval = Math.round(
+        const newInterval = Math.round(
           MIN_LLM_CHECK_INTERVAL +
             (MAX_LLM_CHECK_INTERVAL - MIN_LLM_CHECK_INTERVAL) *
               (1 - result['confidence']),
         );
+        debugLogger.debug(
+          LogCategory.LOOP_DETECTION,
+          'LLM loop check completed - no loop detected',
+          {
+            confidence: result['confidence'],
+            oldInterval: this.llmCheckInterval,
+            newInterval,
+            promptId: this.promptId,
+          },
+        );
+        this.llmCheckInterval = newInterval;
       }
     }
     return false;

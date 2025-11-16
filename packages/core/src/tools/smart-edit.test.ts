@@ -634,8 +634,8 @@ describe('SmartEditTool', () => {
         await confirmation.onConfirm(ToolConfirmationOutcome.ProceedOnce);
       }
 
-      expect(params.old_string).toBe(initialContent);
-      expect(params.new_string).toBe(modifiedContent);
+      expect(invocation.params.old_string).toBe(initialContent);
+      expect(invocation.params.new_string).toBe(modifiedContent);
     });
   });
 

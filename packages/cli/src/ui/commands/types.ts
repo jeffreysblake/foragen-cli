@@ -6,7 +6,11 @@
 
 import type { ReactNode } from 'react';
 import type { Content, PartListUnion } from '@google/genai';
-import type { Config, GitService, Logger } from '@jeffreysblake/foragen-cli-core';
+import type {
+  Config,
+  GitService,
+  Logger,
+} from '@jeffreysblake/foragen-cli-core';
 import type {
   HistoryItemWithoutId,
   HistoryItem,
@@ -129,7 +133,20 @@ export interface OpenDialogActionReturn {
     | 'model'
     | 'subagent_create'
     | 'subagent_list'
-    | 'permissions';
+    | 'permissions'
+    | 'skill_list'
+    | 'skill_create'
+    | 'skill_edit'
+    | 'skill_execute'
+    | 'memory_search'
+    | 'memory_analytics'
+    | 'memory_cleanup'
+    | 'memory_export'
+    | 'workflow_list'
+    | 'workflow_create'
+    | 'workflow_edit'
+    | 'workflow_execute'
+    | 'workflow_status';
 }
 
 /**

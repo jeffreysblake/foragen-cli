@@ -59,6 +59,8 @@ export enum GeminiEventType {
   LoopDetected = 'loop_detected',
   Citation = 'citation',
   Retry = 'retry',
+  MaxToolCallsExceeded = 'max_tool_calls_exceeded',
+  ToolCallTokenBudgetExceeded = 'tool_call_token_budget_exceeded',
 }
 
 export type ServerGeminiRetryEvent = {
@@ -194,6 +196,28 @@ export type ServerGeminiCitationEvent = {
   value: string;
 };
 
+export interface MaxToolCallsExceededValue {
+  currentCalls: number;
+  limit: number;
+  message: string;
+}
+
+export type ServerGeminiMaxToolCallsExceededEvent = {
+  type: GeminiEventType.MaxToolCallsExceeded;
+  value: MaxToolCallsExceededValue;
+};
+
+export interface ToolCallTokenBudgetExceededValue {
+  currentTokens: number;
+  limit: number;
+  message: string;
+}
+
+export type ServerGeminiToolCallTokenBudgetExceededEvent = {
+  type: GeminiEventType.ToolCallTokenBudgetExceeded;
+  value: ToolCallTokenBudgetExceededValue;
+};
+
 // The original union type, now composed of the individual types
 export type ServerGeminiStreamEvent =
   | ServerGeminiChatCompressedEvent
@@ -203,10 +227,12 @@ export type ServerGeminiStreamEvent =
   | ServerGeminiFinishedEvent
   | ServerGeminiLoopDetectedEvent
   | ServerGeminiMaxSessionTurnsEvent
+  | ServerGeminiMaxToolCallsExceededEvent
   | ServerGeminiThoughtEvent
   | ServerGeminiToolCallConfirmationEvent
   | ServerGeminiToolCallRequestEvent
   | ServerGeminiToolCallResponseEvent
+  | ServerGeminiToolCallTokenBudgetExceededEvent
   | ServerGeminiUserCancelledEvent
   | ServerGeminiSessionTokenLimitExceededEvent
   | ServerGeminiRetryEvent;

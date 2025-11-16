@@ -781,6 +781,8 @@ export async function loadCliConfig(
       argv.tavilyApiKey ||
       settings.advanced?.tavilyApiKey ||
       process.env['TAVILY_API_KEY'],
+    webSearchProvider: settings.advanced?.webSearchProvider ?? 'tavily',
+    webSearchMcpServer: settings.advanced?.webSearchMcpServer ?? 'web-search',
     summarizeToolOutput: settings.model?.summarizeToolOutput,
     ideMode,
     chatCompression: settings.model?.chatCompression,
@@ -793,6 +795,8 @@ export async function loadCliConfig(
     skipNextSpeakerCheck: settings.model?.skipNextSpeakerCheck,
     enablePromptCompletion: settings.general?.enablePromptCompletion ?? false,
     skipLoopDetection: settings.model?.skipLoopDetection ?? false,
+    maxToolCallsPerTurn: settings.model?.maxToolCallsPerTurn,
+    maxToolCallTokensPerTurn: settings.model?.maxToolCallTokensPerTurn,
     vlmSwitchMode,
     truncateToolOutputThreshold: settings.tools?.truncateToolOutputThreshold,
     truncateToolOutputLines: settings.tools?.truncateToolOutputLines,

@@ -17,7 +17,11 @@ import type {
   Config,
   EditorType,
 } from '@jeffreysblake/foragen-cli-core';
-import { IdeClient, ToolConfirmationOutcome } from '@jeffreysblake/foragen-cli-core';
+import {
+  IdeClient,
+  ToolConfirmationOutcome,
+  ApprovalMode,
+} from '@jeffreysblake/foragen-cli-core';
 import type { RadioSelectItem } from '../shared/RadioButtonSelect.js';
 import { RadioButtonSelect } from '../shared/RadioButtonSelect.js';
 import { MaxSizedBox } from '../shared/MaxSizedBox.js';
@@ -316,6 +320,17 @@ export const ToolConfirmationMessage: React.FC<
         label: 'Yes, allow always',
         value: ToolConfirmationOutcome.ProceedAlways,
         key: 'Yes, allow always',
+      });
+    }
+    // In plan mode, show option to allow this tool kind in plan mode
+    if (infoProps.toolKind && config.getApprovalMode() === ApprovalMode.PLAN) {
+      const kindLabel =
+        infoProps.toolKind.charAt(0).toUpperCase() +
+        infoProps.toolKind.slice(1);
+      options.push({
+        label: `Don't ask again for ${kindLabel} tools in plan mode`,
+        value: ToolConfirmationOutcome.ProceedAlwaysToolKind,
+        key: `Don't ask again for ${kindLabel} tools in plan mode`,
       });
     }
     options.push({
